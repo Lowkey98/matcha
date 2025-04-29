@@ -1,5 +1,10 @@
-npm -v 9.6.3
-node -v v19.9.0
+# matcha
+
+a web app for matching people together, depending on their preference and common interest.
+initial project setup:
+  versions:
+    npm -v 9.6.3
+    node -v v19.9.0
 
 npm create vite@latest . -- --template react
 
