@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import Register from "./routes/Register";
 
 function App() {
