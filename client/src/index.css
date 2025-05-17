@@ -3,5 +3,13 @@
 @theme {
   --color-primary: #ea3a90;
   --color-secondary: #25265d;
+  --color-grayDark: #acacac;
+  --color-grayDark-100: #eeeeee;
+  --color-grayLight: #f9f9f9;
+  --color-redLight: #ff5c5e;
   --font-poppins: "Poppins", "sans-serif";
+}
+
+body {
+  @apply font-poppins;
 }
