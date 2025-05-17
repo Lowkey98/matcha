@@ -3,16 +3,18 @@ import { ExclamationIcon, EyeCloseIcon, EyeOpenIcon } from "../Icons";
 export default function FormInputField({
   label,
   placeholder,
+  className,
 }: {
   label: string;
   placeholder?: string;
+  className?: string;
 }) {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   function handleClickShowPassword() {
     setShowPassword(!showPassword);
   }
   return (
-    <div>
+    <div className={className}>
       <label className="text-secondary font-medium">{label}</label>
       <div className="border-secondary mt-2 flex items-center rounded-lg border-2 pr-3">
         <input
