@@ -29,7 +29,8 @@ export function isValidConfirmedPassword({
   confirmedPassword: string;
 }): string | null {
   if (isEmpty(confirmedPassword)) return "This field is required.";
-  if (isValidPassword(password) || password !== confirmedPassword)
+  const checkErrorPassword: string | null = isValidPassword(password);
+  if (checkErrorPassword || password !== confirmedPassword)
     return "Passwords do not match.";
 
   return null;

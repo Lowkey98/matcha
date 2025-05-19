@@ -6,7 +6,7 @@ export default function FormInputField({
   className,
   setPasswordValue,
   errorPassword,
-  formTrail,
+  setErrorPassword,
   required,
 }: {
   label: string;
@@ -14,7 +14,7 @@ export default function FormInputField({
   className?: string;
   setPasswordValue: React.Dispatch<React.SetStateAction<string>>;
   errorPassword: string | null;
-  formTrail: boolean;
+  setErrorPassword: React.Dispatch<React.SetStateAction<string | null>>;
   required?: boolean;
 }) {
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -25,6 +25,7 @@ export default function FormInputField({
     event: React.ChangeEvent<HTMLInputElement>,
   ) {
     setPasswordValue(event.target.value);
+    setErrorPassword(null);
   }
   return (
     <div className={className}>
@@ -33,7 +34,7 @@ export default function FormInputField({
         {required ? <span className="text-redLight ml-0.5">*</span> : null}
       </label>
       <div
-        className={`mt-2 flex items-center rounded-lg border-2 pr-3 ${formTrail && errorPassword ? "border-redLight" : "border-secondary"}`}
+        className={`mt-2 flex items-center rounded-lg border-2 pr-3 ${errorPassword ? "border-redLight" : "border-secondary"}`}
       >
         <input
           type={`${showPassword ? "text" : "password"}`}
@@ -41,7 +42,7 @@ export default function FormInputField({
           className="text-secondary w-full p-3 outline-0 placeholder:text-sm placeholder:text-gray-300"
           onChange={handleChangePasswordValue}
         />
-        {formTrail && errorPassword ? (
+        {errorPassword ? (
           <ExclamationIcon className="fill-redLight h-5 w-5" />
         ) : (
           <button
@@ -57,7 +58,7 @@ export default function FormInputField({
           </button>
         )}
       </div>
-      {formTrail && errorPassword ? (
+      {errorPassword ? (
         <span className="text-redLight float-right mt-2 text-sm">
           {errorPassword}
         </span>

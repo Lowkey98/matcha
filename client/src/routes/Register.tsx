@@ -19,27 +19,39 @@ export default function Register() {
   const [lastName, setLastName] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
+  const [errorPassword, setErrorPassword] = useState<string | null>(null);
+  const [errorConfirmPassword, setErrorConfirmPassword] = useState<
+    string | null
+  >(null);
   const [formTrail, setFormTrial] = useState<boolean>(false);
   const errorEmail: string | null = isValidEmail(email);
   const errorUserName: string | null = isValidUsername(userName);
   const errorFirstName: string | null = isValidName(firstName);
   const errorLastName: string | null = isValidName(lastName);
-  const errorPassword: string | null = isValidPassword(password);
-  const errorConfirmPassword: string | null = isValidConfirmedPassword({
-    password,
-    confirmedPassword: confirmPassword,
-  });
 
   function handleClickCreateAccount() {
     let errorForm: boolean = false;
-    if (
-      errorEmail ||
-      errorUserName ||
-      errorFirstName ||
-      errorLastName ||
-      errorPassword ||
-      errorConfirmPassword
-    ) {
+    const checkErrorPassword: string | null = isValidPassword(password);
+    const checkErrorConfirmPassword: string | null = isValidConfirmedPassword({
+      password,
+      confirmedPassword: confirmPassword,
+    });
+    if (checkErrorPassword) {
+      setErrorPassword(checkErrorPassword);
+      errorForm = true;
+    } else {
+      setErrorPassword(null);
+      errorForm = false;
+    }
+    if (checkErrorConfirmPassword) {
+      setErrorConfirmPassword(checkErrorConfirmPassword);
+      errorForm = true;
+    } else {
+      setErrorConfirmPassword(null);
+      errorForm = false;
+    }
+
+    if (errorEmail || errorUserName || errorFirstName || errorLastName) {
       setFormTrial(true);
       errorForm = true;
     }
@@ -114,7 +126,7 @@ export default function Register() {
               className="lg:w-[48%]"
               setPasswordValue={setPassword}
               errorPassword={errorPassword}
-              formTrail={formTrail}
+              setErrorPassword={setErrorPassword}
               required
             />
             <PasswordFormField
@@ -123,7 +135,7 @@ export default function Register() {
               className="lg:w-[48%]"
               setPasswordValue={setConfirmPassword}
               errorPassword={errorConfirmPassword}
-              formTrail={formTrail}
+              setErrorPassword={setErrorConfirmPassword}
               required
             />
           </div>
