@@ -21,11 +21,13 @@ export default function FormInputField({
   function handleClickShowPassword() {
     setShowPassword(!showPassword);
   }
+  function handleFocusInputPassword() {
+    setErrorPassword(null);
+  }
   function handleChangePasswordValue(
     event: React.ChangeEvent<HTMLInputElement>,
   ) {
     setPasswordValue(event.target.value);
-    setErrorPassword(null);
   }
   return (
     <div className={className}>
@@ -41,6 +43,7 @@ export default function FormInputField({
           placeholder={placeholder}
           className="text-secondary w-full p-3 outline-0 placeholder:text-sm placeholder:text-gray-300"
           onChange={handleChangePasswordValue}
+          onFocus={handleFocusInputPassword}
         />
         {errorPassword ? (
           <ExclamationIcon className="fill-redLight h-5 w-5" />
