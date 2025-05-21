@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useState } from "react";
 import InputFormField from "../components/FormFields/InputFormField";
 import PasswordFormField from "../components/FormFields/PasswordFormField";
@@ -33,7 +34,7 @@ export default function Login() {
   }
 
   return (
-    <main className="mx-auto flex h-screen min-w-xs flex-col justify-center px-5 py-12 lg:max-w-96 lg:px-0">
+    <main className="mx-auto flex h-screen min-w-xs flex-col justify-center px-5 lg:max-w-96 lg:px-0">
       <img src="/logo.svg" alt="logo" className="mx-auto w-52" />
       <div className="mt-16">
         <div className="flex flex-col">
@@ -42,9 +43,12 @@ export default function Login() {
             <span className="lg:text-md text-sm font-light text-gray-300">
               Don't have an account ?
             </span>
-            <a className="text-primary lg:text-md ml-1 border-b text-sm font-medium">
+            <Link
+              to="/register"
+              className="text-primary lg:text-md ml-1 border-b text-sm font-medium"
+            >
               Sign up
-            </a>
+            </Link>
           </div>
         </div>
         <form className="mt-12 flex flex-col">
@@ -66,9 +70,14 @@ export default function Login() {
                 setErrorPassword={setErrorPassword}
                 required
               />
-              <span className="text-secondary float-right mt-2 border-b-2 pb-1 text-sm">
-                Forget password
-              </span>
+              <div className="flex justify-end">
+                <Link
+                  to="/forgetPassword"
+                  className="text-secondary mt-2 border-b-2 pb-1 text-sm"
+                >
+                  Forget password
+                </Link>
+              </div>
             </div>
           </div>
           <div className="mt-12 flex flex-col gap-5">

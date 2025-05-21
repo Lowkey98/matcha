@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useState } from "react";
 import InputFormField from "../components/FormFields/InputFormField";
 import PasswordFormField from "../components/FormFields/PasswordFormField";
@@ -82,9 +83,12 @@ export default function Register() {
                 <span className="lg:text-md text-sm font-light text-gray-300">
                   Already have an account ?
                 </span>
-                <a className="text-primary lg:text-md ml-1 border-b text-sm font-medium">
+                <Link
+                  to="/login"
+                  className="text-primary lg:text-md ml-1 border-b text-sm font-medium"
+                >
                   Login
-                </a>
+                </Link>
               </div>
             </div>
             <form className="mt-12 flex flex-col">

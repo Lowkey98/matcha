@@ -62,9 +62,9 @@ export default function FormInputField({
         )}
       </div>
       {errorPassword ? (
-        <span className="text-redLight float-right mt-2 text-sm">
-          {errorPassword}
-        </span>
+        <div className="flex justify-end">
+          <span className="text-redLight mt-2 text-sm">{errorPassword}</span>
+        </div>
       ) : null}
     </div>
   );
