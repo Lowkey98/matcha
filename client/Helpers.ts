@@ -1,7 +1,7 @@
 export function isValidEmail(email: string): string | null {
   if (isEmpty(email)) return "This field is required.";
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email.trim())) return "Email format is incorrect";
+  if (!emailRegex.test(email.trim())) return "Email format is incorrect.";
   return null;
 }
 export function isValidUsername(username: string): string | null {
