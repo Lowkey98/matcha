@@ -39,9 +39,9 @@ export default function FormInputField({
         )}
       </div>
       {formTrail && errorInput && (
-        <span className="text-redLight float-right mt-2 text-sm">
-          {errorInput}
-        </span>
+        <div className="flex justify-end">
+          <span className="text-redLight mt-2 text-sm">{errorInput}</span>
+        </div>
       )}
     </div>
   );

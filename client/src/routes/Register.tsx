@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useState } from "react";
 import InputFormField from "../components/FormFields/InputFormField";
 import PasswordFormField from "../components/FormFields/PasswordFormField";
@@ -82,13 +83,16 @@ export default function Register() {
                 <span className="lg:text-md text-sm font-light text-gray-300">
                   Already have an account ?
                 </span>
-                <a className="text-primary lg:text-md ml-1 border-b text-sm font-medium">
+                <Link
+                  to="/login"
+                  className="text-primary lg:text-md ml-1 border-b text-sm font-medium"
+                >
                   Login
-                </a>
+                </Link>
               </div>
             </div>
             <form className="mt-12 flex flex-col">
-              <div className="flex flex-col justify-between gap-8 lg:flex-row lg:flex-wrap lg:gap-0 lg:gap-y-7">
+              <div className="flex flex-col gap-8 lg:flex-row lg:flex-wrap lg:justify-between lg:gap-0 lg:gap-y-7">
                 <InputFormField
                   label="Email"
                   placeholder="e.g., john.doe@example.com"
@@ -173,7 +177,11 @@ export default function Register() {
               We've sent a confirmation link to your email. Please verify it to
               activate your account.
             </p>
-            <ButtonPrimary value="Continue" className="mt-12 w-64" />
+            <ButtonPrimary
+              type="button"
+              value="Continue"
+              className="mt-12 w-64"
+            />
           </div>
         </div>
       )}
