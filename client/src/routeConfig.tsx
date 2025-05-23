@@ -4,6 +4,7 @@ import ErrorBoundary from "./ErrorBoundary";
 import Register from "./routes/Register";
 import Login from "./routes/Login";
 import ForgetPassword from "./routes/ForgetPassword";
+import ResetPassword from "./routes/ResetPassword";
 const routeConfig = [
   {
     path: "/",
@@ -29,6 +30,10 @@ const routeConfig = [
       {
         path: "/forgetPassword",
         element: <ForgetPassword />,
+      },
+      {
+        path: "/resetPassword",
+        element: <ResetPassword />,
       },
     ],
   },
