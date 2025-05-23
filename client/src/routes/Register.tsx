@@ -12,7 +12,6 @@ import {
   isValidUsername,
   isValidConfirmedPassword,
 } from "../../Helpers";
-import ButtonPrimary from "../components/Buttons/ButtonPrimary";
 import EmailSent from "../components/EmailSent";
 
 export default function Register() {
@@ -132,7 +131,7 @@ export default function Register() {
                 />
                 <PasswordFormField
                   label="Password"
-                  placeholder="e.g., Enter a strong password"
+                  placeholder="Enter a strong password"
                   className="lg:w-[48%]"
                   setPasswordValue={setPassword}
                   errorPassword={errorPassword}
@@ -141,7 +140,7 @@ export default function Register() {
                 />
                 <PasswordFormField
                   label="Confirm password"
-                  placeholder="e.g., Renter your password"
+                  placeholder="Renter your password"
                   className="lg:w-[48%]"
                   setPasswordValue={setConfirmPassword}
                   errorPassword={errorConfirmPassword}
