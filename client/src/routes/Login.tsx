@@ -70,10 +70,10 @@ export default function Login() {
                 setErrorPassword={setErrorPassword}
                 required
               />
-              <div className="flex justify-end">
+              <div className="mt-2 flex justify-end">
                 <Link
                   to="/forgetPassword"
-                  className="text-secondary mt-2 border-b-2 pb-1 text-sm"
+                  className="text-secondary border-b-2 pb-1 text-sm"
                 >
                   Forget password
                 </Link>
