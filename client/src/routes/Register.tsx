@@ -5,6 +5,8 @@ import PasswordFormField from "../components/FormFields/PasswordFormField";
 import ButtonPrimaryWithIcon from "../components//Buttons/ButtonPrimaryWithIcon";
 import ButtonSecondaryWithIcon from "../components//Buttons/ButtonSecondaryWithIcon";
 import { AddUserIcon, EmailSentIcon, GoogleIcon } from "../components/Icons";
+import { Helmet } from "react-helmet";
+
 import {
   isValidEmail,
   isValidName,
@@ -72,103 +74,108 @@ export default function Register() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl min-w-xs px-5 py-12 lg:h-screen lg:px-0">
-      {!showEmailSent ? (
-        <div className="lg:flex lg:h-full lg:flex-col lg:justify-center">
-          <img src="/logo.svg" alt="logo" className="mx-auto w-52" />
-          <div className="mt-16">
-            <div className="flex flex-col lg:flex-row lg:justify-between">
-              <h1 className="text-secondary text-2xl font-bold">Sign up</h1>
-              <div>
-                <span className="lg:text-md text-sm font-light text-gray-300">
-                  Already have an account ?
-                </span>
-                <Link
-                  to="/login"
-                  className="text-primary lg:text-md ml-1 border-b text-sm font-medium"
-                >
-                  Login
-                </Link>
+    <>
+      <Helmet>
+        <title>Matcha - Register</title>
+      </Helmet>
+      <main className="mx-auto max-w-3xl min-w-xs px-5 py-12 lg:h-screen lg:px-0">
+        {!showEmailSent ? (
+          <div className="lg:flex lg:h-full lg:flex-col lg:justify-center">
+            <img src="/logo.svg" alt="logo" className="mx-auto w-52" />
+            <div className="mt-16">
+              <div className="flex flex-col lg:flex-row lg:justify-between">
+                <h1 className="text-secondary text-2xl font-bold">Sign up</h1>
+                <div>
+                  <span className="lg:text-md text-sm font-light text-gray-300">
+                    Already have an account ?
+                  </span>
+                  <Link
+                    to="/login"
+                    className="text-primary lg:text-md ml-1 border-b text-sm font-medium"
+                  >
+                    Login
+                  </Link>
+                </div>
               </div>
+              <form className="mt-12 flex flex-col">
+                <div className="flex flex-col gap-8 lg:flex-row lg:flex-wrap lg:justify-between lg:gap-0 lg:gap-y-7">
+                  <InputFormField
+                    label="Email"
+                    placeholder="e.g., john.doe@example.com"
+                    className="lg:w-[48%]"
+                    setInputValue={setEmail}
+                    errorInput={errorEmail}
+                    formTrail={formTrail}
+                    required
+                  />
+                  <InputFormField
+                    label="Username"
+                    placeholder="e.g., johndoe123"
+                    className="lg:w-[48%]"
+                    setInputValue={setUserName}
+                    errorInput={errorUserName}
+                    formTrail={formTrail}
+                    required
+                  />
+                  <InputFormField
+                    label="First name"
+                    placeholder="e.g., johndoe123"
+                    className="lg:w-[48%]"
+                    setInputValue={setFirstName}
+                    errorInput={errorFirstName}
+                    formTrail={formTrail}
+                    required
+                  />
+                  <InputFormField
+                    label="Last name"
+                    placeholder="e.g., johndoe123"
+                    className="lg:w-[48%]"
+                    setInputValue={setLastName}
+                    errorInput={errorLastName}
+                    formTrail={formTrail}
+                    required
+                  />
+                  <PasswordFormField
+                    label="Password"
+                    placeholder="Enter a strong password"
+                    className="lg:w-[48%]"
+                    setPasswordValue={setPassword}
+                    errorPassword={errorPassword}
+                    setErrorPassword={setErrorPassword}
+                    required
+                  />
+                  <PasswordFormField
+                    label="Confirm password"
+                    placeholder="Renter your password"
+                    className="lg:w-[48%]"
+                    setPasswordValue={setConfirmPassword}
+                    errorPassword={errorConfirmPassword}
+                    setErrorPassword={setErrorConfirmPassword}
+                    required
+                  />
+                </div>
+                <div className="mt-12 flex flex-col gap-5 lg:flex-row-reverse lg:justify-between lg:gap-0">
+                  <ButtonPrimaryWithIcon
+                    type="submit"
+                    icon={<AddUserIcon className="h-5.5 w-5.5 fill-white" />}
+                    value="Create account"
+                    className="w-full lg:w-[48%]"
+                    onClick={handleClickCreateAccount}
+                  />
+                  <ButtonSecondaryWithIcon
+                    type="button"
+                    icon={<GoogleIcon className="h-5.5 w-5.5 fill-white" />}
+                    value="Create account with google"
+                    className="w-full lg:w-[48%]"
+                  />
+                </div>
+              </form>
             </div>
-            <form className="mt-12 flex flex-col">
-              <div className="flex flex-col gap-8 lg:flex-row lg:flex-wrap lg:justify-between lg:gap-0 lg:gap-y-7">
-                <InputFormField
-                  label="Email"
-                  placeholder="e.g., john.doe@example.com"
-                  className="lg:w-[48%]"
-                  setInputValue={setEmail}
-                  errorInput={errorEmail}
-                  formTrail={formTrail}
-                  required
-                />
-                <InputFormField
-                  label="Username"
-                  placeholder="e.g., johndoe123"
-                  className="lg:w-[48%]"
-                  setInputValue={setUserName}
-                  errorInput={errorUserName}
-                  formTrail={formTrail}
-                  required
-                />
-                <InputFormField
-                  label="First name"
-                  placeholder="e.g., johndoe123"
-                  className="lg:w-[48%]"
-                  setInputValue={setFirstName}
-                  errorInput={errorFirstName}
-                  formTrail={formTrail}
-                  required
-                />
-                <InputFormField
-                  label="Last name"
-                  placeholder="e.g., johndoe123"
-                  className="lg:w-[48%]"
-                  setInputValue={setLastName}
-                  errorInput={errorLastName}
-                  formTrail={formTrail}
-                  required
-                />
-                <PasswordFormField
-                  label="Password"
-                  placeholder="Enter a strong password"
-                  className="lg:w-[48%]"
-                  setPasswordValue={setPassword}
-                  errorPassword={errorPassword}
-                  setErrorPassword={setErrorPassword}
-                  required
-                />
-                <PasswordFormField
-                  label="Confirm password"
-                  placeholder="Renter your password"
-                  className="lg:w-[48%]"
-                  setPasswordValue={setConfirmPassword}
-                  errorPassword={errorConfirmPassword}
-                  setErrorPassword={setErrorConfirmPassword}
-                  required
-                />
-              </div>
-              <div className="mt-12 flex flex-col gap-5 lg:flex-row-reverse lg:justify-between lg:gap-0">
-                <ButtonPrimaryWithIcon
-                  type="submit"
-                  icon={<AddUserIcon className="h-5.5 w-5.5 fill-white" />}
-                  value="Create account"
-                  className="w-full lg:w-[48%]"
-                  onClick={handleClickCreateAccount}
-                />
-                <ButtonSecondaryWithIcon
-                  type="button"
-                  icon={<GoogleIcon className="h-5.5 w-5.5 fill-white" />}
-                  value="Create account with google"
-                  className="w-full lg:w-[48%]"
-                />
-              </div>
-            </form>
           </div>
-        </div>
-      ) : (
-        <EmailSent />
-      )}
-    </main>
+        ) : (
+          <EmailSent />
+        )}
+      </main>
+    </>
   );
 }
