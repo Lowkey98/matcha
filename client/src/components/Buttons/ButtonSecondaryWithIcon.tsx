@@ -18,7 +18,7 @@ export default function ButtonSecondaryWithIcon({
   return (
     <button
       type={type}
-      className={`border-grayDark-100 flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 bg-white p-3 ${className}`}
+      className={`border-grayDark-100 flex h-13 cursor-pointer items-center justify-center gap-2 rounded-lg border-2 bg-white px-3 ${className}`}
       onClick={handleClick}
     >
       {icon}

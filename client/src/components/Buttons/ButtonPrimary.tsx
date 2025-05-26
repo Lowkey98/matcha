@@ -16,7 +16,7 @@ export default function ButtonPrimary({
   return (
     <button
       type={type}
-      className={`bg-primary border-primary flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 p-3 text-white ${className}`}
+      className={`bg-primary border-primary flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 px-3 h-13 text-white ${className}`}
       onClick={handleClick}
     >
       {value}

@@ -1,12 +1,11 @@
 import { ExclamationIcon } from "../Icons";
-export default function FormInputField({
+export default function TextAreaFormField({
   label,
   placeholder,
   className,
   setInputValue,
   errorInput,
   formTrail,
-  type,
   required,
 }: {
   label: string;
@@ -15,7 +14,6 @@ export default function FormInputField({
   setInputValue: React.Dispatch<React.SetStateAction<string>>;
   errorInput: string | null;
   formTrail: boolean;
-  type?: string;
   required?: boolean;
 }) {
   function handleChangeInputValue(event: React.ChangeEvent<HTMLInputElement>) {
@@ -28,14 +26,12 @@ export default function FormInputField({
         {required ? <span className="text-redLight ml-0.5">*</span> : null}
       </label>
       <div
-        className={`mt-2 flex h-13 items-center rounded-lg border-2 ${formTrail && errorInput ? "border-redLight pr-3" : "border-secondary"}`}
+        className={`mt-2 rounded-lg border-2 ${formTrail && errorInput ? "border-redLight pr-3" : "border-secondary"}`}
       >
-        <input
-          type={`${type ? type : "text"}`}
+        <textarea
+          className="text-secondary w-full p-3 outline-none placeholder:text-sm placeholder:text-gray-300"
           placeholder={placeholder}
-          className="text-secondary w-full px-3 outline-0 placeholder:text-sm placeholder:text-gray-300"
-          onChange={handleChangeInputValue}
-        />
+        ></textarea>
         {formTrail && errorInput && (
           <ExclamationIcon className="fill-redLight h-5 w-5" />
         )}

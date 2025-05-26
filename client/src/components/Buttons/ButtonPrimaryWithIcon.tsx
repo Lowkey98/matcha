@@ -18,7 +18,7 @@ export default function ButtonPrimaryWithIcon({
   return (
     <button
       type={type}
-      className={`bg-primary border-primary flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-2 p-3 ${className}`}
+      className={`bg-primary border-primary flex h-13 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-2 px-3 ${className}`}
       onClick={handleClick}
     >
       {icon}

@@ -36,12 +36,12 @@ export default function FormInputField({
         {required ? <span className="text-redLight ml-0.5">*</span> : null}
       </label>
       <div
-        className={`mt-2 flex items-center rounded-lg border-2 pr-3 ${errorPassword ? "border-redLight" : "border-secondary"}`}
+        className={`mt-2 flex h-13 items-center rounded-lg border-2 pr-3 ${errorPassword ? "border-redLight" : "border-secondary"}`}
       >
         <input
           type={`${showPassword ? "text" : "password"}`}
           placeholder={placeholder}
-          className="text-secondary w-full p-3 outline-0 placeholder:text-sm placeholder:text-gray-300"
+          className="text-secondary w-full px-3 outline-0 placeholder:text-sm placeholder:text-gray-300"
           onChange={handleChangePasswordValue}
           onFocus={handleFocusInputPassword}
         />
