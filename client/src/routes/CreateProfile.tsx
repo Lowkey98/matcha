@@ -25,10 +25,28 @@ export default function CreateProfile() {
   const [biography, seBiography] = useState<string>("");
   const [formTrail, setFormTrial] = useState<boolean>(false);
   const errorAge = isValidAge(age);
-  const errorGender = isValidGender(age);
+  const errorGender = isValidGender(gender);
   const errorSexualPreference = isValidSexualPreference(sexualPreference);
   const errorInterests = isValidInterests(interests);
   const errorBiography = isValidBiography(biography);
+
+  function handleClickNextCreateProfile() {
+    let errorForm: boolean = false;
+    if (
+      errorAge ||
+      errorGender ||
+      errorSexualPreference ||
+      errorInterests ||
+      errorBiography
+    ) {
+      setFormTrial(true);
+      errorForm = true;
+    }
+
+    if (!errorForm) {
+      console.log(age, gender, sexualPreference, interests, biography);
+    }
+  }
 
   return (
     <>
@@ -97,13 +115,18 @@ export default function CreateProfile() {
             <TextAreaFormField
               label="Biography"
               placeholder="Write a brief description about yourself"
-              setInputValue={setAge}
-              errorInput={errorAge}
+              setTextAreaValue={seBiography}
+              errorTextArea={errorBiography}
               formTrail={formTrail}
               required
             />
           </div>
-          <ButtonPrimary type="submit" value="Next" className="mt-12 w-full" />
+          <ButtonPrimary
+            type="submit"
+            value="Next"
+            className="mt-12 w-full"
+            onClick={handleClickNextCreateProfile}
+          />
         </form>
       </main>
     </>
