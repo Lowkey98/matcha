@@ -9,6 +9,7 @@ import {
 } from "../../Helpers";
 import InputFormField from "../components/FormFields/InputFormField";
 import DropdownFormField from "../components/FormFields/DropdownFormField";
+import MultiSelect from "../components/FormFields/MultiSelect";
 import TextAreaFormField from "../components/FormFields/TextAreaFormField";
 import ButtonPrimary from "../components/Buttons/ButtonPrimary";
 
@@ -17,11 +18,34 @@ import { Helmet } from "react-helmet";
 export default function CreateProfile() {
   const genders: string[] = ["Men", "Women"];
   const sexualPreferences = ["Men", "Women"];
-  const interestsItems = ["Sport", "Music", "Books", "Movies", "Soccer"];
+  const interestsItems = [
+    "Music",
+    "Dancing",
+    "Singing",
+    "Gaming",
+    "Reading",
+    "Writing",
+    "Movies",
+    "Anime",
+    "Traveling",
+    "Hiking",
+    "Fitness",
+    "Yoga",
+    "Cooking",
+    "Baking",
+    "Photography",
+    "Art",
+    "Pets",
+    "Tech",
+    "Coding",
+    "Fashion",
+    "Shopping",
+    "Volunteering",
+  ];
   const [age, setAge] = useState<string>("");
   const [gender, setGender] = useState<string>("");
   const [sexualPreference, setSexualPreference] = useState<string>("");
-  const [interests, setInterests] = useState<string>("");
+  const [interests, setInterests] = useState<string[]>([]);
   const [biography, seBiography] = useState<string>("");
   const [formTrail, setFormTrial] = useState<boolean>(false);
   const errorAge = isValidAge(age);
@@ -53,7 +77,7 @@ export default function CreateProfile() {
       <Helmet>
         <title>Matcha - Create profile</title>
       </Helmet>
-      <main className="mx-auto max-w-3xl min-w-xs p-5 lg:h-screen lg:px-0">
+      <main className="min-w-xs p-5 lg:px-0">
         <div className="flex items-center justify-between">
           <img src="logo.svg" alt="logo" className="w-42" />
           <button
@@ -102,14 +126,13 @@ export default function CreateProfile() {
               items={sexualPreferences}
               required
             />
-            <DropdownFormField
-              label="Interests"
-              placeholder="e.g., #vegan, #geek, #piercing"
-              formTrail={formTrail}
-              dropdownValue={interests}
-              setDropdownValue={setInterests}
-              errorDropdown={errorInterests}
+
+            <MultiSelect
               items={interestsItems}
+              selectedItems={interests}
+              errorMultiSelect={errorInterests}
+              formTrail={formTrail}
+              setSelectedItems={setInterests}
               required
             />
             <TextAreaFormField

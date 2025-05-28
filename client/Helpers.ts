@@ -54,8 +54,8 @@ export function isValidSexualPreference(
   return null;
 }
 
-export function isValidInterests(interests: string): string | null {
-  if (isEmpty(interests)) return "This field is required.";
+export function isValidInterests(interests: string[]): string | null {
+  if (!interests.length) return "This field is required.";
   return null;
 }
 
