@@ -12,6 +12,7 @@ import DropdownFormField from "../components/FormFields/DropdownFormField";
 import MultiSelect from "../components/FormFields/MultiSelect";
 import TextAreaFormField from "../components/FormFields/TextAreaFormField";
 import ButtonPrimary from "../components/Buttons/ButtonPrimary";
+import DropdownNavItem from "../components/DropdownNavItem";
 
 import { Helmet } from "react-helmet";
 
@@ -77,15 +78,16 @@ export default function CreateProfile() {
       <Helmet>
         <title>Matcha - Create profile</title>
       </Helmet>
-      <main className="min-w-xs p-5 lg:px-0">
+      <main className="mx-auto max-w-[110rem] min-w-xs p-5">
         <div className="flex items-center justify-between">
           <img src="logo.svg" alt="logo" className="w-42" />
           <button
             type="button"
-            className="border-grayDark-100 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full border-2 p-2.5"
+            className="border-grayDark-100 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full border-2 p-2.5 lg:hidden"
           >
             <BurgerIcon className="fill-secondary h-6 w-6" />
           </button>
+          <DropdownNavItem className="hidden lg:block" />
         </div>
         <div className="mt-16 flex flex-col items-center justify-center">
           <h1 className="text-secondary text-2xl font-bold">
@@ -95,8 +97,8 @@ export default function CreateProfile() {
             Set up your account in just a few steps
           </span>
         </div>
-        <form className="mt-12">
-          <div className="flex flex-col gap-8">
+        <form className="mt-12 lg:relative lg:mx-auto lg:w-3xl">
+          <div className="flex flex-col flex-wrap gap-8 lg:flex-row lg:justify-between lg:gap-0 lg:gap-y-7">
             <InputFormField
               type="number"
               label="Age"
@@ -104,6 +106,7 @@ export default function CreateProfile() {
               setInputValue={setAge}
               errorInput={errorAge}
               formTrail={formTrail}
+              className="lg:w-[48%]"
               required
             />
             <DropdownFormField
@@ -114,40 +117,45 @@ export default function CreateProfile() {
               setDropdownValue={setGender}
               errorDropdown={errorGender}
               items={genders}
+              className="lg:w-[48%]"
               required
             />
-            <DropdownFormField
-              label="Sexual preference"
-              placeholder="Select your sexual preference"
-              formTrail={formTrail}
-              dropdownValue={sexualPreference}
-              setDropdownValue={setSexualPreference}
-              errorDropdown={errorSexualPreference}
-              items={sexualPreferences}
-              required
-            />
-
-            <MultiSelect
-              items={interestsItems}
-              selectedItems={interests}
-              errorMultiSelect={errorInterests}
-              formTrail={formTrail}
-              setSelectedItems={setInterests}
-              required
-            />
+            <div className="lg:flex lg:w-[48%] lg:items-center">
+              <DropdownFormField
+                label="Sexual preference"
+                placeholder="Select your sexual preference"
+                formTrail={formTrail}
+                dropdownValue={sexualPreference}
+                setDropdownValue={setSexualPreference}
+                errorDropdown={errorSexualPreference}
+                items={sexualPreferences}
+                className="w-full"
+                required
+              />
+            </div>
             <TextAreaFormField
               label="Biography"
               placeholder="Write a brief description about yourself"
               setTextAreaValue={seBiography}
               errorTextArea={errorBiography}
               formTrail={formTrail}
+              className="lg:w-[48%]"
+              required
+            />
+            <MultiSelect
+              items={interestsItems}
+              selectedItems={interests}
+              errorMultiSelect={errorInterests}
+              formTrail={formTrail}
+              setSelectedItems={setInterests}
+              className="lg:w-[48%]"
               required
             />
           </div>
           <ButtonPrimary
             type="submit"
             value="Next"
-            className="mt-12 w-full"
+            className="right-0 mt-12 w-full lg:absolute lg:bottom-0 lg:w-38"
             onClick={handleClickNextCreateProfile}
           />
         </form>

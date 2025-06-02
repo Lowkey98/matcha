@@ -47,14 +47,16 @@ export default function DropdownFormField({
           ) : (
             <span className="text-sm text-gray-300">{placeholder}</span>
           )}
-
-          {errorDropdown && formTrail ? (
-            <ExclamationIcon className="fill-redLight h-5 w-5" />
-          ) : showItems ? (
-            <ArrowUpIcon className="fill-secondary h-4.5 w-4.5" />
-          ) : (
-            <ArrowDownIcon className="fill-secondary h-4.5 w-4.5" />
-          )}
+          <div className="flex items-center gap-1.5">
+            {showItems ? (
+              <ArrowUpIcon className="fill-secondary h-4.5 w-4.5" />
+            ) : (
+              <ArrowDownIcon className="fill-secondary h-4.5 w-4.5" />
+            )}
+            {errorDropdown && formTrail ? (
+              <ExclamationIcon className="fill-redLight h-5 w-5" />
+            ) : null}
+          </div>
         </button>
         {showItems ? (
           <div className="border-secondary text-secondary absolute z-1 mt-2 max-h-52 w-full overflow-auto rounded-lg border-2 bg-white">
