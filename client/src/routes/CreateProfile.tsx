@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BurgerIcon } from "../components/Icons";
+import NavBurger from "../components/NavBurger";
 import {
   isValidAge,
   isValidGender,
@@ -81,12 +81,7 @@ export default function CreateProfile() {
       <main className="mx-auto max-w-[110rem] min-w-xs p-5">
         <div className="flex items-center justify-between">
           <img src="logo.svg" alt="logo" className="w-42" />
-          <button
-            type="button"
-            className="border-grayDark-100 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full border-2 p-2.5 lg:hidden"
-          >
-            <BurgerIcon className="fill-secondary h-6 w-6" />
-          </button>
+          <NavBurger className="lg:hidden" />
           <DropdownNavItem className="hidden lg:block" />
         </div>
         <div className="mt-16 flex flex-col items-center justify-center">
