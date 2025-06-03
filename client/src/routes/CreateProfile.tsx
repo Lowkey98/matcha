@@ -80,7 +80,7 @@ export default function CreateProfile() {
       </Helmet>
       <main className="mx-auto max-w-[110rem] min-w-xs p-5">
         <div className="flex items-center justify-between">
-          <img src="logo.svg" alt="logo" className="w-42" />
+          <img src="/logo.svg" alt="logo" className="w-42" />
           <NavBurger className="lg:hidden" />
           <DropdownNavItem className="hidden lg:block" />
         </div>

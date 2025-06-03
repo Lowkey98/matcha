@@ -6,6 +6,7 @@ import Login from "./routes/Login";
 import ForgetPassword from "./routes/ForgetPassword";
 import ResetPassword from "./routes/ResetPassword";
 import CreateProfile from "./routes/CreateProfile";
+import { AddImages } from "./routes/AddImages";
 const routeConfig = [
   {
     path: "/",
@@ -37,9 +38,14 @@ const routeConfig = [
         element: <ResetPassword />,
       },
       {
-        path: "createProfile",
+        path: "/createProfile",
         element: <CreateProfile />,
       },
+      {
+        path: "/createProfile/addImages",
+        element: <AddImages />,
+      },
+      
     ],
   },
 ];
