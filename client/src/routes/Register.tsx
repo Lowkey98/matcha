@@ -24,12 +24,16 @@ export default function Register() {
   const [password, setPassword] = useState<string>('');
   const [confirmPassword, setConfirmPassword] = useState<string>('');
   const [errorPassword, setErrorPassword] = useState<string | null>(null);
+  const [errorEmailAlreadyExists, setErrorEmailAlreadyExists] = useState<
+    string | null
+  >(null);
   const [errorConfirmPassword, setErrorConfirmPassword] = useState<
     string | null
   >(null);
   const [showEmailSent, setShowEmailSent] = useState<boolean>(false);
   const [formTrail, setFormTrial] = useState<boolean>(false);
-  const errorEmail: string | null = isValidEmail(email);
+  const errorEmail: string | null =
+    isValidEmail(email) ?? errorEmailAlreadyExists;
   const errorUserName: string | null = isValidUsername(userName);
   const errorFirstName: string | null = isValidName(firstName);
   const errorLastName: string | null = isValidName(lastName);
@@ -75,7 +79,7 @@ export default function Register() {
         password: password,
       };
 
-      const response = fetch('http://localhost:3000/api/register', {
+      fetch('http://localhost:3000/api/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -83,8 +87,16 @@ export default function Register() {
         body: JSON.stringify({
           registeredUser,
         }),
-      });
-      setShowEmailSent(true);
+      })
+        .then(() => {
+          setShowEmailSent(true);
+        })
+        .catch((err) => {
+          setErrorEmailAlreadyExists(
+            'An account with this email already exists.',
+          );
+          console.error('Error during registration:', err);
+        });
     }
   }
 
@@ -119,6 +131,7 @@ export default function Register() {
                     placeholder="e.g., john.doe@example.com"
                     className="lg:w-[48%]"
                     setInputValue={setEmail}
+                    setEmailAlreadyExists={setErrorEmailAlreadyExists}
                     errorInput={errorEmail}
                     formTrail={formTrail}
                     required

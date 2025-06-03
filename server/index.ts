@@ -27,6 +27,12 @@ connectDB().then((db) => {
     app.post("/api/register", async (req, res) => {
         try {
             const { email, password } = req.body.registeredUser;
+            const alreadyExists = await db.collection('userInfo').findOne({
+                email: email,
+            });
+            if (alreadyExists) {
+                res.status(400).json({ error: 'User already exists.' });
+            }
             console.log('email', email);
             console.log('password', password);
             const hashedPassword = await bcrypt.hash(password, 10);
