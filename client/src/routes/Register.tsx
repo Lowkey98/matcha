@@ -1,11 +1,11 @@
-import { Link } from "react-router-dom";
-import { useState } from "react";
-import InputFormField from "../components/FormFields/InputFormField";
-import PasswordFormField from "../components/FormFields/PasswordFormField";
-import ButtonPrimaryWithIcon from "../components//Buttons/ButtonPrimaryWithIcon";
-import ButtonSecondaryWithIcon from "../components//Buttons/ButtonSecondaryWithIcon";
-import { AddUserIcon, EmailSentIcon, GoogleIcon } from "../components/Icons";
-import { Helmet } from "react-helmet";
+import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import InputFormField from '../components/FormFields/InputFormField';
+import PasswordFormField from '../components/FormFields/PasswordFormField';
+import ButtonPrimaryWithIcon from '../components//Buttons/ButtonPrimaryWithIcon';
+import ButtonSecondaryWithIcon from '../components//Buttons/ButtonSecondaryWithIcon';
+import { AddUserIcon, EmailSentIcon, GoogleIcon } from '../components/Icons';
+import { Helmet } from 'react-helmet';
 
 import {
   isValidEmail,
@@ -13,16 +13,16 @@ import {
   isValidPassword,
   isValidUsername,
   isValidConfirmedPassword,
-} from "../../Helpers";
-import EmailSent from "../components/EmailSent";
+} from '../../Helpers';
+import EmailSent from '../components/EmailSent';
 
 export default function Register() {
-  const [email, setEmail] = useState<string>("");
-  const [userName, setUserName] = useState<string>("");
-  const [firstName, setFirstName] = useState<string>("");
-  const [lastName, setLastName] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [confirmPassword, setConfirmPassword] = useState<string>("");
+  const [email, setEmail] = useState<string>('');
+  const [userName, setUserName] = useState<string>('');
+  const [firstName, setFirstName] = useState<string>('');
+  const [lastName, setLastName] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [confirmPassword, setConfirmPassword] = useState<string>('');
   const [errorPassword, setErrorPassword] = useState<string | null>(null);
   const [errorConfirmPassword, setErrorConfirmPassword] = useState<
     string | null
@@ -61,14 +61,29 @@ export default function Register() {
       errorForm = true;
     }
     if (!errorForm) {
-      console.log(
-        email,
-        userName,
-        firstName,
-        lastName,
-        password,
-        confirmPassword,
-      );
+      // console.log(
+      //   email,
+      //   userName,
+      //   firstName,
+      //   lastName,
+      //   password,
+      //   confirmPassword,
+      // );
+      const registeredUser = {
+        userName: userName,
+        email: email,
+        password: password,
+      };
+
+      const response = fetch('http://localhost:3000/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          registeredUser,
+        }),
+      });
       setShowEmailSent(true);
     }
   }
