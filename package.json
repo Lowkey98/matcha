@@ -1,13 +1,17 @@
 {
-    "name": "matcha",
-    "private": true,
-    "scripts": {
-        "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\""
-    },
-    "devDependencies": {
-        "concurrently": "^8.2.2"
-    },
-    "dependencies": {
-        "react-router-dom": "^7.6.0"
-    }
+  "name": "matcha",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "react-router-dom": "^7.6.0"
+  }
 }
