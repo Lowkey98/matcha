@@ -5,6 +5,7 @@ import Register from "./routes/Register";
 import Login from "./routes/Login";
 import ForgetPassword from "./routes/ForgetPassword";
 import ResetPassword from "./routes/ResetPassword";
+import CreateProfile from "./routes/CreateProfile";
 const routeConfig = [
   {
     path: "/",
@@ -34,6 +35,10 @@ const routeConfig = [
       {
         path: "/resetPassword",
         element: <ResetPassword />,
+      },
+      {
+        path: "createProfile",
+        element: <CreateProfile />,
       },
     ],
   },

@@ -6,6 +6,7 @@ export default function FormInputField({
   setInputValue,
   errorInput,
   formTrail,
+  type,
   required,
 }: {
   label: string;
@@ -14,6 +15,7 @@ export default function FormInputField({
   setInputValue: React.Dispatch<React.SetStateAction<string>>;
   errorInput: string | null;
   formTrail: boolean;
+  type?: string;
   required?: boolean;
 }) {
   function handleChangeInputValue(event: React.ChangeEvent<HTMLInputElement>) {
@@ -26,12 +28,12 @@ export default function FormInputField({
         {required ? <span className="text-redLight ml-0.5">*</span> : null}
       </label>
       <div
-        className={`mt-2 flex items-center rounded-lg border-2 pr-3 ${formTrail && errorInput ? "border-redLight" : "border-secondary"}`}
+        className={`mt-2 flex h-13 items-center rounded-lg border-2 ${formTrail && errorInput ? "border-redLight pr-3" : "border-secondary"}`}
       >
         <input
-          type="text"
+          type={`${type ? type : "text"}`}
           placeholder={placeholder}
-          className="text-secondary w-full p-3 outline-0 placeholder:text-sm placeholder:text-gray-300"
+          className="text-secondary w-full px-3 outline-0 placeholder:text-sm placeholder:text-gray-300"
           onChange={handleChangeInputValue}
         />
         {formTrail && errorInput && (
