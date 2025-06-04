@@ -1,5 +1,3 @@
-export function AddImages(){
-    return (
-        <div>hello</div>
-    )
+export function AddImages() {
+  return <div>hello</div>;
 }
