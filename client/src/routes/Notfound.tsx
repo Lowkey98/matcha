@@ -1,5 +1,5 @@
-import LinkPrimary from "../components/Links/LinkPrimary";
-import { Helmet } from "react-helmet";
+import LinkPrimary from '../components/Links/LinkPrimary';
+import { Helmet } from 'react-helmet';
 
 export default function Notfound() {
   return (
@@ -7,7 +7,7 @@ export default function Notfound() {
       <Helmet>
         <title>Matcha - Not found</title>
       </Helmet>
-      <main className="mx-auto flex h-screen min-w-xs items-center justify-center px-5">
+      <main className="mx-auto flex flex-1 items-center justify-center [:has(&)]:flex [:has(&)]:h-full [:has(&)]:w-full [:has(&)]:flex-1 [:has(&)]:flex-col">
         <div className="flex flex-col items-center gap-16 lg:flex-row">
           <img
             src="/astronaut.svg"

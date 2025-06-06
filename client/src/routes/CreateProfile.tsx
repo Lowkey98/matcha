@@ -76,7 +76,7 @@ export default function CreateProfile() {
       <Helmet>
         <title>Matcha - Create profile</title>
       </Helmet>
-      <main className="mt-16">
+      <main className="py-16 lg:pb-0">
         <div className="flex flex-col items-center justify-center">
           <h1 className="text-secondary text-2xl font-bold">
             Create your profile

@@ -3,7 +3,7 @@ import NavBurger from './NavBurger';
 
 export function Navbar() {
   return (
-    <div className="flex items-center justify-between p-5">
+    <div className="flex items-center justify-between pt-5">
       <img src="/logo.svg" alt="logo" className="w-42" />
       <NavBurger className="lg:hidden" />
       <DropdownNavItem className="hidden lg:block" />
