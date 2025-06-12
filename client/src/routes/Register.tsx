@@ -88,7 +88,13 @@ export default function Register() {
           registeredUser,
         }),
       })
-        .then(() => {
+        .then(async (res) => {
+         
+          // const data = await res.json();
+          // const token = data?.token;
+          // console.log('Token:', token);
+          // store the token in localStorage or handle it as needed
+          // localStorage.setItem('token', token);
           setShowEmailSent(true);
         })
         .catch((err) => {
