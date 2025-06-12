@@ -1,16 +1,16 @@
-import { Link } from "react-router-dom";
-import { useState } from "react";
-import InputFormField from "../components/FormFields/InputFormField";
-import PasswordFormField from "../components/FormFields/PasswordFormField";
-import ButtonPrimary from "../components//Buttons/ButtonPrimary";
-import ButtonSecondaryWithIcon from "../components//Buttons/ButtonSecondaryWithIcon";
-import { GoogleIcon } from "../components/Icons";
-import { isValidEmail, isValidPassword } from "../../Helpers";
-import { Helmet } from "react-helmet";
+import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import InputFormField from '../components/FormFields/InputFormField';
+import PasswordFormField from '../components/FormFields/PasswordFormField';
+import ButtonPrimary from '../components//Buttons/ButtonPrimary';
+import ButtonSecondaryWithIcon from '../components//Buttons/ButtonSecondaryWithIcon';
+import { GoogleIcon } from '../components/Icons';
+import { isValidEmail, isValidPassword } from '../../Helpers';
+import { Helmet } from 'react-helmet';
 
 export default function Login() {
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
   const [errorPassword, setErrorPassword] = useState<string | null>(null);
   const [formTrail, setFormTrial] = useState<boolean>(false);
   const errorEmail: string | null = isValidEmail(email);
@@ -39,7 +39,7 @@ export default function Login() {
       <Helmet>
         <title>Matcha - Login</title>
       </Helmet>
-      <main className="mx-auto flex h-screen min-w-xs flex-col justify-center px-5 lg:max-w-96 lg:px-0">
+      <main className="mx-auto flex h-screen flex-col justify-center lg:w-96">
         <img src="/logo.svg" alt="logo" className="mx-auto w-52" />
         <div className="mt-16">
           <div className="flex flex-col">

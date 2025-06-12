@@ -240,3 +240,18 @@ export function LogoutIcon({ className }: { className?: string }) {
     </svg>
   );
 }
+
+export function PlusIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 18 18" className={className}>
+      <g clipPath="url(#clip0_554_2466)">
+        <path d="M16.418 7.41797H10.582V1.58203C10.582 0.708293 9.87374 0 9 0C8.12626 0 7.41797 0.708293 7.41797 1.58203V7.41797H1.58203C0.708293 7.41797 0 8.12626 0 9C0 9.87374 0.708293 10.582 1.58203 10.582H7.41797V16.418C7.41797 17.2917 8.12626 18 9 18C9.87374 18 10.582 17.2917 10.582 16.418V10.582H16.418C17.2917 10.582 18 9.87374 18 9C18 8.12626 17.2917 7.41797 16.418 7.41797Z" />
+      </g>
+      <defs>
+        <clipPath id="clip0_554_2466">
+          <rect width="18" height="18" />
+        </clipPath>
+      </defs>
+    </svg>
+  );
+}

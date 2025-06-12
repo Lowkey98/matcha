@@ -1,13 +1,13 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { ArrowLongLeftIcon, PasswordIcon } from "../components/Icons";
-import { isValidEmail } from "../../Helpers";
-import InputFormField from "../components/FormFields/InputFormField";
-import ButtonPrimary from "../components/Buttons/ButtonPrimary";
-import { Helmet } from "react-helmet";
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowLongLeftIcon, PasswordIcon } from '../components/Icons';
+import { isValidEmail } from '../../Helpers';
+import InputFormField from '../components/FormFields/InputFormField';
+import ButtonPrimary from '../components/Buttons/ButtonPrimary';
+import { Helmet } from 'react-helmet';
 
 export default function ForgetPassword() {
-  const [email, setEmail] = useState<string>("");
+  const [email, setEmail] = useState<string>('');
   const [formTrail, setFormTrial] = useState<boolean>(false);
   const errorEmail: string | null = isValidEmail(email);
   function handleClickResetPassword() {
@@ -25,7 +25,7 @@ export default function ForgetPassword() {
       <Helmet>
         <title>Matcha - Forget password</title>
       </Helmet>
-      <main className="mx-auto mt-12 flex min-w-xs flex-col items-center px-5 lg:max-w-[26rem] lg:px-0">
+      <main className="mt-12 flex flex-col items-center lg:mx-auto lg:w-[26rem]">
         <PasswordIcon className="h-26 w-26" />
         <div className="mt-12 flex flex-col items-center">
           <h1 className="text-secondary text-center text-xl font-bold sm:text-2xl">
@@ -37,7 +37,7 @@ export default function ForgetPassword() {
           </p>
         </div>
         <form
-          className={`relative mt-12 flex w-full gap-2 ${formTrail && errorEmail ? "items-center" : "items-end"}`}
+          className={`relative mt-12 flex w-full gap-2 ${formTrail && errorEmail ? 'items-center' : 'items-end'}`}
         >
           <InputFormField
             label="Email"
@@ -51,7 +51,7 @@ export default function ForgetPassword() {
             type="submit"
             value="Reset"
             onClick={handleClickResetPassword}
-            className={`w-24 ${formTrail && errorEmail ? "mt-1" : ""}`}
+            className={`w-24 ${formTrail && errorEmail ? 'mt-1' : ''}`}
           />
           <div className="absolute -bottom-12 flex w-full">
             <Link

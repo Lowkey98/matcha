@@ -1,11 +1,11 @@
-import { Link } from "react-router-dom";
-import { useState } from "react";
-import InputFormField from "../components/FormFields/InputFormField";
-import PasswordFormField from "../components/FormFields/PasswordFormField";
-import ButtonPrimaryWithIcon from "../components//Buttons/ButtonPrimaryWithIcon";
-import ButtonSecondaryWithIcon from "../components//Buttons/ButtonSecondaryWithIcon";
-import { AddUserIcon, EmailSentIcon, GoogleIcon } from "../components/Icons";
-import { Helmet } from "react-helmet";
+import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import InputFormField from '../components/FormFields/InputFormField';
+import PasswordFormField from '../components/FormFields/PasswordFormField';
+import ButtonPrimaryWithIcon from '../components//Buttons/ButtonPrimaryWithIcon';
+import ButtonSecondaryWithIcon from '../components//Buttons/ButtonSecondaryWithIcon';
+import { AddUserIcon, EmailSentIcon, GoogleIcon } from '../components/Icons';
+import { Helmet } from 'react-helmet';
 
 import {
   isValidEmail,
@@ -13,16 +13,16 @@ import {
   isValidPassword,
   isValidUsername,
   isValidConfirmedPassword,
-} from "../../Helpers";
-import EmailSent from "../components/EmailSent";
+} from '../../Helpers';
+import EmailSent from '../components/EmailSent';
 
 export default function Register() {
-  const [email, setEmail] = useState<string>("");
-  const [userName, setUserName] = useState<string>("");
-  const [firstName, setFirstName] = useState<string>("");
-  const [lastName, setLastName] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [confirmPassword, setConfirmPassword] = useState<string>("");
+  const [email, setEmail] = useState<string>('');
+  const [userName, setUserName] = useState<string>('');
+  const [firstName, setFirstName] = useState<string>('');
+  const [lastName, setLastName] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [confirmPassword, setConfirmPassword] = useState<string>('');
   const [errorPassword, setErrorPassword] = useState<string | null>(null);
   const [errorConfirmPassword, setErrorConfirmPassword] = useState<
     string | null
@@ -78,7 +78,7 @@ export default function Register() {
       <Helmet>
         <title>Matcha - Register</title>
       </Helmet>
-      <main className="mx-auto max-w-3xl min-w-xs px-5 py-12 lg:h-screen lg:px-0">
+      <main className="py-12 lg:mx-auto lg:h-screen lg:w-3xl lg:py-0">
         {!showEmailSent ? (
           <div className="lg:flex lg:h-full lg:flex-col lg:justify-center">
             <img src="/logo.svg" alt="logo" className="mx-auto w-52" />

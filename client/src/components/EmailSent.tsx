@@ -1,8 +1,8 @@
-import { EmailSentIcon } from "./Icons";
-import ButtonPrimary from "./Buttons/ButtonPrimary";
+import { EmailSentIcon } from './Icons';
+import ButtonPrimary from './Buttons/ButtonPrimary';
 export default function EmailSent() {
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center lg:pt-12">
       <EmailSentIcon className="h-32 w-32" />
       <div className="mt-12 flex flex-col items-center">
         <h1 className="text-secondary text-2xl font-bold">Check your Email</h1>

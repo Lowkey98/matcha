@@ -5,8 +5,8 @@ import {
   EditIcon,
   LogoutIcon,
   ArrowUpIcon,
-} from "./Icons";
-import { useState } from "react";
+} from './Icons';
+import { useState } from 'react';
 export default function DropdownNavItem({ className }: { className?: string }) {
   const [showItems, setShowItems] = useState<boolean>(false);
   function handleClickDropdownNavItem() {
@@ -16,7 +16,7 @@ export default function DropdownNavItem({ className }: { className?: string }) {
     <div className={`relative ${className}`}>
       <button
         type="button"
-        className="border-grayDark-100 flex cursor-pointer items-center justify-between gap-6 rounded-lg border-2 p-3"
+        className="border-grayDark-100 flex cursor-pointer items-center justify-between gap-6 rounded-lg border-2 bg-white p-3"
         onClick={handleClickDropdownNavItem}
       >
         <div className="flex items-center gap-1">
