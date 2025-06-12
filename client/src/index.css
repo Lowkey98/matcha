@@ -12,5 +12,5 @@
 }
 
 body {
-  @apply font-poppins mx-auto max-w-[110rem] min-w-xs px-5;
+  @apply font-poppins relative mx-auto max-w-[110rem] min-w-xs px-5;
 }
