@@ -8,7 +8,7 @@ export default function FormInputField({
   formTrail,
   type,
   required,
-  setEmailAlreadyExists,
+  setFieldAlreadyExists,
 }: {
   label: string;
   placeholder?: string;
@@ -18,12 +18,12 @@ export default function FormInputField({
   formTrail: boolean;
   type?: string;
   required?: boolean;
-  setEmailAlreadyExists?: React.Dispatch<React.SetStateAction<string | null>>;
+  setFieldAlreadyExists?: React.Dispatch<React.SetStateAction<string | null>>;
 }) {
   function handleChangeInputValue(event: React.ChangeEvent<HTMLInputElement>) {
     setInputValue(event.target.value);
-    if (setEmailAlreadyExists) {
-      setEmailAlreadyExists(null);
+    if (setFieldAlreadyExists) {
+      setFieldAlreadyExists(null);
     }
   }
   return (

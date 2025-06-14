@@ -27,6 +27,9 @@ export default function Register() {
   const [errorEmailAlreadyExists, setErrorEmailAlreadyExists] = useState<
     string | null
   >(null);
+  const [errorUserNameAlreadyExists, setErrorUserNameAlreadyExists] = useState<
+    string | null
+  >(null);
   const [errorConfirmPassword, setErrorConfirmPassword] = useState<
     string | null
   >(null);
@@ -34,11 +37,11 @@ export default function Register() {
   const [formTrail, setFormTrial] = useState<boolean>(false);
   const errorEmail: string | null =
     isValidEmail(email) ?? errorEmailAlreadyExists;
-  const errorUserName: string | null = isValidUsername(userName);
+  const errorUserName: string | null = isValidUsername(userName) ?? errorUserNameAlreadyExists;
   const errorFirstName: string | null = isValidName(firstName);
   const errorLastName: string | null = isValidName(lastName);
 
-  function handleClickCreateAccount() {
+  async function handleClickCreateAccount() {
     let errorForm: boolean = false;
     const checkErrorPassword: string | null = isValidPassword(password);
     const checkErrorConfirmPassword: string | null = isValidConfirmedPassword({
@@ -65,21 +68,13 @@ export default function Register() {
       errorForm = true;
     }
     if (!errorForm) {
-      // console.log(
-      //   email,
-      //   userName,
-      //   firstName,
-      //   lastName,
-      //   password,
-      //   confirmPassword,
-      // );
       const registeredUser = {
         userName: userName,
         email: email,
         password: password,
       };
 
-      fetch('http://localhost:3000/api/register', {
+      const response = await fetch('http://localhost:3000/api/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -87,22 +82,19 @@ export default function Register() {
         body: JSON.stringify({
           registeredUser,
         }),
-      })
-        .then(async (res) => {
-         
-          // const data = await res.json();
-          // const token = data?.token;
-          // console.log('Token:', token);
-          // store the token in localStorage or handle it as needed
-          // localStorage.setItem('token', token);
-          setShowEmailSent(true);
-        })
-        .catch((err) => {
-          setErrorEmailAlreadyExists(
-            'An account with this email already exists.',
-          );
-          console.error('Error during registration:', err);
-        });
+      });
+
+      if (!response.ok) {
+        const { emailAlreadyExists, usernameAlreadyExists } =
+          await response.json();
+        if (emailAlreadyExists)
+          setErrorEmailAlreadyExists('Email already exists');
+        if (usernameAlreadyExists)
+          setErrorUserNameAlreadyExists('Username already exists');
+
+      } else {
+        setShowEmailSent(true);
+      }
     }
   }
 
@@ -137,7 +129,7 @@ export default function Register() {
                     placeholder="e.g., john.doe@example.com"
                     className="lg:w-[48%]"
                     setInputValue={setEmail}
-                    setEmailAlreadyExists={setErrorEmailAlreadyExists}
+                    setFieldAlreadyExists={setErrorEmailAlreadyExists}
                     errorInput={errorEmail}
                     formTrail={formTrail}
                     required
@@ -147,6 +139,7 @@ export default function Register() {
                     placeholder="e.g., johndoe123"
                     className="lg:w-[48%]"
                     setInputValue={setUserName}
+                    setFieldAlreadyExists={setErrorUserNameAlreadyExists}
                     errorInput={errorUserName}
                     formTrail={formTrail}
                     required

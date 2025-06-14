@@ -32,12 +32,17 @@ connectDB().then((db) => {
 
     app.post("/api/register", async (req, res) => {
         try {
-            const { email, password } = req.body.registeredUser;
-            const alreadyExists = await db.collection('userInfo').findOne({
-                email: email,
-            });
-            if (alreadyExists) {
-                res.status(400).json({ error: 'User already exists.' });
+            const { email, password, username } = req.body.registeredUser;
+            const [emailExists, usernameExists] = await Promise.all([
+                db.collection('userInfo').findOne({ email }),
+                db.collection('userInfo').findOne({ username }),
+            ]);
+
+            if (emailExists || usernameExists) {
+                res.status(400).json({
+                    emailAlreadyExists: !!emailExists,
+                    usernameAlreadyExists: !!usernameExists,
+                });
             }
             console.log('email', email);
             console.log('password', password);
@@ -47,11 +52,12 @@ connectDB().then((db) => {
             await db.collection('userInfo').insertOne({
                 email: email,
                 password: hashedPassword,
+                username: username,
                 isVerified: false,
                 createdAt: new Date(),
                 verificationToken,
             });
-            sendVerificationEmail({ to: email, token: verificationToken });
+            // sendVerificationEmail({ to: email, token: verificationToken });
             res.status(200).json({
                 message: 'Registration successful. Please check your email to verify your account.',
             });
