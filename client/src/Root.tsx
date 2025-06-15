@@ -1,10 +1,14 @@
 import { Outlet } from 'react-router-dom';
-import { Navbar } from './components/Navbar';
+import Header from './components/Headers/Header';
+import Navigation from './components/Navigation';
 
 export default function Root() {
   return (
     <>
-      <Navbar />
+      {/* TODO handle display of header depends on the authentication and if user login */}
+      <Header />
+      {/* TODO handle display of sidebar depends on the authentication */}
+      <Navigation />
       <Outlet />
     </>
   );

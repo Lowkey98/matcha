@@ -9,7 +9,7 @@ import {
 } from './Icons';
 import FameRate from './FameRate';
 
-export default function NavBurger({ className }: { className?: string }) {
+export default function HeaderBurger() {
   const [showMobileNav, setShowMobileNav] = useState<boolean>(false);
   function handleClickOpenMobileNav() {
     setShowMobileNav(true);
@@ -18,7 +18,7 @@ export default function NavBurger({ className }: { className?: string }) {
     setShowMobileNav(false);
   }
   return (
-    <div className={className}>
+    <div>
       <button
         type="button"
         className="border-grayDark-100 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full border-2 p-2.5"
