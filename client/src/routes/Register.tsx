@@ -103,7 +103,7 @@ export default function Register() {
       <Helmet>
         <title>Matcha - Register</title>
       </Helmet>
-      <main className="mx-auto max-w-3xl min-w-xs px-5 py-12 lg:h-screen lg:px-0">
+      <main className="py-12 lg:mx-auto lg:h-screen lg:w-3xl lg:py-0">
         {!showEmailSent ? (
           <div className="lg:flex lg:h-full lg:flex-col lg:justify-center">
             <img src="/logo.svg" alt="logo" className="mx-auto w-52" />

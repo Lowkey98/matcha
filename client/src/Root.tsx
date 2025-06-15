@@ -1,7 +1,13 @@
-import { Outlet } from "react-router-dom";
+import { Outlet } from 'react-router-dom';
+import { Navbar } from './components/Navbar';
 
 export default function Root() {
-  return <Outlet />;
+  return (
+    <>
+      <Navbar />
+      <Outlet />
+    </>
+  );
 }
 // import { Outlet, Navigate, useLocation } from 'react-router-dom';
 // // import { useAuth } from '../context/AuthContext'; // Replace with your actual hook/context

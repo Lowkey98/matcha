@@ -1,53 +1,51 @@
-import { useState } from "react";
-import NavBurger from "../components/NavBurger";
+import { useState } from 'react';
 import {
   isValidAge,
   isValidGender,
   isValidSexualPreference,
   isValidInterests,
   isValidBiography,
-} from "../../Helpers";
-import InputFormField from "../components/FormFields/InputFormField";
-import DropdownFormField from "../components/FormFields/DropdownFormField";
-import MultiSelect from "../components/FormFields/MultiSelect";
-import TextAreaFormField from "../components/FormFields/TextAreaFormField";
-import ButtonPrimary from "../components/Buttons/ButtonPrimary";
-import DropdownNavItem from "../components/DropdownNavItem";
+} from '../../Helpers';
+import InputFormField from '../components/FormFields/InputFormField';
+import DropdownFormField from '../components/FormFields/DropdownFormField';
+import MultiSelect from '../components/FormFields/MultiSelect';
+import TextAreaFormField from '../components/FormFields/TextAreaFormField';
+import ButtonPrimary from '../components/Buttons/ButtonPrimary';
 
-import { Helmet } from "react-helmet";
+import { Helmet } from 'react-helmet';
 
 export default function CreateProfile() {
-  const genders: string[] = ["Men", "Women"];
-  const sexualPreferences = ["Men", "Women"];
+  const genders: string[] = ['Men', 'Women'];
+  const sexualPreferences = ['Men', 'Women'];
   const interestsItems = [
-    "Music",
-    "Dancing",
-    "Singing",
-    "Gaming",
-    "Reading",
-    "Writing",
-    "Movies",
-    "Anime",
-    "Traveling",
-    "Hiking",
-    "Fitness",
-    "Yoga",
-    "Cooking",
-    "Baking",
-    "Photography",
-    "Art",
-    "Pets",
-    "Tech",
-    "Coding",
-    "Fashion",
-    "Shopping",
-    "Volunteering",
+    'Music',
+    'Dancing',
+    'Singing',
+    'Gaming',
+    'Reading',
+    'Writing',
+    'Movies',
+    'Anime',
+    'Traveling',
+    'Hiking',
+    'Fitness',
+    'Yoga',
+    'Cooking',
+    'Baking',
+    'Photography',
+    'Art',
+    'Pets',
+    'Tech',
+    'Coding',
+    'Fashion',
+    'Shopping',
+    'Volunteering',
   ];
-  const [age, setAge] = useState<string>("");
-  const [gender, setGender] = useState<string>("");
-  const [sexualPreference, setSexualPreference] = useState<string>("");
+  const [age, setAge] = useState<string>('');
+  const [gender, setGender] = useState<string>('');
+  const [sexualPreference, setSexualPreference] = useState<string>('');
   const [interests, setInterests] = useState<string[]>([]);
-  const [biography, seBiography] = useState<string>("");
+  const [biography, seBiography] = useState<string>('');
   const [formTrail, setFormTrial] = useState<boolean>(false);
   const errorAge = isValidAge(age);
   const errorGender = isValidGender(gender);
@@ -78,13 +76,8 @@ export default function CreateProfile() {
       <Helmet>
         <title>Matcha - Create profile</title>
       </Helmet>
-      <main className="mx-auto max-w-[110rem] min-w-xs p-5">
-        <div className="flex items-center justify-between">
-          <img src="logo.svg" alt="logo" className="w-42" />
-          <NavBurger className="lg:hidden" />
-          <DropdownNavItem className="hidden lg:block" />
-        </div>
-        <div className="mt-16 flex flex-col items-center justify-center">
+      <main className="py-16 lg:pb-0">
+        <div className="flex flex-col items-center justify-center">
           <h1 className="text-secondary text-2xl font-bold">
             Create your profile
           </h1>

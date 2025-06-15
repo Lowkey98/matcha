@@ -44,7 +44,7 @@ export default function ResetPassword() {
       <Helmet>
         <title>Matcha - Reset password</title>
       </Helmet>
-      <main className="mx-auto flex h-screen min-w-xs flex-col justify-center px-5 lg:max-w-96 lg:px-0">
+      <main className="mx-auto flex h-screen flex-col justify-center lg:w-96">
         <img src="/logo.svg" alt="logo" className="mx-auto w-52" />
         <div className="mt-16">
           <div className="flex flex-col">
