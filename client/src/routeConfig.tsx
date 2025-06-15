@@ -37,7 +37,7 @@ const routeConfig = [
         element: <ResetPassword />,
       },
       {
-        path: "createProfile",
+        path: "/createProfile",
         element: <CreateProfile />,
       },
     ],

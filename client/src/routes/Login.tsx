@@ -1,21 +1,22 @@
-import { Link } from "react-router-dom";
-import { useState } from "react";
-import InputFormField from "../components/FormFields/InputFormField";
-import PasswordFormField from "../components/FormFields/PasswordFormField";
-import ButtonPrimary from "../components//Buttons/ButtonPrimary";
-import ButtonSecondaryWithIcon from "../components//Buttons/ButtonSecondaryWithIcon";
-import { GoogleIcon } from "../components/Icons";
-import { isValidEmail, isValidPassword } from "../../Helpers";
-import { Helmet } from "react-helmet";
+import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import InputFormField from '../components/FormFields/InputFormField';
+import PasswordFormField from '../components/FormFields/PasswordFormField';
+import ButtonPrimary from '../components//Buttons/ButtonPrimary';
+import ButtonSecondaryWithIcon from '../components//Buttons/ButtonSecondaryWithIcon';
+import { GoogleIcon } from '../components/Icons';
+import { isValidEmail, isValidPassword } from '../../Helpers';
+import { Helmet } from 'react-helmet';
 
 export default function Login() {
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
   const [errorPassword, setErrorPassword] = useState<string | null>(null);
   const [formTrail, setFormTrial] = useState<boolean>(false);
   const errorEmail: string | null = isValidEmail(email);
+  const navigate = useNavigate();
 
-  function handleClickLogin() {
+  async function handleClickLogin() {
     let errorForm: boolean = false;
     const checkErrorPassword: string | null = isValidPassword(password);
     if (checkErrorPassword) {
@@ -30,7 +31,27 @@ export default function Login() {
       errorForm = true;
     }
     if (!errorForm) {
-      console.log(email, password);
+      const response = await fetch('http://localhost:3000/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ // TODO: think of sending object vs sending email and password separately
+          email,
+          password,
+        }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json(); // think of using a type for errorData
+        if (errorData.error) {
+          setErrorPassword(errorData.error);
+        } else {
+          setErrorPassword('An unexpected error occurred. Please try again.');
+        }
+      } else {
+        // console.log('Login successful');
+        navigate('/createProfile');
+      }
     }
   }
 

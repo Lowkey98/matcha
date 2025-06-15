@@ -3,6 +3,7 @@ import db from './db.js';
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import nodemailer from 'nodemailer';
+import { randomUUID } from 'crypto';
 
 import dotenv from 'dotenv';
 
@@ -32,7 +33,7 @@ app.post("/api/register", async (req, res) => {
         const { email, password, username } = req.body.registeredUser;
 
         if (!email || !password || !username) {
-             res.status(400).json({ error: 'Email, password, and username are required' });
+            res.status(400).json({ error: 'Email, password, and username are required' });
             return
         }
 
@@ -42,7 +43,7 @@ app.post("/api/register", async (req, res) => {
         ]);
 
         if (emailExists || usernameExists) {
-             res.status(400).json({  // Added return
+            res.status(400).json({  // Added return
                 emailAlreadyExists: !!emailExists,
                 usernameAlreadyExists: !!usernameExists,
             });
@@ -52,7 +53,7 @@ app.post("/api/register", async (req, res) => {
 
         console.log('email', email);
         const hashedPassword = await bcrypt.hash(password, 10);
-        const verificationToken = require('crypto').randomUUID();
+        const verificationToken = randomUUID();
 
         await db.collection('userInfo').insertOne({
             email: email,
@@ -68,13 +69,51 @@ app.post("/api/register", async (req, res) => {
             message: 'Registration successful. Please check your email to verify your account.',
         });
         return;
-        
+
     } catch (err) {
         console.error('Registration error:', err);
         res.status(500).json({ error: 'Internal server error.' });
         return;
     }
 });
+app.post("/api/login", async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        if (!email || !password) {
+            res.status(400).json({ error: 'Email and password are required' });
+            return;
+        }
+        const user = await db.collection('userInfo').findOne({ email });
+        if (!user) {
+            res.status(400).json({ error: 'Invalid email or password' });
+            return;
+        }
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            res.status(400).json({ error: 'Invalid email or password' });
+            return;
+        }
+        if (!user.isVerified) {
+            res.status(400).json({ error: 'Email not verified. Please check your email.' });
+            return;
+        }
+        res.status(200).json({
+            message: 'Login successful',
+            user: {
+                id: user._id,
+                email: user.email,
+                username: user.username,
+                isVerified: user.isVerified,
+            },
+        });
+        return;
+    } catch (err) {
+        console.error('Login error:', err);
+        res.status(500).json({ error: 'Internal server error.' });
+        return;
+    }
+});
+
 app.get("/api/verify", async (req, res) => {
     try {
 
