@@ -1,9 +1,7 @@
 import express from 'express';
-import { connectDB } from './db';
+import db from './db.js';
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { send } from 'process';
 import nodemailer from 'nodemailer';
 
 import dotenv from 'dotenv';
@@ -13,90 +11,98 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-connectDB().then((db) => {
-    const testCollection = db.collection('test');
+const testCollection = db.collection('test');
 
-    app.get('/api/ping', (_req, res) => {
-        res.send({ msg: 'pong' });
-    });
-
-    app.get('/api/data', async (_req, res) => {
-        try {
-            const items = await testCollection.find().toArray();
-            res.send(items);
-        } catch (err) {
-            console.error('Error fetching data:', err);
-            res.status(500).send('Error fetching data');
-        }
-    });
-
-    app.post("/api/register", async (req, res) => {
-        try {
-            const { email, password, username } = req.body.registeredUser;
-            const [emailExists, usernameExists] = await Promise.all([
-                db.collection('userInfo').findOne({ email }),
-                db.collection('userInfo').findOne({ username }),
-            ]);
-
-            if (emailExists || usernameExists) {
-                res.status(400).json({
-                    emailAlreadyExists: !!emailExists,
-                    usernameAlreadyExists: !!usernameExists,
-                });
-            }
-            console.log('email', email);
-            console.log('password', password);
-            const hashedPassword = await bcrypt.hash(password, 10);
-            // create UIID token for email verification
-            const verificationToken = require('crypto').randomUUID();
-            await db.collection('userInfo').insertOne({
-                email: email,
-                password: hashedPassword,
-                username: username,
-                isVerified: false,
-                createdAt: new Date(),
-                verificationToken,
-            });
-            // sendVerificationEmail({ to: email, token: verificationToken });
-            res.status(200).json({
-                message: 'Registration successful. Please check your email to verify your account.',
-            });
-            // // Generate JWT token
-            // const token = jwt.sign({ email: email }, 'secret');
-            // res.status(200).json({ token });
-        } catch (err) {
-            console.error('Registration error:', err);
-            res.status(500).json({ error: 'Internal server error.' });
-        }
-    });
-    app.get("/api/verify", async (req, res) => {
-        try {
-
-            const { token } = req.query;
-            if (!token) res.status(400).send("Missing token");
-            console.log("token", token);
-            const user = await db.collection("userInfo").findOne({ verificationToken: token });
-
-            if (!user) res.status(400).send("Invalid or expired token");
-            console.log("user", user);
-            await db.collection("userInfo").updateOne(
-                { _id: user?._id },
-                // { $set: { isVerified: true } }
-                { $set: { isVerified: true }, $unset: { verifyToken: "" } }
-            )
-
-            res.send("<h1>Email verified successfully!</h1>");
-        }
-        catch (err) {
-            console.error('Verification error:', err);
-            res.status(500).send('Internal server error.');
-        }
-    });
-
-    app.listen(3000, () => {
-        console.log('🚀 Server running at http://localhost:3000');
-    });
+app.get('/api/ping', (_req, res) => {
+    res.send({ msg: 'pong' });
 });
+
+app.get('/api/data', async (_req, res) => {
+    try {
+        const items = await testCollection.find().toArray();
+        res.send(items);
+    } catch (err) {
+        console.error('Error fetching data:', err);
+        res.status(500).send('Error fetching data');
+    }
+});
+
+app.post("/api/register", async (req, res) => {
+    try {
+        const { email, password, username } = req.body.registeredUser;
+
+        if (!email || !password || !username) {
+             res.status(400).json({ error: 'Email, password, and username are required' });
+            return
+        }
+
+        const [emailExists, usernameExists] = await Promise.all([
+            db.collection('userInfo').findOne({ email }),
+            db.collection('userInfo').findOne({ username }),
+        ]);
+
+        if (emailExists || usernameExists) {
+             res.status(400).json({  // Added return
+                emailAlreadyExists: !!emailExists,
+                usernameAlreadyExists: !!usernameExists,
+            });
+            return;
+
+        }
+
+        console.log('email', email);
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const verificationToken = require('crypto').randomUUID();
+
+        await db.collection('userInfo').insertOne({
+            email: email,
+            password: hashedPassword,
+            username: username,
+            isVerified: false,
+            createdAt: new Date(),
+            verificationToken,
+        });
+
+        sendVerificationEmail({ to: email, token: verificationToken });
+        res.status(200).json({
+            message: 'Registration successful. Please check your email to verify your account.',
+        });
+        return;
+        
+    } catch (err) {
+        console.error('Registration error:', err);
+        res.status(500).json({ error: 'Internal server error.' });
+        return;
+    }
+});
+app.get("/api/verify", async (req, res) => {
+    try {
+
+        const { token } = req.query;
+        if (!token) res.status(400).send("Missing token");
+        console.log("token", token);
+        const user = await db.collection("userInfo").findOne({ verificationToken: token });
+
+        if (!user) res.status(400).send("Invalid or expired token");
+        console.log("user", user);
+        await db.collection("userInfo").updateOne(
+            { _id: user?._id },
+            // { $set: { isVerified: true } }
+            { $set: { isVerified: true }, $unset: { verifyToken: "" } }
+        )
+
+        res.send("<h1>Email verified successfully!</h1>");
+    }
+    catch (err) {
+        console.error('Verification error:', err);
+        res.status(500).send('Internal server error.');
+    }
+});
+
+app.listen(3000, () => {
+    console.log('🚀 Server running at http://localhost:3000');
+});
+
 
 
 export async function sendVerificationEmail({
@@ -139,3 +145,11 @@ export async function sendVerificationEmail({
 
     console.log("Email sent:", info.messageId);
 }
+
+
+async function startServer() {
+    app.listen(3000, () => {
+        console.log('🚀 Server running at http://localhost:3000');
+    });
+}
+startServer();
