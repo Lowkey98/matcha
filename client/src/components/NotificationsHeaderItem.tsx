@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { NotificationIcon } from './Icons';
+import { NotificationsIcon } from './Icons';
 
-export default function NotificationNavItem() {
+export default function NotificationsHeaderItem() {
   const [showItems, setShowItems] = useState<boolean>(false);
-  function handleClickNotificationNavItem() {
+  function handleClickNotificationsHeaderItem() {
     setShowItems(!showItems);
   }
   return (
@@ -11,9 +11,9 @@ export default function NotificationNavItem() {
       <button
         type="button"
         className="border-grayDark-100 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full border-2 p-2.5"
-        onClick={handleClickNotificationNavItem}
+        onClick={handleClickNotificationsHeaderItem}
       >
-        <NotificationIcon className="fill-secondary h-6 w-6" />
+        <NotificationsIcon className="fill-secondary h-6 w-6" />
       </button>
       {showItems ? (
         <div className="border-grayDark-100 text-secondary absolute top-15 right-0 flex w-72 flex-col rounded-lg border-2 bg-white p-3">

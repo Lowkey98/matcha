@@ -1,10 +1,10 @@
 import { Helmet } from 'react-helmet';
 
-export function Explorer() {
+export default function Likes() {
   return (
     <>
       <Helmet>
-        <title>Matcha - Explorer</title>
+        <title>Matcha - Likes</title>
       </Helmet>
     </>
   );

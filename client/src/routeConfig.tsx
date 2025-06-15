@@ -7,7 +7,13 @@ import ForgetPassword from './routes/ForgetPassword';
 import ResetPassword from './routes/ResetPassword';
 import CreateProfile from './routes/CreateProfile';
 import AddPictures from './routes/AddPictures';
-import { Explorer } from './routes/Explorer';
+import Explore from './routes/Explore';
+import Messages from './routes/Messages';
+import Matches from './routes/Matches';
+import Likes from './routes/Likes';
+import Viewers from './routes/Viewers';
+import Profile from './routes/Profile';
+import Notifications from './routes/Notifications';
 const routeConfig = [
   {
     path: '/',
@@ -47,8 +53,32 @@ const routeConfig = [
         element: <AddPictures />,
       },
       {
-        path: '/explorer',
-        element: <Explorer />,
+        path: '/explore',
+        element: <Explore />,
+      },
+      {
+        path: '/messages',
+        element: <Messages />,
+      },
+      {
+        path: '/matches',
+        element: <Matches />,
+      },
+      {
+        path: '/likes',
+        element: <Likes />,
+      },
+      {
+        path: '/viewers',
+        element: <Viewers />,
+      },
+      {
+        path: '/profile',
+        element: <Profile />,
+      },
+      {
+        path: '/notifications',
+        element: <Notifications />,
       },
     ],
   },

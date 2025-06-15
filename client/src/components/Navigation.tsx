@@ -5,7 +5,7 @@ import {
   HearthIcon,
   LikeIcon,
   MessagesIcon,
-  NotificationIcon,
+  NotificationsIcon,
   UserIcon,
   ViewersIcon,
 } from './Icons';
@@ -19,8 +19,8 @@ export type NavigationItem = {
 export default function Navigation() {
   const navigationItems: NavigationItem[] = [
     {
-      route: '/explorer',
-      name: 'Explorer',
+      route: '/explore',
+      name: 'Explore',
       icon: <ExplorerIcon />,
     },
     {
@@ -62,7 +62,7 @@ export default function Navigation() {
           {
             route: '/notifications',
             name: 'Notifications',
-            icon: <NotificationIcon />,
+            icon: <NotificationsIcon />,
           },
         ]}
       />

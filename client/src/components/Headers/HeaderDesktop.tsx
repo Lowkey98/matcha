@@ -1,6 +1,6 @@
 import FameRate from '../FameRate';
 import DropdownHeaderItem from '../DropdownHeaderItem';
-import NotificationHeaderItem from '../NotificationHeaderItem';
+import NotificationsHeaderItem from '../NotificationsHeaderItem';
 
 export function HeaderDesktop({ className }: { className?: string }) {
   return (
@@ -10,7 +10,7 @@ export function HeaderDesktop({ className }: { className?: string }) {
       <div className="flex flex-1 items-center justify-end gap-8">
         {/* TODO handle display of fame rate and notification depends on the authentication */}
         <FameRate />
-        <NotificationHeaderItem />
+        <NotificationsHeaderItem />
         <DropdownHeaderItem />
       </div>
     </div>

@@ -264,7 +264,7 @@ export function StarIcon({ className }: { className?: string }) {
   );
 }
 
-export function NotificationIcon({ className }: { className?: string }) {
+export function NotificationsIcon({ className }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 20 20"
