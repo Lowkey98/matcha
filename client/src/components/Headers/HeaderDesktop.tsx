@@ -1,8 +1,15 @@
 import FameRate from '../FameRate';
 import DropdownHeaderItem from '../DropdownHeaderItem';
 import NotificationsHeaderItem from '../NotificationsHeaderItem';
+import { HeaderNavigationItem } from './Header';
 
-export function HeaderDesktop({ className }: { className?: string }) {
+export function HeaderDesktop({
+  headerNavigationItems,
+  className,
+}: {
+  headerNavigationItems: HeaderNavigationItem[];
+  className?: string;
+}) {
   return (
     <div className={`flex items-center justify-between pt-5 ${className}`}>
       {/* TODO handle display of logo depends on the authentication */}
@@ -11,7 +18,7 @@ export function HeaderDesktop({ className }: { className?: string }) {
         {/* TODO handle display of fame rate and notification depends on the authentication */}
         <FameRate />
         <NotificationsHeaderItem />
-        <DropdownHeaderItem />
+        <DropdownHeaderItem headerNavigationItems={headerNavigationItems} />
       </div>
     </div>
   );
