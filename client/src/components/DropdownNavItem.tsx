@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import {
   ArrowDownIcon,
   UserIcon,
@@ -31,13 +32,13 @@ export default function DropdownNavItem({ className }: { className?: string }) {
       </button>
       {showItems ? (
         <div className="border-grayDark-100 absolute mt-2 flex w-full flex-col rounded-lg border-2">
-          <button
-            type="button"
+          <Link
+            to="/settings"
             className="text-secondary flex cursor-pointer items-center gap-2 p-3 text-left text-sm hover:bg-gray-50"
           >
             <SettingsIcon className="fill-secondary h-5 w-5" />
             <span>Settings</span>
-          </button>
+          </Link>
           <button
             type="button"
             className="text-secondary flex cursor-pointer items-center gap-2 p-3 text-left text-sm hover:bg-gray-50"

@@ -7,6 +7,7 @@ import ForgetPassword from './routes/ForgetPassword';
 import ResetPassword from './routes/ResetPassword';
 import CreateProfile from './routes/CreateProfile';
 import AddPictures from './routes/AddPictures';
+import Settings from './routes/Settings';
 const routeConfig = [
   {
     path: '/',
@@ -44,6 +45,10 @@ const routeConfig = [
       {
         path: '/createProfile/addPictures',
         element: <AddPictures />,
+      },
+      {
+        path: '/settings',
+        element: <Settings />,
       },
     ],
   },
