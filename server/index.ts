@@ -4,8 +4,10 @@ import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import nodemailer from 'nodemailer';
 import { randomUUID } from 'crypto';
+import jwt from 'jsonwebtoken';
 
 import dotenv from 'dotenv';
+import { ObjectId } from 'mongodb';
 
 dotenv.config();
 const app = express();
@@ -30,22 +32,22 @@ app.get('/api/data', async (_req, res) => {
 
 app.post("/api/register", async (req, res) => {
     try {
-        const { email, password, username } = req.body.registeredUser;
-
-        if (!email || !password || !username) {
-            res.status(400).json({ error: 'Email, password, and username are required' });
+        const { email, password, userName } = req.body.registeredUser;
+        console.log("req.body.registeredUser", req.body.registeredUser);
+        if (!email || !password || !userName) {
+            res.status(402).json({ error: 'Email, password, and userName are required' });
             return
         }
 
-        const [emailExists, usernameExists] = await Promise.all([
+        const [emailExists, userNameExists] = await Promise.all([
             db.collection('userInfo').findOne({ email }),
-            db.collection('userInfo').findOne({ username }),
+            db.collection('userInfo').findOne({ userName }),
         ]);
 
-        if (emailExists || usernameExists) {
-            res.status(400).json({  // Added return
+        if (emailExists || userNameExists) {
+            res.status(401).json({  // Added return
                 emailAlreadyExists: !!emailExists,
-                usernameAlreadyExists: !!usernameExists,
+                userNameAlreadyExists: !!userNameExists,
             });
             return;
 
@@ -58,7 +60,7 @@ app.post("/api/register", async (req, res) => {
         await db.collection('userInfo').insertOne({
             email: email,
             password: hashedPassword,
-            username: username,
+            userName: userName,
             isVerified: false,
             createdAt: new Date(),
             verificationToken,
@@ -97,15 +99,21 @@ app.post("/api/login", async (req, res) => {
             res.status(400).json({ error: 'Email not verified. Please check your email.' });
             return;
         }
+        // generate JWT token
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET
+            || 'default_secret', { expiresIn: '1h' });
+
         res.status(200).json({
             message: 'Login successful',
+            token,
             user: {
                 id: user._id,
                 email: user.email,
-                username: user.username,
+                userName: user.userName,
                 isVerified: user.isVerified,
             },
         });
+
         return;
     } catch (err) {
         console.error('Login error:', err);
@@ -135,6 +143,38 @@ app.get("/api/verify", async (req, res) => {
     catch (err) {
         console.error('Verification error:', err);
         res.status(500).send('Internal server error.');
+    }
+});
+app.get('/api/me', async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+    }
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
+        console.log("decoded", decoded);
+        console.log("decoded.userId", decoded.userId);
+        const user = await db.collection('userInfo').findOne({
+            _id: ObjectId.createFromHexString(decoded.userId)
+        });
+        if (!user) {
+            console.error('User not found for token:', token);
+            res.status(404).json({ error: 'User not found' });
+            return
+        }
+        console.log("token", token);
+        res.json({
+            id: user._id,
+            email: user.email,
+            userName: user.userName,
+            isVerified: user.isVerified,
+        });
+        return;
+    } catch (err) {
+        console.error('Error fetching user data:', err);
+        res.status(500).json({ error: 'Internal server error' });
+        return
     }
 });
 
