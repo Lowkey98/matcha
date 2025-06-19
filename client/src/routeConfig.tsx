@@ -25,8 +25,8 @@ const routeConfig = [
         element: <Notfound />,
       },
       {
-        path: '',
-        element: <Register />,
+        path: '/',
+        element: <Explore />,
       },
       {
         path: '/register',
@@ -45,7 +45,7 @@ const routeConfig = [
         element: <ResetPassword />,
       },
       {
-        path: "/createProfile",
+        path: '/createProfile',
         element: <CreateProfile />,
       },
       {

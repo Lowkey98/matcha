@@ -1,3 +1,5 @@
+import { useNavigate } from 'react-router-dom';
+import { UserContext } from '../Root';
 import {
   ArrowDownIcon,
   UserIcon,
@@ -6,9 +8,11 @@ import {
   LogoutIcon,
   ArrowUpIcon,
 } from './Icons';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 export default function DropdownNavItem() {
   const [showItems, setShowItems] = useState<boolean>(false);
+  const { setUser, user } = useContext(UserContext);
+  const navigate = useNavigate();
   function handleClickDropdownNavItem() {
     setShowItems(!showItems);
   }
@@ -42,17 +46,24 @@ export default function DropdownNavItem() {
             <SettingsIcon className="fill-secondary h-5 w-5" />
             <span>Settings</span>
           </button>
-          {/* TODO handle display of edit profile depends on the authentication */}
+          {user && (
+            <button
+              type="button"
+              className="text-secondary flex cursor-pointer items-center gap-2 p-3 text-left text-sm hover:bg-gray-50"
+            >
+              <EditIcon className="fill-secondary h-5 w-5" />
+              <span>Edit profile</span>
+            </button>
+          )}
           <button
             type="button"
             className="text-secondary flex cursor-pointer items-center gap-2 p-3 text-left text-sm hover:bg-gray-50"
-          >
-            <EditIcon className="fill-secondary h-5 w-5" />
-            <span>Edit profile</span>
-          </button>
-          <button
-            type="button"
-            className="text-secondary flex cursor-pointer items-center gap-2 p-3 text-left text-sm hover:bg-gray-50"
+            onClick={() =>
+              handleClickLogout({
+                navigate,
+                setUser,
+              })
+            } // Replace
           >
             <LogoutIcon className="fill-secondary h-5 w-5" />
             <span>Logout</span>
@@ -61,4 +72,20 @@ export default function DropdownNavItem() {
       ) : null}
     </div>
   );
+}
+
+export function handleClickLogout({
+  navigate,
+  setUser,
+}: {
+  navigate: (path: string) => void;
+  setUser: React.Dispatch<any>;
+}) {
+  console.log('Logout clicked');
+
+  // Clear user data and redirect to login page
+  localStorage.removeItem('token');
+  setUser(null);
+  navigate('/login');
+  // window.location.href = '/login';
 }

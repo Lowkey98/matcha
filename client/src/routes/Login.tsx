@@ -36,7 +36,8 @@ export default function Login() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ // TODO: think of sending object vs sending email and password separately
+        body: JSON.stringify({
+          // TODO: think of sending object vs sending email and password separately
           email,
           password,
         }),
@@ -50,6 +51,10 @@ export default function Login() {
         }
       } else {
         // console.log('Login successful');
+        const data = await response.json();
+        localStorage.setItem('token', data.token);
+        // set user context
+        
         navigate('/createProfile');
       }
     }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import {
   BurgerIcon,
   CloseIcon,
@@ -8,9 +8,15 @@ import {
   UserIcon,
 } from './Icons';
 import FameRate from './FameRate';
+import { handleClickLogout } from './DropdownHeaderItem';
+import { useNavigate } from 'react-router-dom';
+import { UserContext } from '../Root';
 
 export default function HeaderBurger() {
   const [showMobileNav, setShowMobileNav] = useState<boolean>(false);
+  const navigate = useNavigate();
+  const { user, setUser } = useContext(UserContext);
+
   function handleClickOpenMobileNav() {
     setShowMobileNav(true);
   }
@@ -41,15 +47,18 @@ export default function HeaderBurger() {
             <div className="flex items-center gap-5">
               <div className="flex items-center gap-1 pl-5">
                 {/* TODO handle display of user icon or user image depends on the authentication */}
-                {/* <UserIcon className="fill-primary h-5 w-5" /> */}
-                <div className="border-primary mr-1 h-8 w-8 rounded-full border-2">
-                  {/* <img src="" alt="user" className="object-cover" /> */}
-                </div>
+                {user && (
+                  <>
+                    <UserIcon className="fill-primary h-5 w-5" />
+                    <div className="border-primary mr-1 h-8 w-8 rounded-full border-2">
+                      <img src="" alt="user" className="object-cover" />
+                    </div>
+                  </>
+                )}
                 <span className="text-secondary text-sm">Username</span>
               </div>
-              {/* TODO handle display of fame rate depends on the authentication */}
               <span className="text-gray-300">|</span>
-              <FameRate className="border-grayDark" />
+              {user && <FameRate className="border-grayDark" />}
             </div>
             <div className="mt-10 flex flex-col gap-2">
               <button
@@ -70,6 +79,12 @@ export default function HeaderBurger() {
               <button
                 type="button"
                 className="text-secondary flex cursor-pointer items-center gap-2 py-3 pl-5 text-left text-sm hover:bg-gray-50"
+                onClick={() =>
+                  handleClickLogout({
+                    navigate,
+                    setUser,
+                  })
+                }
               >
                 <LogoutIcon className="fill-secondary h-5 w-5" />
                 <span>Logout</span>

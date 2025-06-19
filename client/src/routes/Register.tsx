@@ -37,7 +37,8 @@ export default function Register() {
   const [formTrail, setFormTrial] = useState<boolean>(false);
   const errorEmail: string | null =
     isValidEmail(email) ?? errorEmailAlreadyExists;
-  const errorUserName: string | null = isValidUsername(userName) ?? errorUserNameAlreadyExists;
+  const errorUserName: string | null =
+    isValidUsername(userName) ?? errorUserNameAlreadyExists;
   const errorFirstName: string | null = isValidName(firstName);
   const errorLastName: string | null = isValidName(lastName);
 
@@ -85,13 +86,12 @@ export default function Register() {
       });
 
       if (!response.ok) {
-        const { emailAlreadyExists, usernameAlreadyExists } =
+        const { emailAlreadyExists, userNameAlreadyExists } =
           await response.json();
         if (emailAlreadyExists)
           setErrorEmailAlreadyExists('Email already exists');
-        if (usernameAlreadyExists)
+        if (userNameAlreadyExists)
           setErrorUserNameAlreadyExists('Username already exists');
-
       } else {
         setShowEmailSent(true);
       }

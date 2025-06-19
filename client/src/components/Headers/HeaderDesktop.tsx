@@ -1,15 +1,16 @@
 import FameRate from '../FameRate';
 import DropdownHeaderItem from '../DropdownHeaderItem';
 import NotificationsHeaderItem from '../NotificationsHeaderItem';
+import { UserContext } from '../../Root';
+import { useContext } from 'react';
 
 export function HeaderDesktop({ className }: { className?: string }) {
+  const { user } = useContext(UserContext);
   return (
     <div className={`flex items-center justify-between pt-5 ${className}`}>
-      {/* TODO handle display of logo depends on the authentication */}
-      {/* <img src="/logo.svg" alt="logo" className="w-42" /> */}
+      {user && <img src="/logo.svg" alt="logo" className="w-42" />}
       <div className="flex flex-1 items-center justify-end gap-8">
-        {/* TODO handle display of fame rate and notification depends on the authentication */}
-        <FameRate />
+        {user && <FameRate />}
         <NotificationsHeaderItem />
         <DropdownHeaderItem />
       </div>
