@@ -3,16 +3,23 @@ import Header from './components/Headers/Header';
 import Navigation from './components/Navigation';
 import { createContext, useEffect } from 'react';
 import { useState } from 'react';
-
+type User = {
+  id: string;
+  age?: number;
+  email: string;
+  userName: string;
+  isVerified: boolean;
+  password: string;
+};
 type UserContextType = {
-  user: any;
+  user: User | null;
   setUser: React.Dispatch<React.SetStateAction<any>>;
   loading: boolean;
 };
 export const UserContext = createContext<UserContextType>({
   user: null,
-  setUser: () => {}, // no-op function to prevent runtime crash before real value is set
-  loading: true, // default loading state
+  setUser: () => {},
+  loading: true,
 });
 
 export default function Root() {
