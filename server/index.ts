@@ -14,169 +14,185 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-const testCollection = db.collection('test');
-
 app.get('/api/ping', (_req, res) => {
     res.send({ msg: 'pong' });
 });
 
-app.get('/api/data', async (_req, res) => {
-    try {
-        const items = await testCollection.find().toArray();
-        res.send(items);
-    } catch (err) {
-        console.error('Error fetching data:', err);
-        res.status(500).send('Error fetching data');
-    }
-});
+// app.get('/api/data', async (_req, res) => {
+//     try {
+//         const items = await testCollection.find().toArray();
+//         res.send(items);
+//     } catch (err) {
+//         console.error('Error fetching data:', err);
+//         res.status(500).send('Error fetching data');
+//     }
+// });
 
+// import { Request, Response } from 'express';
+// import bcrypt from 'bcrypt';
+// import { randomUUID } from 'crypto';
+// import { db } from './db'; // your mysql connection
+// import { sendVerificationEmail } from './email'; // your email function
+
+type UserInfo = {
+    email: string;
+    password: string;
+    userName: string;
+    is_verified: boolean;
+    created_at: Date;
+    verification_token: string;
+};
 app.post("/api/register", async (req, res) => {
     try {
         const { email, password, userName } = req.body.registeredUser;
-        console.log("req.body.registeredUser", req.body.registeredUser);
         if (!email || !password || !userName) {
-            res.status(402).json({ error: 'Email, password, and userName are required' });
+            res.status(400).json({ error: 'Email, password, and userName are required' });
             return
         }
 
-        const [emailExists, userNameExists] = await Promise.all([
-            db.collection('userInfo').findOne({ email }),
-            db.collection('userInfo').findOne({ userName }),
-        ]);
+        // Check if email or userName exists
+        const [rows]: [any[], any] = await db.execute(
+            'SELECT email, userName FROM usersInfo WHERE email = ? OR userName = ?',
+            [email, userName]
+        );
+
+        const userRows = rows as UserInfo[];
+        const emailExists = userRows.some((row: UserInfo) => row.email === email);
+        const userNameExists = userRows.some((row: UserInfo) => row.userName === userName);
 
         if (emailExists || userNameExists) {
-            res.status(401).json({  // Added return
-                emailAlreadyExists: !!emailExists,
-                userNameAlreadyExists: !!userNameExists,
+            res.status(409).json({
+                emailAlreadyExists: emailExists,
+                userNameAlreadyExists: userNameExists,
             });
-            return;
-
+            return
         }
 
-        console.log('email', email);
+        // Hash password and create verification token
         const hashedPassword = await bcrypt.hash(password, 10);
         const verificationToken = randomUUID();
 
-        await db.collection('userInfo').insertOne({
-            email: email,
-            password: hashedPassword,
-            userName: userName,
-            isVerified: false,
-            createdAt: new Date(),
-            verificationToken,
-        });
+        // Insert user into DB
+        await db.execute(
+            `INSERT INTO usersInfo
+       (email, password, userName, is_verified, created_at, verification_token) 
+       VALUES (?, ?, ?, ?, NOW(), ?)`,
+            [email, hashedPassword, userName, false, verificationToken]
+        );
 
+        // Send verification email
         sendVerificationEmail({ to: email, token: verificationToken });
-        res.status(200).json({
+
+        res.status(201).json({
             message: 'Registration successful. Please check your email to verify your account.',
         });
-        return;
-
+        return
     } catch (err) {
         console.error('Registration error:', err);
         res.status(500).json({ error: 'Internal server error.' });
-        return;
-    }
-});
-app.post("/api/login", async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        if (!email || !password) {
-            res.status(400).json({ error: 'Email and password are required' });
-            return;
-        }
-        const user = await db.collection('userInfo').findOne({ email });
-        if (!user) {
-            res.status(400).json({ error: 'Invalid email or password' });
-            return;
-        }
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-        if (!isPasswordValid) {
-            res.status(400).json({ error: 'Invalid email or password' });
-            return;
-        }
-        if (!user.isVerified) {
-            res.status(400).json({ error: 'Email not verified. Please check your email.' });
-            return;
-        }
-        // generate JWT token
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET
-            || 'default_secret', { expiresIn: '1h' });
-
-        res.status(200).json({
-            message: 'Login successful',
-            token,
-            user: {
-                id: user._id,
-                email: user.email,
-                userName: user.userName,
-                isVerified: user.isVerified,
-            },
-        });
-
-        return;
-    } catch (err) {
-        console.error('Login error:', err);
-        res.status(500).json({ error: 'Internal server error.' });
-        return;
-    }
-});
-
-app.get("/api/verify", async (req, res) => {
-    try {
-
-        const { token } = req.query;
-        if (!token) res.status(400).send("Missing token");
-        console.log("token", token);
-        const user = await db.collection("userInfo").findOne({ verificationToken: token });
-
-        if (!user) res.status(400).send("Invalid or expired token");
-        console.log("user", user);
-        await db.collection("userInfo").updateOne(
-            { _id: user?._id },
-            // { $set: { isVerified: true } }
-            { $set: { isVerified: true }, $unset: { verifyToken: "" } }
-        )
-
-        res.send("<h1>Email verified successfully!</h1>");
-    }
-    catch (err) {
-        console.error('Verification error:', err);
-        res.status(500).send('Internal server error.');
-    }
-});
-app.get('/api/me', async (req, res) => {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) {
-        res.status(401).json({ error: 'Unauthorized' });
-        return;
-    }
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
-        console.log("decoded", decoded);
-        console.log("decoded.userId", decoded.userId);
-        const user = await db.collection('userInfo').findOne({
-            _id: ObjectId.createFromHexString(decoded.userId)
-        });
-        if (!user) {
-            console.error('User not found for token:', token);
-            res.status(404).json({ error: 'User not found' });
-            return
-        }
-        console.log("token", token);
-        res.json({
-            id: user._id,
-            email: user.email,
-            userName: user.userName,
-            isVerified: user.isVerified,
-        });
-        return;
-    } catch (err) {
-        console.error('Error fetching user data:', err);
-        res.status(500).json({ error: 'Internal server error' });
         return
     }
 });
+
+// app.post("/api/login", async (req, res) => {
+//     try {
+//         const { email, password } = req.body;
+//         if (!email || !password) {
+//             res.status(400).json({ error: 'Email and password are required' });
+//             return;
+//         }
+//         const user = await db.collection('userInfo').findOne({ email });
+//         if (!user) {
+//             res.status(400).json({ error: 'Invalid email or password' });
+//             return;
+//         }
+//         const isPasswordValid = await bcrypt.compare(password, user.password);
+//         if (!isPasswordValid) {
+//             res.status(400).json({ error: 'Invalid email or password' });
+//             return;
+//         }
+//         if (!user.isVerified) {
+//             res.status(400).json({ error: 'Email not verified. Please check your email.' });
+//             return;
+//         }
+//         // generate JWT token
+//         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET
+//             || 'default_secret', { expiresIn: '1h' });
+
+//         res.status(200).json({
+//             message: 'Login successful',
+//             token,
+//             user: {
+//                 id: user._id,
+//                 email: user.email,
+//                 userName: user.userName,
+//                 isVerified: user.isVerified,
+//             },
+//         });
+
+//         return;
+//     } catch (err) {
+//         console.error('Login error:', err);
+//         res.status(500).json({ error: 'Internal server error.' });
+//         return;
+//     }
+// });
+
+// app.get("/api/verify", async (req, res) => {
+//     try {
+
+//         const { token } = req.query;
+//         if (!token) res.status(400).send("Missing token");
+//         console.log("token", token);
+//         const user = await db.collection("userInfo").findOne({ verificationToken: token });
+
+//         if (!user) res.status(400).send("Invalid or expired token");
+//         console.log("user", user);
+//         await db.collection("userInfo").updateOne(
+//             { _id: user?._id },
+//             // { $set: { isVerified: true } }
+//             { $set: { isVerified: true }, $unset: { verifyToken: "" } }
+//         )
+
+//         res.send("<h1>Email verified successfully!</h1>");
+//     }
+//     catch (err) {
+//         console.error('Verification error:', err);
+//         res.status(500).send('Internal server error.');
+//     }
+// });
+// app.get('/api/me', async (req, res) => {
+//     const token = req.headers.authorization?.split(' ')[1];
+//     if (!token) {
+//         res.status(401).json({ error: 'Unauthorized' });
+//         return;
+//     }
+//     try {
+//         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
+//         console.log("decoded", decoded);
+//         console.log("decoded.userId", decoded.userId);
+//         const user = await db.collection('userInfo').findOne({
+//             _id: ObjectId.createFromHexString(decoded.userId)
+//         });
+//         if (!user) {
+//             console.error('User not found for token:', token);
+//             res.status(404).json({ error: 'User not found' });
+//             return
+//         }
+//         console.log("token", token);
+//         res.json({
+//             id: user._id,
+//             email: user.email,
+//             userName: user.userName,
+//             isVerified: user.isVerified,
+//         });
+//         return;
+//     } catch (err) {
+//         console.error('Error fetching user data:', err);
+//         res.status(500).json({ error: 'Internal server error' });
+//         return
+//     }
+// });
 
 app.listen(3000, () => {
     console.log('🚀 Server running at http://localhost:3000');
