@@ -1,17 +1,18 @@
-import {
-  ArrowDownIcon,
-  UserIcon,
-  SettingsIcon,
-  EditIcon,
-  LogoutIcon,
-  ArrowUpIcon,
-} from './Icons';
-import { useState } from 'react';
-export default function DropdownNavItem() {
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowDownIcon, ArrowUpIcon } from './Icons';
+import React, { useState } from 'react';
+import { HeaderNavigationItem } from './Headers/Header';
+export default function DropdownNavItem({
+  headerNavigationItems,
+}: {
+  headerNavigationItems: HeaderNavigationItem[];
+}) {
+  const navigate = useNavigate();
   const [showItems, setShowItems] = useState<boolean>(false);
   function handleClickDropdownNavItem() {
     setShowItems(!showItems);
   }
+
   return (
     <div className="relative">
       <button
@@ -35,28 +36,22 @@ export default function DropdownNavItem() {
       </button>
       {showItems ? (
         <div className="border-grayDark-100 absolute mt-2 flex w-full flex-col rounded-lg border-2 bg-white">
-          <button
-            type="button"
-            className="text-secondary flex cursor-pointer items-center gap-2 p-3 text-left text-sm hover:bg-gray-50"
-          >
-            <SettingsIcon className="fill-secondary h-5 w-5" />
-            <span>Settings</span>
-          </button>
-          {/* TODO handle display of edit profile depends on the authentication */}
-          <button
-            type="button"
-            className="text-secondary flex cursor-pointer items-center gap-2 p-3 text-left text-sm hover:bg-gray-50"
-          >
-            <EditIcon className="fill-secondary h-5 w-5" />
-            <span>Edit profile</span>
-          </button>
-          <button
-            type="button"
-            className="text-secondary flex cursor-pointer items-center gap-2 p-3 text-left text-sm hover:bg-gray-50"
-          >
-            <LogoutIcon className="fill-secondary h-5 w-5" />
-            <span>Logout</span>
-          </button>
+          {headerNavigationItems.map((headerNavigationItem) => (
+            <button
+              key={headerNavigationItem.name}
+              type="button"
+              className="text-secondary flex cursor-pointer items-center gap-2 p-3 text-left text-sm hover:bg-gray-50"
+              onClick={() => {
+                setShowItems(false);
+                navigate(headerNavigationItem.route);
+              }}
+            >
+              {React.cloneElement(headerNavigationItem.icon, {
+                className: 'fill-secondary h-5 w-5',
+              })}
+              <span>{headerNavigationItem.name}</span>
+            </button>
+          ))}
         </div>
       ) : null}
     </div>

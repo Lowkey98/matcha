@@ -1,15 +1,15 @@
-import { useState } from 'react';
-import {
-  BurgerIcon,
-  CloseIcon,
-  EditIcon,
-  LogoutIcon,
-  SettingsIcon,
-  UserIcon,
-} from './Icons';
+import React, { useState } from 'react';
+import { BurgerIcon, CloseIcon } from './Icons';
 import FameRate from './FameRate';
+import { HeaderNavigationItem } from './Headers/Header';
+import { useNavigate } from 'react-router-dom';
 
-export default function HeaderBurger() {
+export default function HeaderBurger({
+  headerNavigationItems,
+}: {
+  headerNavigationItems: HeaderNavigationItem[];
+}) {
+  const navigate = useNavigate();
   const [showMobileNav, setShowMobileNav] = useState<boolean>(false);
   function handleClickOpenMobileNav() {
     setShowMobileNav(true);
@@ -52,28 +52,26 @@ export default function HeaderBurger() {
               <FameRate className="border-grayDark" />
             </div>
             <div className="mt-10 flex flex-col gap-2">
-              <button
-                type="button"
-                className="text-secondary flex cursor-pointer items-center gap-2 py-3 pl-5 text-left text-sm hover:bg-gray-50"
-              >
-                <SettingsIcon className="fill-secondary h-5 w-5" />
-                <span>Settings</span>
-              </button>
-              {/* TODO handle display of edit profile depends on the authentication */}
-              <button
-                type="button"
-                className="text-secondary flex cursor-pointer items-center gap-2 py-3 pl-5 text-left text-sm hover:bg-gray-50"
-              >
-                <EditIcon className="fill-secondary h-5 w-5" />
-                <span>Edit profile</span>
-              </button>
-              <button
-                type="button"
-                className="text-secondary flex cursor-pointer items-center gap-2 py-3 pl-5 text-left text-sm hover:bg-gray-50"
-              >
-                <LogoutIcon className="fill-secondary h-5 w-5" />
-                <span>Logout</span>
-              </button>
+              {headerNavigationItems.map(
+                (headerNavigationItem: HeaderNavigationItem) => {
+                  return (
+                    <button
+                      key={headerNavigationItem.name}
+                      type="button"
+                      className="text-secondary flex cursor-pointer items-center gap-2 py-3 pl-5 text-left text-sm hover:bg-gray-50"
+                      onClick={() => {
+                        setShowMobileNav(false);
+                        navigate(headerNavigationItem.route);
+                      }}
+                    >
+                      {React.cloneElement(headerNavigationItem.icon, {
+                        className: 'fill-secondary h-5 w-5',
+                      })}
+                      <span>{headerNavigationItem.name}</span>
+                    </button>
+                  );
+                },
+              )}
             </div>
           </div>
         </div>
