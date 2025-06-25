@@ -8,7 +8,7 @@ import CreateProfile from './CreateProfile';
 export default function Explore() {
   const { user, loading } = useContext(UserContext);
   if (loading) {
-    return <div>Loading...</div>; 
+    return null;
   }
 
   if (!user) {

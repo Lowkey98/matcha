@@ -44,7 +44,7 @@ export default function HeaderBurger({
             <div className="flex items-center gap-5">
               <div className="flex items-center gap-1 pl-5">
                 {/* TODO handle display of user icon or user image depends on the authentication */}
-                {user && (
+                {user?.age &&  (
                   <>
                     <UserIcon className="fill-primary h-5 w-5" />
                     <div className="border-primary mr-1 h-8 w-8 rounded-full border-2">

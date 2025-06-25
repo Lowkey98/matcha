@@ -17,7 +17,7 @@ export function HeaderDesktop({
     <div className={`flex items-center justify-between pt-5 ${className}`}>
       {user && <img src="/logo.svg" alt="logo" className="w-42" />}
       <div className="flex flex-1 items-center justify-end gap-8">
-        {user && <FameRate />}
+        {user?.age && <FameRate />}
         <NotificationsHeaderItem />
         <DropdownHeaderItem headerNavigationItems={headerNavigationItems} />
       </div>

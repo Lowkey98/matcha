@@ -1,35 +1,16 @@
-
-// import { MongoClient } from "mongodb";
-// import type { Db } from "mongodb";
-
-// import dotenv from "dotenv";
-// dotenv.config();
+import dotenv from "dotenv";
+dotenv.config();
 // const connectionString = process.env.ATLAS_URI || "";
-// console.log("connectionString:", connectionString)
-// const client = new MongoClient(connectionString);
-// let conn;
-// try {
-//     conn = await client.connect();
-// } catch (e) {
-//     console.error(e);
-// }
-// let db: Db;
-// if (conn) {
-//     db = conn.db("matcha");
-// } else {
-//     throw new Error("Failed to connect to the database.");
-// }
-// export default db;
-
-// db.ts
 
 import mysql from 'mysql2/promise';
 
+console.log('Connecting to MySQL database...');
+console.log('DB_PASSWORD:', process.env.DB_PASSWORD);
 const db = await mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: 'ayoub123',
-    database: 'matcha',
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: process.env.DB_NAME
 });
 
 export default db;

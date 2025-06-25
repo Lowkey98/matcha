@@ -37,24 +37,20 @@ export default function Login() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          // TODO: think of sending object vs sending email and password separately
           email,
           password,
         }),
       });
       if (!response.ok) {
-        const errorData = await response.json(); // think of using a type for errorData
+        const errorData = await response.json();
         if (errorData.error) {
           setErrorPassword(errorData.error);
         } else {
           setErrorPassword('An unexpected error occurred. Please try again.');
         }
       } else {
-        // console.log('Login successful');
         const data = await response.json();
-        localStorage.setItem('token', data.token);
-        // set user context
-        
+        localStorage.setItem('token', data.token);        
         navigate('/createProfile');
       }
     }
