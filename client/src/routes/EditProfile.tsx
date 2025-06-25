@@ -53,7 +53,7 @@ export default function Settings() {
         <title>Matcha - Edit profile</title>
       </Helmet>
       <main className="mt-12 mb-22 flex flex-col justify-between gap-12 lg:mb-0 lg:ml-57 lg:flex-row lg:gap-8 2xl:gap-12">
-        <div className="lg:flex-1 xl:flex-2">
+        <div className="lg:w-1/2 xl:flex-2">
           <div>
             <h1 className="text-secondary text-2xl font-bold">Edit profile</h1>
             <span className="lg:text-md text-sm font-light text-gray-300">
