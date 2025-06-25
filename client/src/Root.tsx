@@ -13,7 +13,7 @@ type User = {
 };
 type UserContextType = {
   user: User | null;
-  setUser: React.Dispatch<React.SetStateAction<User>>;
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
   loading: boolean;
 };
 export const UserContext = createContext<UserContextType>({
