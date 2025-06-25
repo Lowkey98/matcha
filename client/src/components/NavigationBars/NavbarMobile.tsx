@@ -11,7 +11,7 @@ export default function SidebarMobile({
 }) {
   return (
     <div
-      className={`border-grayDark-100 fixed bottom-0 left-0 flex w-full items-center justify-between gap-2 border-t bg-white px-5 py-4 ${className}`}
+      className={`border-grayDark-100 fixed bottom-0 left-0 flex w-full items-center justify-between gap-2 border-t bg-white px-5 py-4 z-10 ${className}`}
     >
       {navigationItems.map((navigationItem: NavigationItem) => (
         <NavLink to={navigationItem.route} key={navigationItem.name}>
