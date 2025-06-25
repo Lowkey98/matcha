@@ -7,8 +7,8 @@ export function isValidEmail(email: string): string | null {
   if (!emailRegex.test(email.trim())) return 'Email format is incorrect.';
   return null;
 }
-export function isValidUsername(username: string): string | null {
-  if (isEmpty(username)) return 'This field is required.';
+export function isValidUsername(userName: string): string | null {
+  if (isEmpty(userName)) return 'This field is required.';
 
   return null;
 }

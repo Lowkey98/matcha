@@ -1,15 +1,16 @@
-import { MongoClient } from "mongodb";
+import dotenv from "dotenv";
+dotenv.config();
+// const connectionString = process.env.ATLAS_URI || "";
 
-const uri = "mongodb+srv://ayoub123:ayoub123@cluster0.pljwjwk.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
-const client = new MongoClient(uri);
+import mysql from 'mysql2/promise';
 
-export const connectDB = async () => {
-    try {
-        await client.connect();
-        console.log("✅ MongoDB connected");
-        return client.db("matcha");
-    } catch (err) {
-        console.error("❌ MongoDB connection failed:", err);
-        process.exit(1);
-    }
-};
+console.log('Connecting to MySQL database...');
+console.log('DB_PASSWORD:', process.env.DB_PASSWORD);
+const db = await mysql.createConnection({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: process.env.DB_NAME
+});
+
+export default db;
