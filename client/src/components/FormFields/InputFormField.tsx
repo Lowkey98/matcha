@@ -1,5 +1,5 @@
-import { ExclamationIcon } from "../Icons";
-export default function FormInputField({
+import { ExclamationIcon } from '../Icons';
+export default function InputFormField({
   label,
   placeholder,
   className,
@@ -8,6 +8,7 @@ export default function FormInputField({
   formTrail,
   type,
   required,
+  setFieldAlreadyExists,
 }: {
   label: string;
   placeholder?: string;
@@ -17,9 +18,13 @@ export default function FormInputField({
   formTrail: boolean;
   type?: string;
   required?: boolean;
+  setFieldAlreadyExists?: React.Dispatch<React.SetStateAction<string | null>>;
 }) {
   function handleChangeInputValue(event: React.ChangeEvent<HTMLInputElement>) {
     setInputValue(event.target.value);
+    if (setFieldAlreadyExists) {
+      setFieldAlreadyExists(null);
+    }
   }
   return (
     <div className={className}>
@@ -28,10 +33,10 @@ export default function FormInputField({
         {required ? <span className="text-redLight ml-0.5">*</span> : null}
       </label>
       <div
-        className={`mt-2 flex h-13 items-center rounded-lg border-2 ${formTrail && errorInput ? "border-redLight pr-3" : "border-secondary"}`}
+        className={`mt-2 flex h-13 items-center rounded-lg border-2 ${formTrail && errorInput ? 'border-redLight pr-3' : 'border-secondary'}`}
       >
         <input
-          type={`${type ? type : "text"}`}
+          type={`${type ? type : 'text'}`}
           placeholder={placeholder}
           className="text-secondary w-full px-3 outline-0 placeholder:text-sm placeholder:text-gray-300"
           onChange={handleChangeInputValue}

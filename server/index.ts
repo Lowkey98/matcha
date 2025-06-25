@@ -1,30 +1,278 @@
-import express from "express";
-import { connectDB } from "./db";
-import cors from "cors";
+import express from 'express';
+import db from './db.js';
+import cors from 'cors';
+import bcrypt from 'bcryptjs';
+import nodemailer from 'nodemailer';
+import { randomUUID } from 'crypto';
+import jwt from 'jsonwebtoken';
 
+import dotenv from 'dotenv';
+import { ObjectId } from 'mongodb';
+
+dotenv.config();
 const app = express();
 app.use(express.json());
 app.use(cors());
 
-connectDB().then((db) => {
-    const testCollection = db.collection("test");
-
-    app.get("/api/ping", (_req, res) => {
-        res.send({ msg: "pong" });
-    });
-
-    app.get("/api/data", async (_req, res) => {
-        try {
-            const items = await testCollection.find().toArray();
-            res.send(items);
-        } catch (err) {
-            console.error("Error fetching data:", err);
-            res.status(500).send("Error fetching data");
-        }
-    });
-
-
-    app.listen(3000, () => {
-        console.log("🚀 Server running at http://localhost:3000");
-    });
+app.get('/api/ping', (_req, res) => {
+    res.send({ msg: 'pong' });
 });
+
+// app.get('/api/data', async (_req, res) => {
+//     try {
+//         const items = await testCollection.find().toArray();
+//         res.send(items);
+//     } catch (err) {
+//         console.error('Error fetching data:', err);
+//         res.status(500).send('Error fetching data');
+//     }
+// });
+
+// import { Request, Response } from 'express';
+// import bcrypt from 'bcrypt';
+// import { randomUUID } from 'crypto';
+// import { db } from './db'; // your mysql connection
+// import { sendVerificationEmail } from './email'; // your email function
+
+type UserInfo = {
+    email: string;
+    password: string;
+    username: string;
+    is_verified: boolean;
+    created_at: Date;
+    verification_token: string;
+};
+app.post("/api/register", async (req, res) => {
+    try {
+        const { email, password, username } = req.body.registeredUser;
+        if (!email || !password || !username) {
+            res.status(400).json({ error: 'Email, password, and username are required' });
+            return
+        }
+
+        // Check if email or username exists
+        const [rows] = await db.execute(
+            'SELECT email, username FROM usersInfo WHERE email = ? OR username = ?',
+            [email, username]
+        );
+
+        const userRows = rows as UserInfo[];
+        const emailExists = userRows.some((row: UserInfo) => row.email === email);
+        const usernameExists = userRows.some((row: UserInfo) => row.username === username);
+
+        if (emailExists || usernameExists) {
+            res.status(409).json({
+                emailAlreadyExists: emailExists,
+                usernameAlreadyExists: usernameExists,
+            });
+            return
+        }
+
+        // Hash password and create verification token
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const verificationToken = randomUUID();
+
+        // Insert user into DB
+        await db.execute(
+            `INSERT INTO usersInfo
+       (email, password, username, is_verified, created_at, verification_token) 
+       VALUES (?, ?, ?, ?, NOW(), ?)`,
+            [email, hashedPassword, username, false, verificationToken]
+        );
+
+        // Send verification email
+        sendVerificationEmail({ to: email, token: verificationToken });
+
+        res.status(201).json({
+            message: 'Registration successful. Please check your email to verify your account.',
+        });
+        return
+    } catch (err) {
+        console.error('Registration error:', err);
+        res.status(500).json({ error: 'Internal server error.' });
+        return
+    }
+});
+
+app.post("/api/login", async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        if (!email || !password) {
+            res.status(400).json({ error: 'Email and password are required' });
+            return;
+        }
+
+        const [rows] = await db.execute("SELECT * FROM usersInfo WHERE email = ?", [email]);
+        const user = rows[0];
+
+        if (!user) {
+            res.status(400).json({ error: 'Invalid email or password' });
+            return;
+        }
+
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            res.status(400).json({ error: 'Invalid email or password' });
+            return;
+        }
+
+        if (!user.is_verified) {
+            res.status(400).json({ error: 'Email not verified. Please check your email.' });
+            return;
+        }
+
+        const token = jwt.sign(
+            { userId: user.id },
+            process.env.JWT_SECRET || 'default_secret',
+            { expiresIn: '1h' }
+        );
+
+        res.status(200).json({
+            message: 'Login successful',
+            token,
+            user: {
+                id: user.id,
+                email: user.email,
+                username: user.username,
+                isVerified: user.is_verified,
+            },
+        });
+
+    } catch (err) {
+        console.error('Login error:', err);
+        res.status(500).json({ error: 'Internal server error.' });
+    }
+});
+
+app.get("/api/verify", async (req, res) => {
+    try {
+        const { token } = req.query;
+        if (!token) {
+            res.status(400).send("Missing token");
+            return;
+        }
+
+        console.log("token", token);
+
+        // Find user with that token
+        const [rows] = await db.execute(
+            "SELECT * FROM usersInfo WHERE verification_token = ?",
+            [token]
+        );
+
+        const user = rows[0];
+        if (!user) {
+            res.status(400).send("Invalid or expired token");
+            return;
+        }
+
+        console.log("user", user);
+
+        // Update user: mark as verified and clear the token
+        await db.execute(
+            "UPDATE usersInfo SET is_verified = ?, verification_token = NULL WHERE id = ?",
+            [true, user.id]
+        );
+
+        res.send("<h1>Email verified successfully!</h1>");
+
+    } catch (err) {
+        console.error('Verification error:', err);
+        res.status(500).send('Internal server error.');
+    }
+});
+
+app.get('/api/me', async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+    }
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
+        console.log("decoded", decoded);
+        console.log("decoded.userId", decoded.userId);
+        // const user = await db.collection('userInfo').findOne({
+        //     _id: ObjectId.createFromHexString(decoded.userId)
+        // });
+        const [row] = await db.execute(
+            "SELECT * FROM usersInfo WHERE id = ?",
+            [decoded.userId]
+        );
+        // const userRows = rows as UserInfo[];
+
+        const user = row[0] as UserInfo;
+        if (!user) {
+            console.error('User not found for token:', token);
+            res.status(404).json({ error: 'User not found' });
+            return
+        }
+        console.log("token", token);
+        res.json({
+            // id: user.,
+            email: user.email,
+            username: user.username,
+            isVerified: user.is_verified,
+        });
+        return;
+    } catch (err) {
+        console.error('Error fetching user data:', err);
+        res.status(500).json({ error: 'Internal server error' });
+        return
+    }
+});
+
+app.listen(3000, () => {
+    console.log('🚀 Server running at http://localhost:3000');
+});
+
+
+
+export async function sendVerificationEmail({
+    to,
+    token,
+}: {
+    to: string;
+    token: string;
+}) {
+    const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+        },
+    });
+    console.log("process.env.EMAIL_USER", process.env.EMAIL_USER);
+    console.log("process.env.EMAIL_PASS", process.env.EMAIL_PASS);
+
+    const info = await transporter.sendMail({
+        from: `"Matcha Team" <${process.env.EMAIL_USER}>`,
+        to,
+        subject: "Confirm Your Matcha Account",
+        html: `
+    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+      <h2 style="color: #ff4081;">Welcome to Matcha!</h2>
+      <p>Thanks for signing up. Please verify your email address to activate your account:</p>
+      <a 
+        href="http://localhost:3000/api/verify?token=${token}" 
+        style="display: inline-block; padding: 12px 24px; background-color: #ff4081; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;"
+      >
+        Verify Your Email
+      </a>
+      <p style="margin-top: 20px;">If you didn’t sign up for Matcha, just ignore this email.</p>
+      <p>Cheers,<br/>The Matcha Team</p>
+    </div>
+  `,
+    });
+
+
+    console.log("Email sent:", info.messageId);
+}
+
+
+async function startServer() {
+    app.listen(3000, () => {
+        console.log('🚀 Server running at http://localhost:3000');
+    });
+}
+startServer();

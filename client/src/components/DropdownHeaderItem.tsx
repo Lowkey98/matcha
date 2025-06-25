@@ -1,14 +1,14 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowDownIcon, ArrowUpIcon } from './Icons';
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { HeaderNavigationItem } from './Headers/Header';
 export default function DropdownNavItem({
   headerNavigationItems,
 }: {
   headerNavigationItems: HeaderNavigationItem[];
 }) {
-  const navigate = useNavigate();
   const [showItems, setShowItems] = useState<boolean>(false);
+  const navigate = useNavigate();
   function handleClickDropdownNavItem() {
     setShowItems(!showItems);
   }
@@ -56,4 +56,16 @@ export default function DropdownNavItem({
       ) : null}
     </div>
   );
+}
+
+export function handleClickLogout({
+  navigate,
+  setUser,
+}: {
+  navigate: (path: string) => void;
+  setUser: React.Dispatch<any>;
+}) {
+  localStorage.removeItem('token');
+  setUser(null);
+  navigate('/login');
 }
