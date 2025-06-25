@@ -1,5 +1,5 @@
 import { ExclamationIcon } from '../Icons';
-export default function FormInputField({
+export default function InputFormField({
   label,
   placeholder,
   className,

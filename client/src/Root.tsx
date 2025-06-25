@@ -13,7 +13,7 @@ type User = {
 };
 type UserContextType = {
   user: User | null;
-  setUser: React.Dispatch<React.SetStateAction<any>>;
+  setUser: React.Dispatch<React.SetStateAction<User>>;
   loading: boolean;
 };
 export const UserContext = createContext<UserContextType>({
@@ -23,7 +23,7 @@ export const UserContext = createContext<UserContextType>({
 });
 
 export default function Root() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   useEffect(() => {
     const token = localStorage.getItem('token');
