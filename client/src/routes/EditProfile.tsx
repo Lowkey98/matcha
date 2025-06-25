@@ -52,8 +52,8 @@ export default function Settings() {
       <Helmet>
         <title>Matcha - Edit profile</title>
       </Helmet>
-      <main className="mt-12 mb-22 flex flex-col justify-between gap-12 lg:mb-0 lg:ml-57 lg:flex-row lg:gap-8">
-        <div className="lg:flex-1">
+      <main className="mt-12 mb-22 flex flex-col justify-between gap-12 lg:mb-0 lg:ml-57 lg:flex-row lg:gap-8 2xl:gap-12">
+        <div className="lg:flex-1 xl:flex-2">
           <div>
             <h1 className="text-secondary text-2xl font-bold">Edit profile</h1>
             <span className="lg:text-md text-sm font-light text-gray-300">
@@ -61,7 +61,7 @@ export default function Settings() {
             </span>
           </div>
           <form className="mt-12 flex flex-col">
-            <div className="flex flex-col gap-8 lg:justify-between lg:gap-0 lg:gap-y-10">
+            <div className="flex flex-col gap-8 xl:flex-row xl:flex-wrap xl:justify-between xl:gap-0 xl:gap-y-12">
               <InputFormField
                 type="number"
                 label="Age"
@@ -69,6 +69,7 @@ export default function Settings() {
                 setInputValue={setAge}
                 errorInput={errorAge}
                 formTrail={formTrail}
+                className="xl:w-[48%]"
                 required
               />
               <DropdownFormField
@@ -79,9 +80,10 @@ export default function Settings() {
                 setDropdownValue={setGender}
                 errorDropdown={errorGender}
                 items={genders}
+                className="xl:w-[48%]"
                 required
               />
-              <div className="">
+              <div className="xl:flex xl:w-[48%] xl:items-center">
                 <DropdownFormField
                   label="Sexual preference"
                   placeholder="Select your sexual preference"
@@ -90,6 +92,7 @@ export default function Settings() {
                   setDropdownValue={setSexualPreference}
                   errorDropdown={errorSexualPreference}
                   items={sexualPreferences}
+                  className="w-full"
                   required
                 />
               </div>
@@ -99,6 +102,7 @@ export default function Settings() {
                 setTextAreaValue={setBiography}
                 errorTextArea={errorBiography}
                 formTrail={formTrail}
+                className="xl:w-[48%]"
                 required
               />
               <MultiSelect
@@ -107,27 +111,27 @@ export default function Settings() {
                 errorMultiSelect={errorInterests}
                 formTrail={formTrail}
                 setSelectedItems={setInterests}
-                className=""
+                className="xl:w-[48%]"
                 required
               />
-              <LocationFormField className="" setLocationValue={setLocation} />
+              <LocationFormField
+                className="xl:w-[48%]"
+                setLocationValue={setLocation}
+              />
             </div>
           </form>
         </div>
         <div className="border-grayDark-100 border-t lg:border-t-0 lg:border-r"></div>
         <div className="lg:flex-1">
           <div className="flex flex-wrap gap-[5%] gap-y-6">
-            {uploadedBuffersPictures.map((__, index) => (
+            {[...uploadedBuffersPictures, undefined].map((__, index) => (
               <UploadImage
                 key={index}
                 uploadedBuffersPictures={uploadedBuffersPictures}
                 indexImage={index}
+                className="lg:w-[47.5%]"
               />
             ))}
-            <UploadImage
-              uploadedBuffersPictures={uploadedBuffersPictures}
-              indexImage={uploadedBuffersPictures.length - 1}
-            />
           </div>
         </div>
       </main>
