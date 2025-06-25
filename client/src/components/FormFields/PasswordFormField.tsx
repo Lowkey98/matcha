@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ExclamationIcon, EyeCloseIcon, EyeOpenIcon } from "../Icons";
-export default function FormInputField({
+export default function PasswordFormField({
   label,
   placeholder,
   className,
