@@ -3,8 +3,15 @@ import DropdownHeaderItem from '../DropdownHeaderItem';
 import NotificationsHeaderItem from '../NotificationsHeaderItem';
 import { UserContext } from '../../Root';
 import { useContext } from 'react';
+import { HeaderNavigationItem } from './Header';
 
-export function HeaderDesktop({ className }: { className?: string }) {
+export function HeaderDesktop({
+  headerNavigationItems,
+  className,
+}: {
+  headerNavigationItems: HeaderNavigationItem[];
+  className?: string;
+}) {
   const { user } = useContext(UserContext);
   return (
     <div className={`flex items-center justify-between pt-5 ${className}`}>
@@ -12,7 +19,7 @@ export function HeaderDesktop({ className }: { className?: string }) {
       <div className="flex flex-1 items-center justify-end gap-8">
         {user && <FameRate />}
         <NotificationsHeaderItem />
-        <DropdownHeaderItem />
+        <DropdownHeaderItem headerNavigationItems={headerNavigationItems} />
       </div>
     </div>
   );

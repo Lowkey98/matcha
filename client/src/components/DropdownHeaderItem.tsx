@@ -1,21 +1,18 @@
-import { useNavigate } from 'react-router-dom';
-import { UserContext } from '../Root';
-import {
-  ArrowDownIcon,
-  UserIcon,
-  SettingsIcon,
-  EditIcon,
-  LogoutIcon,
-  ArrowUpIcon,
-} from './Icons';
-import { useContext, useState } from 'react';
-export default function DropdownNavItem() {
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowDownIcon, ArrowUpIcon } from './Icons';
+import React, { useContext, useState } from 'react';
+import { HeaderNavigationItem } from './Headers/Header';
+export default function DropdownNavItem({
+  headerNavigationItems,
+}: {
+  headerNavigationItems: HeaderNavigationItem[];
+}) {
   const [showItems, setShowItems] = useState<boolean>(false);
-  const { setUser, user } = useContext(UserContext);
   const navigate = useNavigate();
   function handleClickDropdownNavItem() {
     setShowItems(!showItems);
   }
+
   return (
     <div className="relative">
       <button
@@ -39,35 +36,22 @@ export default function DropdownNavItem() {
       </button>
       {showItems ? (
         <div className="border-grayDark-100 absolute mt-2 flex w-full flex-col rounded-lg border-2 bg-white">
-          <button
-            type="button"
-            className="text-secondary flex cursor-pointer items-center gap-2 p-3 text-left text-sm hover:bg-gray-50"
-          >
-            <SettingsIcon className="fill-secondary h-5 w-5" />
-            <span>Settings</span>
-          </button>
-          {user && (
+          {headerNavigationItems.map((headerNavigationItem) => (
             <button
+              key={headerNavigationItem.name}
               type="button"
               className="text-secondary flex cursor-pointer items-center gap-2 p-3 text-left text-sm hover:bg-gray-50"
+              onClick={() => {
+                setShowItems(false);
+                navigate(headerNavigationItem.route);
+              }}
             >
-              <EditIcon className="fill-secondary h-5 w-5" />
-              <span>Edit profile</span>
+              {React.cloneElement(headerNavigationItem.icon, {
+                className: 'fill-secondary h-5 w-5',
+              })}
+              <span>{headerNavigationItem.name}</span>
             </button>
-          )}
-          <button
-            type="button"
-            className="text-secondary flex cursor-pointer items-center gap-2 p-3 text-left text-sm hover:bg-gray-50"
-            onClick={() =>
-              handleClickLogout({
-                navigate,
-                setUser,
-              })
-            } // Replace
-          >
-            <LogoutIcon className="fill-secondary h-5 w-5" />
-            <span>Logout</span>
-          </button>
+          ))}
         </div>
       ) : null}
     </div>
@@ -81,11 +65,7 @@ export function handleClickLogout({
   navigate: (path: string) => void;
   setUser: React.Dispatch<any>;
 }) {
-  console.log('Logout clicked');
-
-  // Clear user data and redirect to login page
   localStorage.removeItem('token');
   setUser(null);
   navigate('/login');
-  // window.location.href = '/login';
 }

@@ -14,6 +14,7 @@ import Likes from './routes/Likes';
 import Viewers from './routes/Viewers';
 import Profile from './routes/Profile';
 import Notifications from './routes/Notifications';
+import Settings from './routes/Settings';
 const routeConfig = [
   {
     path: '/',
@@ -79,6 +80,10 @@ const routeConfig = [
       {
         path: '/notifications',
         element: <Notifications />,
+      },
+      {
+        path: '/settings',
+        element: <Settings />,
       },
     ],
   },

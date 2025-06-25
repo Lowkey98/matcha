@@ -1,21 +1,18 @@
-import { useContext, useState } from 'react';
-import {
-  BurgerIcon,
-  CloseIcon,
-  EditIcon,
-  LogoutIcon,
-  SettingsIcon,
-  UserIcon,
-} from './Icons';
+import React, { useContext, useState } from 'react';
+import { BurgerIcon, CloseIcon, UserIcon } from './Icons';
 import FameRate from './FameRate';
-import { handleClickLogout } from './DropdownHeaderItem';
+import { HeaderNavigationItem } from './Headers/Header';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../Root';
 
-export default function HeaderBurger() {
+export default function HeaderBurger({
+  headerNavigationItems,
+}: {
+  headerNavigationItems: HeaderNavigationItem[];
+}) {
   const [showMobileNav, setShowMobileNav] = useState<boolean>(false);
   const navigate = useNavigate();
-  const { user, setUser } = useContext(UserContext);
+  const { user } = useContext(UserContext);
 
   function handleClickOpenMobileNav() {
     setShowMobileNav(true);
@@ -61,34 +58,26 @@ export default function HeaderBurger() {
               {user && <FameRate className="border-grayDark" />}
             </div>
             <div className="mt-10 flex flex-col gap-2">
-              <button
-                type="button"
-                className="text-secondary flex cursor-pointer items-center gap-2 py-3 pl-5 text-left text-sm hover:bg-gray-50"
-              >
-                <SettingsIcon className="fill-secondary h-5 w-5" />
-                <span>Settings</span>
-              </button>
-              {/* TODO handle display of edit profile depends on the authentication */}
-              <button
-                type="button"
-                className="text-secondary flex cursor-pointer items-center gap-2 py-3 pl-5 text-left text-sm hover:bg-gray-50"
-              >
-                <EditIcon className="fill-secondary h-5 w-5" />
-                <span>Edit profile</span>
-              </button>
-              <button
-                type="button"
-                className="text-secondary flex cursor-pointer items-center gap-2 py-3 pl-5 text-left text-sm hover:bg-gray-50"
-                onClick={() =>
-                  handleClickLogout({
-                    navigate,
-                    setUser,
-                  })
-                }
-              >
-                <LogoutIcon className="fill-secondary h-5 w-5" />
-                <span>Logout</span>
-              </button>
+              {headerNavigationItems.map(
+                (headerNavigationItem: HeaderNavigationItem) => {
+                  return (
+                    <button
+                      key={headerNavigationItem.name}
+                      type="button"
+                      className="text-secondary flex cursor-pointer items-center gap-2 py-3 pl-5 text-left text-sm hover:bg-gray-50"
+                      onClick={() => {
+                        setShowMobileNav(false);
+                        navigate(headerNavigationItem.route);
+                      }}
+                    >
+                      {React.cloneElement(headerNavigationItem.icon, {
+                        className: 'fill-secondary h-5 w-5',
+                      })}
+                      <span>{headerNavigationItem.name}</span>
+                    </button>
+                  );
+                },
+              )}
             </div>
           </div>
         </div>
