@@ -15,6 +15,7 @@ import Viewers from './routes/Viewers';
 import Profile from './routes/Profile';
 import Notifications from './routes/Notifications';
 import Settings from './routes/Settings';
+import EditProfile from './routes/EditProfile';
 const routeConfig = [
   {
     path: '/',
@@ -84,6 +85,10 @@ const routeConfig = [
       {
         path: '/settings',
         element: <Settings />,
+      },
+      {
+        path: '/editProfile',
+        element: <EditProfile />,
       },
     ],
   },

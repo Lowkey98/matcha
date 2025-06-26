@@ -48,6 +48,7 @@ export default function AddPictures() {
                 key={index}
                 uploadedBuffersPictures={uploadedBuffersPictures}
                 indexImage={index}
+                className="lg:w-[21.2%] xl:w-48"
               />
             ))}
           </div>

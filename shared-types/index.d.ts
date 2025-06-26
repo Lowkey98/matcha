@@ -4,7 +4,7 @@ export type UserInfo = {
   id: string;
   age?: number;
   email: string;
-  userName: string;
+  username: string;
   isVerified: boolean;
   password: string;
 };

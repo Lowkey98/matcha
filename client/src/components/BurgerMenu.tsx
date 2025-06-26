@@ -30,7 +30,7 @@ export default function HeaderBurger({
         <BurgerIcon className="fill-secondary h-6 w-6" />
       </button>
       {showMobileNav ? (
-        <div className="fixed inset-0 z-1 bg-white py-5">
+        <div className="fixed inset-0 z-20 bg-white py-5">
           <div className="flex justify-end pr-5">
             <button
               type="button"
