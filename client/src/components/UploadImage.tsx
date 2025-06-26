@@ -29,9 +29,7 @@ export default function UploadImage({
     }
   };
   return (
-    <div
-      className={`${className} flex h-64 w-[47.5%] sm:w-[30%] lg:w-[47.5%] xl:hidden`}
-    >
+    <div className={`${className} flex h-64 w-[47.5%] sm:w-[30%]`}>
       <input
         ref={fileInputRef}
         type="file"
