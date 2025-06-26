@@ -3,17 +3,10 @@ import Header from './components/Headers/Header';
 import Navigation from './components/Navigation';
 import { createContext, useEffect } from 'react';
 import { useState } from 'react';
-type User = {
-  id: string;
-  age?: number;
-  email: string;
-  userName: string;
-  isVerified: boolean;
-  password: string;
-};
+import type { UserInfo } from '../../shared-types/index.d.ts';
 type UserContextType = {
-  user: User | null;
-  setUser: React.Dispatch<React.SetStateAction<User | null>>;
+  user: UserInfo | null;
+  setUser: React.Dispatch<React.SetStateAction<UserInfo | null>>;
   loading: boolean;
 };
 export const UserContext = createContext<UserContextType>({
@@ -23,7 +16,7 @@ export const UserContext = createContext<UserContextType>({
 });
 
 export default function Root() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   useEffect(() => {
     const token = localStorage.getItem('token');
