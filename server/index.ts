@@ -7,8 +7,18 @@ import { randomUUID } from 'crypto';
 import jwt from 'jsonwebtoken';
 
 import dotenv from 'dotenv';
-import { ObjectId } from 'mongodb';
+import type { UserInfo } from '../shared-types/index.d.ts';
 
+type UserInfoFromDB = {
+    created_at: Date;
+    verification_token: string;
+    id: string;
+    age?: number;
+    email: string;
+    username: string;
+    is_verified: boolean;
+    password: string;
+};
 dotenv.config();
 const app = express();
 app.use(express.json());
@@ -18,30 +28,6 @@ app.get('/api/ping', (_req, res) => {
     res.send({ msg: 'pong' });
 });
 
-// app.get('/api/data', async (_req, res) => {
-//     try {
-//         const items = await testCollection.find().toArray();
-//         res.send(items);
-//     } catch (err) {
-//         console.error('Error fetching data:', err);
-//         res.status(500).send('Error fetching data');
-//     }
-// });
-
-// import { Request, Response } from 'express';
-// import bcrypt from 'bcrypt';
-// import { randomUUID } from 'crypto';
-// import { db } from './db'; // your mysql connection
-// import { sendVerificationEmail } from './email'; // your email function
-
-type UserInfo = {
-    email: string;
-    password: string;
-    username: string;
-    is_verified: boolean;
-    created_at: Date;
-    verification_token: string;
-};
 app.post("/api/register", async (req, res) => {
     try {
         const { email, password, username } = req.body.registeredUser;
@@ -56,9 +42,9 @@ app.post("/api/register", async (req, res) => {
             [email, username]
         );
 
-        const userRows = rows as UserInfo[];
-        const emailExists = userRows.some((row: UserInfo) => row.email === email);
-        const usernameExists = userRows.some((row: UserInfo) => row.username === username);
+        const userRows = rows as UserInfoFromDB[];
+        const emailExists = userRows.some((row: UserInfoFromDB) => row.email === email);
+        const usernameExists = userRows.some((row: UserInfoFromDB) => row.username === username);
 
         if (emailExists || usernameExists) {
             res.status(409).json({
@@ -103,7 +89,7 @@ app.post("/api/login", async (req, res) => {
         }
 
         const [rows] = await db.execute("SELECT * FROM usersInfo WHERE email = ?", [email]);
-        const user = rows[0];
+        const user: UserInfoFromDB = rows[0];
 
         if (!user) {
             res.status(400).json({ error: 'Invalid email or password' });
@@ -133,9 +119,13 @@ app.post("/api/login", async (req, res) => {
             user: {
                 id: user.id,
                 email: user.email,
-                username: user.username,
+                userName: user.username,
                 isVerified: user.is_verified,
-            },
+                created_at: user.created_at,
+                age: user?.age,
+                verification_token: user.verification_token,
+                password: user.password
+            } as UserInfo,
         });
 
     } catch (err) {
@@ -160,15 +150,13 @@ app.get("/api/verify", async (req, res) => {
             [token]
         );
 
-        const user = rows[0];
+        const user: UserInfoFromDB = rows[0];
         if (!user) {
             res.status(400).send("Invalid or expired token");
             return;
         }
 
         console.log("user", user);
-
-        // Update user: mark as verified and clear the token
         await db.execute(
             "UPDATE usersInfo SET is_verified = ?, verification_token = NULL WHERE id = ?",
             [true, user.id]
@@ -190,17 +178,10 @@ app.get('/api/me', async (req, res) => {
     }
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
-        console.log("decoded", decoded);
-        console.log("decoded.userId", decoded.userId);
-        // const user = await db.collection('userInfo').findOne({
-        //     _id: ObjectId.createFromHexString(decoded.userId)
-        // });
         const [row] = await db.execute(
             "SELECT * FROM usersInfo WHERE id = ?",
             [decoded.userId]
         );
-        // const userRows = rows as UserInfo[];
-
         const user = row[0] as UserInfo;
         if (!user) {
             console.error('User not found for token:', token);
@@ -209,10 +190,9 @@ app.get('/api/me', async (req, res) => {
         }
         console.log("token", token);
         res.json({
-            // id: user.,
             email: user.email,
-            username: user.username,
-            isVerified: user.is_verified,
+            username: user.userName,
+            isVerified: user.isVerified,
         });
         return;
     } catch (err) {
