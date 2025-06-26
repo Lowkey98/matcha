@@ -63,7 +63,7 @@ export default function Settings() {
         </div>
         <form className="mt-12">
           <div className="flex flex-col gap-12 lg:flex-row lg:gap-8 xl:justify-between 2xl:gap-12">
-            <div className="flex w-1/2 flex-col gap-8 xl:flex-2 xl:flex-row xl:flex-wrap xl:justify-between xl:gap-0 xl:gap-y-12">
+            <div className="flex flex-col gap-8 lg:w-1/2 xl:flex-2 xl:flex-row xl:flex-wrap xl:justify-between xl:gap-0 xl:gap-y-12">
               <InputFormField
                 type="number"
                 label="Age"
@@ -140,7 +140,7 @@ export default function Settings() {
               </div>
             </div>
           </div>
-          <div className="mt-12 flex flex-col gap-5 lg:mt-15 lg:flex-row-reverse lg:gap-3">
+          <div className="mt-20 flex flex-col gap-5 lg:mt-15 lg:flex-row-reverse lg:gap-3">
             <ButtonPrimary
               type="submit"
               value="Save"
