@@ -63,63 +63,65 @@ export default function Settings() {
         </div>
         <form className="mt-12">
           <div className="flex flex-col gap-12 lg:flex-row lg:gap-8 xl:justify-between 2xl:gap-12">
-            <div className="flex flex-col gap-8 lg:w-1/2 xl:flex-2 xl:flex-row xl:flex-wrap xl:justify-between xl:gap-0 xl:gap-y-12">
-              <InputFormField
-                type="number"
-                label="Age"
-                placeholder="Enter your age"
-                setInputValue={setAge}
-                errorInput={errorAge}
-                formTrail={formTrail}
-                className="xl:w-[48%]"
-                required
-              />
-              <DropdownFormField
-                label="Gender"
-                placeholder="Select your gender"
-                formTrail={formTrail}
-                dropdownValue={gender}
-                setDropdownValue={setGender}
-                errorDropdown={errorGender}
-                items={genders}
-                className="xl:w-[48%]"
-                required
-              />
-              <div className="xl:flex xl:w-[48%] xl:items-center">
-                <DropdownFormField
-                  label="Sexual preference"
-                  placeholder="Select your sexual preference"
+            <div className="lg:w-1/2 xl:flex-2">
+              <div className="flex flex-col gap-8 xl:flex-row xl:flex-wrap xl:justify-between xl:gap-0 xl:gap-y-12">
+                <InputFormField
+                  type="number"
+                  label="Age"
+                  placeholder="Enter your age"
+                  setInputValue={setAge}
+                  errorInput={errorAge}
                   formTrail={formTrail}
-                  dropdownValue={sexualPreference}
-                  setDropdownValue={setSexualPreference}
-                  errorDropdown={errorSexualPreference}
-                  items={sexualPreferences}
-                  className="w-full"
+                  className="xl:w-[48%]"
                   required
                 />
+                <DropdownFormField
+                  label="Gender"
+                  placeholder="Select your gender"
+                  formTrail={formTrail}
+                  dropdownValue={gender}
+                  setDropdownValue={setGender}
+                  errorDropdown={errorGender}
+                  items={genders}
+                  className="xl:w-[48%]"
+                  required
+                />
+                <div className="xl:flex xl:w-[48%] xl:items-center">
+                  <DropdownFormField
+                    label="Sexual preference"
+                    placeholder="Select your sexual preference"
+                    formTrail={formTrail}
+                    dropdownValue={sexualPreference}
+                    setDropdownValue={setSexualPreference}
+                    errorDropdown={errorSexualPreference}
+                    items={sexualPreferences}
+                    className="w-full"
+                    required
+                  />
+                </div>
+                <TextAreaFormField
+                  label="Biography"
+                  placeholder="Write a brief description about yourself"
+                  setTextAreaValue={setBiography}
+                  errorTextArea={errorBiography}
+                  formTrail={formTrail}
+                  className="xl:w-[48%]"
+                  required
+                />
+                <MultiSelect
+                  items={interestsItems}
+                  selectedItems={interests}
+                  errorMultiSelect={errorInterests}
+                  formTrail={formTrail}
+                  setSelectedItems={setInterests}
+                  className="xl:w-[48%]"
+                  required
+                />
+                <LocationFormField
+                  className="xl:w-[48%]"
+                  setLocationValue={setLocation}
+                />
               </div>
-              <TextAreaFormField
-                label="Biography"
-                placeholder="Write a brief description about yourself"
-                setTextAreaValue={setBiography}
-                errorTextArea={errorBiography}
-                formTrail={formTrail}
-                className="xl:w-[48%]"
-                required
-              />
-              <MultiSelect
-                items={interestsItems}
-                selectedItems={interests}
-                errorMultiSelect={errorInterests}
-                formTrail={formTrail}
-                setSelectedItems={setInterests}
-                className="xl:w-[48%]"
-                required
-              />
-              <LocationFormField
-                className="xl:w-[48%]"
-                setLocationValue={setLocation}
-              />
             </div>
             <div className="border-grayDark-100 border-t lg:border-t-0 lg:border-r"></div>
             <div className="lg:flex-1">
