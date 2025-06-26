@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLongLeftIcon, PasswordIcon } from '../components/Icons';
-import { isValidEmail } from '../../Helpers';
+import { isValidEmail } from '../../../shared/Helpers';
 import InputFormField from '../components/FormFields/InputFormField';
 import ButtonPrimary from '../components/Buttons/ButtonPrimary';
 import { Helmet } from 'react-helmet';

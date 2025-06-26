@@ -13,12 +13,12 @@ import {
   isValidPassword,
   isValidUsername,
   isValidConfirmedPassword,
-} from '../../Helpers';
+} from '../../../shared/Helpers';
 import EmailSent from '../components/EmailSent';
 
 export default function Register() {
   const [email, setEmail] = useState<string>('');
-  const [userName, setUserName] = useState<string>('');
+  const [username, setUserName] = useState<string>('');
   const [firstName, setFirstName] = useState<string>('');
   const [lastName, setLastName] = useState<string>('');
   const [password, setPassword] = useState<string>('');
@@ -38,7 +38,7 @@ export default function Register() {
   const errorEmail: string | null =
     isValidEmail(email) ?? errorEmailAlreadyExists;
   const errorUserName: string | null =
-    isValidUsername(userName) ?? errorUserNameAlreadyExists;
+    isValidUsername(username) ?? errorUserNameAlreadyExists;
   const errorFirstName: string | null = isValidName(firstName);
   const errorLastName: string | null = isValidName(lastName);
 
@@ -70,7 +70,7 @@ export default function Register() {
     }
     if (!errorForm) {
       const registeredUser = {
-        userName: userName,
+        username: username,
         email: email,
         password: password,
       };

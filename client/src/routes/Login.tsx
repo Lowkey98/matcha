@@ -5,7 +5,7 @@ import PasswordFormField from '../components/FormFields/PasswordFormField';
 import ButtonPrimary from '../components//Buttons/ButtonPrimary';
 import ButtonSecondaryWithIcon from '../components//Buttons/ButtonSecondaryWithIcon';
 import { GoogleIcon } from '../components/Icons';
-import { isValidEmail, isValidPassword } from '../../Helpers';
+import { isValidEmail, isValidPassword } from '../../../shared/Helpers';
 import { Helmet } from 'react-helmet';
 
 export default function Login() {
@@ -50,7 +50,7 @@ export default function Login() {
         }
       } else {
         const data = await response.json();
-        localStorage.setItem('token', data.token);        
+        localStorage.setItem('token', data.token);
         navigate('/createProfile');
       }
     }

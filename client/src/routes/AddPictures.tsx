@@ -3,7 +3,7 @@ import UploadImage from '../components/UploadImage';
 import ButtonPrimary from '../components/Buttons/ButtonPrimary';
 import { ToastError } from '../components/ToastError';
 import { useState } from 'react';
-import { isValidAddedProfilePicture } from '../../Helpers';
+import { isValidAddedProfilePicture } from '../../../shared/Helpers';
 
 export default function AddPictures() {
   const [errorAddPictures, setErrorAddPictures] = useState<string | null>(null);

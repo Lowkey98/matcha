@@ -3,7 +3,7 @@ import Header from './components/Headers/Header';
 import Navigation from './components/Navigation';
 import { createContext, useEffect } from 'react';
 import { useState } from 'react';
-import type { UserInfo } from '../../shared-types/index.d.ts';
+import type { UserInfo } from '../../shared/types';
 type UserContextType = {
   user: UserInfo | null;
   setUser: React.Dispatch<React.SetStateAction<UserInfo | null>>;

@@ -7,7 +7,7 @@ import { randomUUID } from 'crypto';
 import jwt from 'jsonwebtoken';
 
 import dotenv from 'dotenv';
-import type { UserInfo } from '../shared-types/index.d.ts';
+import type { UserInfo } from '../shared/types.js';
 
 type UserInfoFromDB = {
     created_at: Date;
@@ -26,6 +26,22 @@ app.use(cors());
 
 app.get('/api/ping', (_req, res) => {
     res.send({ msg: 'pong' });
+});
+
+app.post('/api/create-profile', async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+    }
+    try {
+        const data = req.body;
+        console.log("data", data);
+    } catch (err) {
+        console.error('Error in /api/create-profile:', err);
+        res.status(500).json({ error: 'Internal server error' });
+        return;
+    }
 });
 
 app.post("/api/register", async (req, res) => {

@@ -5,7 +5,7 @@ import {
   isValidSexualPreference,
   isValidInterests,
   isValidBiography,
-} from '../../Helpers';
+} from '../../../shared/Helpers';
 import InputFormField from '../components/FormFields/InputFormField';
 import DropdownFormField from '../components/FormFields/DropdownFormField';
 import MultiSelect from '../components/FormFields/MultiSelect';
@@ -53,7 +53,7 @@ export default function CreateProfile() {
   const errorInterests = isValidInterests(interests);
   const errorBiography = isValidBiography(biography);
 
-  function handleClickNextCreateProfile() {
+  async function handleClickNextCreateProfile() {
     let errorForm: boolean = false;
     if (
       errorAge ||
@@ -68,6 +68,20 @@ export default function CreateProfile() {
 
     if (!errorForm) {
       console.log(age, gender, sexualPreference, interests, biography);
+      const response = await fetch('http://localhost:3000/api/create-profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          age: parseInt(age, 10),
+          gender,
+          sexualPreference,
+          interests,
+          biography,
+        }),
+      });
     }
   }
 

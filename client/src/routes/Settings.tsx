@@ -8,13 +8,13 @@ import {
   isValidName,
   isValidPassword,
   isValidUsername,
-} from '../../Helpers';
+} from '../../../shared/Helpers';
 import ButtonPrimary from '../components/Buttons/ButtonPrimary';
 import ButtonSecondary from '../components/Buttons/ButtonSecondary';
 
 export default function Settings() {
   const [email, setEmail] = useState<string>('');
-  const [userName, setUserName] = useState<string>('');
+  const [username, setUserName] = useState<string>('');
   const [firstName, setFirstName] = useState<string>('');
   const [lastName, setLastName] = useState<string>('');
   const [password, setPassword] = useState<string>('');
@@ -25,7 +25,7 @@ export default function Settings() {
   >(null);
   const [formTrail, setFormTrial] = useState<boolean>(false);
   const errorEmail: string | null = isValidEmail(email);
-  const errorUserName: string | null = isValidUsername(userName);
+  const errorUserName: string | null = isValidUsername(username);
   const errorFirstName: string | null = isValidName(firstName);
   const errorLastName: string | null = isValidName(lastName);
 
@@ -58,7 +58,7 @@ export default function Settings() {
     if (!errorForm) {
       console.log(
         email,
-        userName,
+        username,
         firstName,
         lastName,
         password,
