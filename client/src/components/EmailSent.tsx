@@ -1,5 +1,6 @@
 import { EmailSentIcon } from './Icons';
 import ButtonPrimary from './Buttons/ButtonPrimary';
+import LinkPrimary from './Links/LinkPrimary';
 export default function EmailSent() {
   return (
     <div className="flex flex-col items-center lg:pt-12">
@@ -10,7 +11,7 @@ export default function EmailSent() {
           We've sent a confirmation link to your email. Please verify it to
           activate your account.
         </p>
-        <ButtonPrimary type="button" value="Continue" className="mt-12 w-64" />
+        <LinkPrimary to="/login" value="Continue" className="mt-12 w-64" />
       </div>
     </div>
   );

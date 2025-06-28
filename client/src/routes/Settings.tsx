@@ -1,7 +1,7 @@
 import { Helmet } from 'react-helmet';
 import InputFormField from '../components/FormFields/InputFormField';
 import PasswordFormField from '../components/FormFields/PasswordFormField';
-import { useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import {
   isValidConfirmedPassword,
   isValidEmail,
@@ -11,8 +11,11 @@ import {
 } from '../../Helpers';
 import ButtonPrimary from '../components/Buttons/ButtonPrimary';
 import ButtonSecondary from '../components/Buttons/ButtonSecondary';
+import { UserContext } from '../Root';
+import { UserInfo } from '../../../shared-types';
 
 export default function Settings() {
+  const { user } = useContext(UserContext);
   const [email, setEmail] = useState<string>('');
   const [username, setUserName] = useState<string>('');
   const [firstName, setFirstName] = useState<string>('');
@@ -28,6 +31,15 @@ export default function Settings() {
   const errorUserName: string | null = isValidUsername(username);
   const errorFirstName: string | null = isValidName(firstName);
   const errorLastName: string | null = isValidName(lastName);
+
+  useEffect(() => {
+    if (user) {
+      setEmail(user.email);
+      setUserName(user.username);
+      setFirstName(user.firstName);
+      setLastName(user.lastName);
+    }
+  }, [user]);
 
   function handleClickSaveUserInfo() {
     let errorForm: boolean = false;
@@ -66,6 +78,7 @@ export default function Settings() {
       );
     }
   }
+
   return (
     <>
       <Helmet>
@@ -88,6 +101,7 @@ export default function Settings() {
                 setInputValue={setEmail}
                 errorInput={errorEmail}
                 formTrail={formTrail}
+                defaultValue={email}
                 required
               />
               <InputFormField
@@ -97,6 +111,7 @@ export default function Settings() {
                 setInputValue={setUserName}
                 errorInput={errorUserName}
                 formTrail={formTrail}
+                defaultValue={username}
                 required
               />
               <InputFormField
@@ -106,6 +121,7 @@ export default function Settings() {
                 setInputValue={setFirstName}
                 errorInput={errorFirstName}
                 formTrail={formTrail}
+                defaultValue={firstName}
                 required
               />
               <InputFormField
@@ -115,24 +131,7 @@ export default function Settings() {
                 setInputValue={setLastName}
                 errorInput={errorLastName}
                 formTrail={formTrail}
-                required
-              />
-              <PasswordFormField
-                label="Password"
-                placeholder="Enter a strong password"
-                className="lg:w-[48%]"
-                setPasswordValue={setPassword}
-                errorPassword={errorPassword}
-                setErrorPassword={setErrorPassword}
-                required
-              />
-              <PasswordFormField
-                label="Confirm password"
-                placeholder="Renter your password"
-                className="lg:w-[48%]"
-                setPasswordValue={setConfirmPassword}
-                errorPassword={errorConfirmPassword}
-                setErrorPassword={setErrorConfirmPassword}
+                defaultValue={lastName}
                 required
               />
             </div>

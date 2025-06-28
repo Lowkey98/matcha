@@ -68,10 +68,13 @@ export default function Register() {
       setFormTrial(true);
       errorForm = true;
     }
+
     if (!errorForm) {
       const registeredUser = {
         username: username,
         email: email,
+        firstName: firstName,
+        lastName: lastName,
         password: password,
       };
 

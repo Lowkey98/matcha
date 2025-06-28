@@ -30,7 +30,8 @@ app.get('/api/ping', (_req, res) => {
 
 app.post('/api/register', async (req, res) => {
   try {
-    const { email, password, username } = req.body.registeredUser;
+    const { username, email, firstName, lastName, password } =
+      req.body.registeredUser;
     if (!email || !password || !username) {
       res
         .status(400)
@@ -67,9 +68,17 @@ app.post('/api/register', async (req, res) => {
     // Insert user into DB
     await db.execute(
       `INSERT INTO usersInfo
-       (email, password, username, is_verified, created_at, verification_token) 
-       VALUES (?, ?, ?, ?, NOW(), ?)`,
-      [email, hashedPassword, username, false, verificationToken],
+       (username, email, first_name, last_name, password, is_verified, created_at, verification_token) 
+       VALUES (?, ?, ?, ?, ?, ?, NOW(), ?)`,
+      [
+        username,
+        email,
+        firstName,
+        lastName,
+        hashedPassword,
+        false,
+        verificationToken,
+      ],
     );
 
     // Send verification email
@@ -194,6 +203,8 @@ app.get('/api/me', async (req, res) => {
       decoded.userId,
     ]);
     const user = row[0] as UserInfo;
+    console.log('user:...,', user);
+
     if (!user) {
       console.error('User not found for token:', token);
       res.status(404).json({ error: 'User not found' });
@@ -201,8 +212,11 @@ app.get('/api/me', async (req, res) => {
     }
     console.log('token', token);
     res.json({
+      uid: user.id,
       email: user.email,
       username: user.username,
+      firstName: user['first_name'],
+      lastName: user['last_name'],
       isVerified: user.isVerified,
     });
     return;
