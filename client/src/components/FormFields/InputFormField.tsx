@@ -28,6 +28,7 @@ export default function InputFormField({
       setFieldAlreadyExists(null);
     }
   }
+
   return (
     <div className={className}>
       <label className="text-secondary font-medium">
