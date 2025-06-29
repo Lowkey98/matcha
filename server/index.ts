@@ -30,11 +30,12 @@ app.get('/api/ping', (_req, res) => {
 
 app.post('/api/register', async (req, res) => {
   try {
-    const { email, password, username } = req.body.registeredUser;
-    if (!email || !password || !username) {
-      res
-        .status(400)
-        .json({ error: 'Email, password, and username are required' });
+    const { username, email, firstName, lastName, password } =
+      req.body.registeredUser;
+    if (!email || !password || !username || !firstName || !lastName) {
+      res.status(400).json({
+        error: 'Email, username, firstName, lastName, password are required',
+      });
       return;
     }
 
@@ -67,9 +68,17 @@ app.post('/api/register', async (req, res) => {
     // Insert user into DB
     await db.execute(
       `INSERT INTO usersInfo
-       (email, password, username, is_verified, created_at, verification_token) 
-       VALUES (?, ?, ?, ?, NOW(), ?)`,
-      [email, hashedPassword, username, false, verificationToken],
+       (username, email, first_name, last_name, password, is_verified, created_at, verification_token) 
+       VALUES (?, ?, ?, ?, ?, ?, NOW(), ?)`,
+      [
+        username,
+        email,
+        firstName,
+        lastName,
+        hashedPassword,
+        false,
+        verificationToken,
+      ],
     );
 
     // Send verification email
@@ -194,6 +203,7 @@ app.get('/api/me', async (req, res) => {
       decoded.userId,
     ]);
     const user = row[0] as UserInfo;
+
     if (!user) {
       console.error('User not found for token:', token);
       res.status(404).json({ error: 'User not found' });
@@ -201,14 +211,70 @@ app.get('/api/me', async (req, res) => {
     }
     console.log('token', token);
     res.json({
+      id: user.id,
       email: user.email,
       username: user.username,
+      firstName: user['first_name'],
+      lastName: user['last_name'],
       isVerified: user.isVerified,
     });
     return;
   } catch (err) {
     console.error('Error fetching user data:', err);
     res.status(500).json({ error: 'Internal server error' });
+    return;
+  }
+});
+
+app.put('/api/editAccount', async (req, res) => {
+  try {
+    const { id, username, email, firstName, lastName } =
+      req.body.updatedUserAccountInfo;
+    if (!email || !username || !firstName || !lastName) {
+      res.status(400).json({
+        error: 'Email, username, firstName, lastName are required',
+      });
+      return;
+    }
+
+    // Check if email or username exists
+    const [rows] = await db.execute(
+      'SELECT email, username FROM usersInfo WHERE (email = ? OR username = ?) AND id != ?',
+      [email, username, id],
+    );
+
+    const userRows = rows as UserInfoFromDB[];
+    const emailExists = userRows.some(
+      (row: UserInfoFromDB) => row.email === email,
+    );
+
+    const usernameExists = userRows.some(
+      (row: UserInfoFromDB) => row.username === username,
+    );
+
+    console.log('emailExists:', emailExists);
+    console.log('usernameExists:', usernameExists);
+
+    if (emailExists || usernameExists) {
+      res.status(409).json({
+        emailAlreadyExists: emailExists,
+        usernameAlreadyExists: usernameExists,
+      });
+      return;
+    }
+    // Update user into DB
+    await db.execute(
+      `UPDATE usersInfo SET email = ?, username = ?, first_name = ?, last_name = ? WHERE id = ?`,
+      [email, username, firstName, lastName, id],
+    );
+
+    res.status(201).json({
+      message: 'Your account information has been updated successfully',
+    });
+    return;
+  } catch (err) {
+    console.error('Update error:', err);
+    res.status(500).json({ error: 'Internal server error.' });
     return;
   }
 });

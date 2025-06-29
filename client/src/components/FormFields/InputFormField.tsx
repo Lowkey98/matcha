@@ -9,6 +9,7 @@ export default function InputFormField({
   type,
   required,
   setFieldAlreadyExists,
+  defaultValue,
 }: {
   label: string;
   placeholder?: string;
@@ -19,6 +20,7 @@ export default function InputFormField({
   type?: string;
   required?: boolean;
   setFieldAlreadyExists?: React.Dispatch<React.SetStateAction<string | null>>;
+  defaultValue?: string;
 }) {
   function handleChangeInputValue(event: React.ChangeEvent<HTMLInputElement>) {
     setInputValue(event.target.value);
@@ -26,6 +28,7 @@ export default function InputFormField({
       setFieldAlreadyExists(null);
     }
   }
+
   return (
     <div className={className}>
       <label className="text-secondary font-medium">
@@ -40,6 +43,7 @@ export default function InputFormField({
           placeholder={placeholder}
           className="text-secondary w-full px-3 outline-0 placeholder:text-sm placeholder:text-gray-300"
           onChange={handleChangeInputValue}
+          value={defaultValue}
         />
         {formTrail && errorInput && (
           <ExclamationIcon className="fill-redLight h-5 w-5" />

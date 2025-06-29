@@ -18,7 +18,7 @@ import EmailSent from '../components/EmailSent';
 
 export default function Register() {
   const [email, setEmail] = useState<string>('');
-  const [username, setUserName] = useState<string>('');
+  const [username, setUsername] = useState<string>('');
   const [firstName, setFirstName] = useState<string>('');
   const [lastName, setLastName] = useState<string>('');
   const [password, setPassword] = useState<string>('');
@@ -27,7 +27,7 @@ export default function Register() {
   const [errorEmailAlreadyExists, setErrorEmailAlreadyExists] = useState<
     string | null
   >(null);
-  const [errorUserNameAlreadyExists, setErrorUserNameAlreadyExists] = useState<
+  const [errorUsernameAlreadyExists, setErrorUsernameAlreadyExists] = useState<
     string | null
   >(null);
   const [errorConfirmPassword, setErrorConfirmPassword] = useState<
@@ -37,13 +37,14 @@ export default function Register() {
   const [formTrail, setFormTrial] = useState<boolean>(false);
   const errorEmail: string | null =
     isValidEmail(email) ?? errorEmailAlreadyExists;
-  const errorUserName: string | null =
-    isValidUsername(username) ?? errorUserNameAlreadyExists;
+  const errorUsername: string | null =
+    isValidUsername(username) ?? errorUsernameAlreadyExists;
   const errorFirstName: string | null = isValidName(firstName);
   const errorLastName: string | null = isValidName(lastName);
 
   async function handleClickCreateAccount() {
     let errorForm: boolean = false;
+    setFormTrial(true);
     const checkErrorPassword: string | null = isValidPassword(password);
     const checkErrorConfirmPassword: string | null = isValidConfirmedPassword({
       password,
@@ -64,14 +65,16 @@ export default function Register() {
       errorForm = false;
     }
 
-    if (errorEmail || errorUserName || errorFirstName || errorLastName) {
-      setFormTrial(true);
+    if (errorEmail || errorUsername || errorFirstName || errorLastName) {
       errorForm = true;
     }
+
     if (!errorForm) {
       const registeredUser = {
         username: username,
         email: email,
+        firstName: firstName,
+        lastName: lastName,
         password: password,
       };
 
@@ -86,12 +89,12 @@ export default function Register() {
       });
 
       if (!response.ok) {
-        const { emailAlreadyExists, userNameAlreadyExists } =
+        const { emailAlreadyExists, usernameAlreadyExists } =
           await response.json();
         if (emailAlreadyExists)
           setErrorEmailAlreadyExists('Email already exists');
-        if (userNameAlreadyExists)
-          setErrorUserNameAlreadyExists('Username already exists');
+        if (usernameAlreadyExists)
+          setErrorUsernameAlreadyExists('Username already exists');
       } else {
         setShowEmailSent(true);
       }
@@ -138,9 +141,9 @@ export default function Register() {
                     label="Username"
                     placeholder="e.g., johndoe123"
                     className="lg:w-[48%]"
-                    setInputValue={setUserName}
-                    setFieldAlreadyExists={setErrorUserNameAlreadyExists}
-                    errorInput={errorUserName}
+                    setInputValue={setUsername}
+                    setFieldAlreadyExists={setErrorUsernameAlreadyExists}
+                    errorInput={errorUsername}
                     formTrail={formTrail}
                     required
                   />

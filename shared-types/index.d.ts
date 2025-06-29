@@ -1,10 +1,20 @@
 export type UserInfo = {
-  created_at: Date;
-  verification_token: string;
   id: string;
-  age?: number;
   email: string;
   username: string;
+  firstName: string;
+  lastName: string;
+  created_at: Date;
+  verification_token: string;
   isVerified: boolean;
   password: string;
+  age?: number;
+};
+
+export type UpdateUserInfo = {
+  id: string;
+  email: string;
+  username: string;
+  firstName: string;
+  lastName: string;
 };

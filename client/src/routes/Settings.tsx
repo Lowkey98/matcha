@@ -1,71 +1,80 @@
 import { Helmet } from 'react-helmet';
 import InputFormField from '../components/FormFields/InputFormField';
-import PasswordFormField from '../components/FormFields/PasswordFormField';
-import { useState } from 'react';
-import {
-  isValidConfirmedPassword,
-  isValidEmail,
-  isValidName,
-  isValidPassword,
-  isValidUsername,
-} from '../../Helpers';
+import { useContext, useEffect, useState } from 'react';
+import { isValidEmail, isValidName, isValidUsername } from '../../Helpers';
 import ButtonPrimary from '../components/Buttons/ButtonPrimary';
 import ButtonSecondary from '../components/Buttons/ButtonSecondary';
+import { UserContext } from '../Root';
+import { UpdateUserInfo, UserInfo } from '../../../shared-types';
 
 export default function Settings() {
+  const { user } = useContext(UserContext);
   const [email, setEmail] = useState<string>('');
-  const [username, setUserName] = useState<string>('');
+  const [username, setUsername] = useState<string>('');
   const [firstName, setFirstName] = useState<string>('');
   const [lastName, setLastName] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
-  const [confirmPassword, setConfirmPassword] = useState<string>('');
-  const [errorPassword, setErrorPassword] = useState<string | null>(null);
-  const [errorConfirmPassword, setErrorConfirmPassword] = useState<
+  const [formTrail, setFormTrial] = useState<boolean>(false);
+  const [errorEmailAlreadyExists, setErrorEmailAlreadyExists] = useState<
     string | null
   >(null);
-  const [formTrail, setFormTrial] = useState<boolean>(false);
-  const errorEmail: string | null = isValidEmail(email);
-  const errorUserName: string | null = isValidUsername(username);
+  const [errorUsernameAlreadyExists, setErrorUsernameAlreadyExists] = useState<
+    string | null
+  >(null);
+  const errorEmail: string | null =
+    isValidEmail(email) ?? errorEmailAlreadyExists;
+  const errorUsername: string | null =
+    isValidUsername(username) ?? errorUsernameAlreadyExists;
   const errorFirstName: string | null = isValidName(firstName);
   const errorLastName: string | null = isValidName(lastName);
 
-  function handleClickSaveUserInfo() {
-    let errorForm: boolean = false;
-    const checkErrorPassword: string | null = isValidPassword(password);
-    const checkErrorConfirmPassword: string | null = isValidConfirmedPassword({
-      password,
-      confirmedPassword: confirmPassword,
-    });
-    if (checkErrorPassword) {
-      setErrorPassword(checkErrorPassword);
-      errorForm = true;
-    } else {
-      setErrorPassword(null);
-      errorForm = false;
+  useEffect(() => {
+    if (user) {
+      setEmail(user.email);
+      setUsername(user.username);
+      setFirstName(user.firstName);
+      setLastName(user.lastName);
     }
-    if (checkErrorConfirmPassword) {
-      setErrorConfirmPassword(checkErrorConfirmPassword);
-      errorForm = true;
-    } else {
-      setErrorConfirmPassword(null);
-      errorForm = false;
-    }
+  }, [user]);
 
-    if (errorEmail || errorUserName || errorFirstName || errorLastName) {
+  async function handleClickSaveUserInfo() {
+    if (user) {
+      let errorForm: boolean = false;
       setFormTrial(true);
-      errorForm = true;
-    }
-    if (!errorForm) {
-      console.log(
-        email,
-        username,
-        firstName,
-        lastName,
-        password,
-        confirmPassword,
-      );
+      if (errorEmail || errorUsername || errorFirstName || errorLastName) {
+        errorForm = true;
+      }
+      if (!errorForm) {
+        const updatedUserAccountInfo: UpdateUserInfo = {
+          id: user.id,
+          email,
+          username,
+          firstName,
+          lastName,
+        };
+        const response = await fetch('http://localhost:3000/api/editAccount', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            updatedUserAccountInfo,
+          }),
+        });
+        if (!response.ok) {
+          const { emailAlreadyExists, usernameAlreadyExists } =
+            await response.json();
+
+          if (emailAlreadyExists)
+            setErrorEmailAlreadyExists('Email already exists');
+          if (usernameAlreadyExists)
+            setErrorUsernameAlreadyExists('Username already exists');
+        } else {
+          console.log('done');
+        }
+      }
     }
   }
+
   return (
     <>
       <Helmet>
@@ -88,15 +97,19 @@ export default function Settings() {
                 setInputValue={setEmail}
                 errorInput={errorEmail}
                 formTrail={formTrail}
+                setFieldAlreadyExists={setErrorEmailAlreadyExists}
+                defaultValue={email}
                 required
               />
               <InputFormField
                 label="Username"
                 placeholder="e.g., johndoe123"
                 className="lg:w-[48%]"
-                setInputValue={setUserName}
-                errorInput={errorUserName}
+                setInputValue={setUsername}
+                errorInput={errorUsername}
                 formTrail={formTrail}
+                setFieldAlreadyExists={setErrorUsernameAlreadyExists}
+                defaultValue={username}
                 required
               />
               <InputFormField
@@ -106,6 +119,7 @@ export default function Settings() {
                 setInputValue={setFirstName}
                 errorInput={errorFirstName}
                 formTrail={formTrail}
+                defaultValue={firstName}
                 required
               />
               <InputFormField
@@ -115,24 +129,7 @@ export default function Settings() {
                 setInputValue={setLastName}
                 errorInput={errorLastName}
                 formTrail={formTrail}
-                required
-              />
-              <PasswordFormField
-                label="Password"
-                placeholder="Enter a strong password"
-                className="lg:w-[48%]"
-                setPasswordValue={setPassword}
-                errorPassword={errorPassword}
-                setErrorPassword={setErrorPassword}
-                required
-              />
-              <PasswordFormField
-                label="Confirm password"
-                placeholder="Renter your password"
-                className="lg:w-[48%]"
-                setPasswordValue={setConfirmPassword}
-                errorPassword={errorConfirmPassword}
-                setErrorPassword={setErrorConfirmPassword}
+                defaultValue={lastName}
                 required
               />
             </div>
