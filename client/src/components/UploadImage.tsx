@@ -4,6 +4,7 @@ import { EditIcon, PlusIcon } from './Icons';
 export default function UploadImage({
   uploadedBuffersPictures,
   indexImage,
+  className,
 }: {
   uploadedBuffersPictures: (string | undefined)[];
   indexImage: number;
@@ -28,7 +29,7 @@ export default function UploadImage({
     }
   };
   return (
-    <div className="flex h-64 w-[47.5%] sm:w-[30%] lg:w-[21.2%] xl:w-48">
+    <div className={`${className} flex h-64 w-[47.5%] sm:w-[30%]`}>
       <input
         ref={fileInputRef}
         type="file"

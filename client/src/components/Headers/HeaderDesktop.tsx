@@ -15,7 +15,8 @@ export function HeaderDesktop({
   const { user } = useContext(UserContext);
   return (
     <div className={`flex items-center justify-between pt-5 ${className}`}>
-      {user && <img src="/logo.svg" alt="logo" className="w-42" />}
+      {/* TODO hide logo if user authenticated and have a profile */}
+      {/* {user && <img src="/logo.svg" alt="logo" className="w-42" />} */}
       <div className="flex flex-1 items-center justify-end gap-8">
         {user?.age && <FameRate />}
         <NotificationsHeaderItem />

@@ -49,30 +49,39 @@ app.post('/api/create-profile', async (req, res) => {
   }
 });
 
-app.post("/api/register", async (req, res) => {
+
+
+app.post('/api/register', async (req, res) => {
   try {
-    const { email, password, username } = req.body.registeredUser;
-    if (!email || !password || !username) {
-      res.status(400).json({ error: 'Email, password, and username are required' });
-      return
+    const { username, email, firstName, lastName, password } =
+      req.body.registeredUser;
+    if (!email || !password || !username || !firstName || !lastName) {
+      res.status(400).json({
+        error: 'Email, username, firstName, lastName, password are required',
+      });
+      return;
     }
 
     // Check if email or username exists
     const [rows] = await db.execute(
       'SELECT email, username FROM usersInfo WHERE email = ? OR username = ?',
-      [email, username]
+      [email, username],
     );
 
     const userRows = rows as UserInfoFromDB[];
-    const emailExists = userRows.some((row: UserInfoFromDB) => row.email === email);
-    const usernameExists = userRows.some((row: UserInfoFromDB) => row.username === username);
+    const emailExists = userRows.some(
+      (row: UserInfoFromDB) => row.email === email,
+    );
+    const usernameExists = userRows.some(
+      (row: UserInfoFromDB) => row.username === username,
+    );
 
     if (emailExists || usernameExists) {
       res.status(409).json({
         emailAlreadyExists: emailExists,
         usernameAlreadyExists: usernameExists,
       });
-      return
+      return;
     }
 
     // Hash password and create verification token
@@ -82,26 +91,35 @@ app.post("/api/register", async (req, res) => {
     // Insert user into DB
     await db.execute(
       `INSERT INTO usersInfo
-       (email, password, username, is_verified, created_at, verification_token) 
-       VALUES (?, ?, ?, ?, NOW(), ?)`,
-      [email, hashedPassword, username, false, verificationToken]
+       (username, email, first_name, last_name, password, is_verified, created_at, verification_token) 
+       VALUES (?, ?, ?, ?, ?, ?, NOW(), ?)`,
+      [
+        username,
+        email,
+        firstName,
+        lastName,
+        hashedPassword,
+        false,
+        verificationToken,
+      ],
     );
 
     // Send verification email
     sendVerificationEmail({ to: email, token: verificationToken });
 
     res.status(201).json({
-      message: 'Registration successful. Please check your email to verify your account.',
+      message:
+        'Registration successful. Please check your email to verify your account.',
     });
-    return
+    return;
   } catch (err) {
     console.error('Registration error:', err);
     res.status(500).json({ error: 'Internal server error.' });
-    return
+    return;
   }
 });
 
-app.post("/api/login", async (req, res) => {
+app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -109,7 +127,9 @@ app.post("/api/login", async (req, res) => {
       return;
     }
 
-    const [rows] = await db.execute("SELECT * FROM usersInfo WHERE email = ?", [email]);
+    const [rows] = await db.execute('SELECT * FROM usersInfo WHERE email = ?', [
+      email,
+    ]);
     const user: UserInfoFromDB = rows[0];
 
     if (!user) {
@@ -124,14 +144,16 @@ app.post("/api/login", async (req, res) => {
     }
 
     if (!user.is_verified) {
-      res.status(400).json({ error: 'Email not verified. Please check your email.' });
+      res
+        .status(400)
+        .json({ error: 'Email not verified. Please check your email.' });
       return;
     }
 
     const token = jwt.sign(
       { userId: user.id },
       process.env.JWT_SECRET || 'default_secret',
-      { expiresIn: '1h' }
+      { expiresIn: '1h' },
     );
 
     res.status(200).json({
@@ -140,51 +162,49 @@ app.post("/api/login", async (req, res) => {
       user: {
         id: user.id,
         email: user.email,
-        userName: user.username,
+        username: user.username,
         isVerified: user.is_verified,
         created_at: user.created_at,
         age: user?.age,
         verification_token: user.verification_token,
-        password: user.password
+        password: user.password,
       } as UserInfo,
     });
-
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).json({ error: 'Internal server error.' });
   }
 });
 
-app.get("/api/verify", async (req, res) => {
+app.get('/api/verify', async (req, res) => {
   try {
     const { token } = req.query;
     if (!token) {
-      res.status(400).send("Missing token");
+      res.status(400).send('Missing token');
       return;
     }
 
-    console.log("token", token);
+    console.log('token', token);
 
     // Find user with that token
     const [rows] = await db.execute(
-      "SELECT * FROM usersInfo WHERE verification_token = ?",
-      [token]
+      'SELECT * FROM usersInfo WHERE verification_token = ?',
+      [token],
     );
 
     const user: UserInfoFromDB = rows[0];
     if (!user) {
-      res.status(400).send("Invalid or expired token");
+      res.status(400).send('Invalid or expired token');
       return;
     }
 
-    console.log("user", user);
+    console.log('user', user);
     await db.execute(
-      "UPDATE usersInfo SET is_verified = ?, verification_token = NULL WHERE id = ?",
-      [true, user.id]
+      'UPDATE usersInfo SET is_verified = ?, verification_token = NULL WHERE id = ?',
+      [true, user.id],
     );
 
-    res.send("<h1>Email verified successfully!</h1>");
-
+    res.send('<h1>Email verified successfully!</h1>');
   } catch (err) {
     console.error('Verification error:', err);
     res.status(500).send('Internal server error.');
@@ -198,44 +218,93 @@ app.get('/api/me', async (req, res) => {
     return;
   }
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
-    let userId: string | undefined;
-    if (typeof decoded === 'object' && decoded !== null && 'userId' in decoded) {
-      userId = (decoded as { userId: string }).userId;
-    }
-    if (!userId) {
-      res.status(401).json({ error: 'Invalid token' });
-      return;
-    }
-    const [row] = await db.execute(
-      "SELECT * FROM usersInfo WHERE id = ?",
-      [userId]
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || 'default_secret',
     );
+    const [row] = await db.execute('SELECT * FROM usersInfo WHERE id = ?', [
+      decoded.userId,
+    ]);
     const user = row[0] as UserInfo;
+
     if (!user) {
       console.error('User not found for token:', token);
       res.status(404).json({ error: 'User not found' });
-      return
+      return;
     }
-    console.log("token", token);
+    console.log('token', token);
     res.json({
+      id: user.id,
       email: user.email,
-      username: user.userName,
+      username: user.username,
+      firstName: user['first_name'],
+      lastName: user['last_name'],
       isVerified: user.isVerified,
     });
     return;
   } catch (err) {
     console.error('Error fetching user data:', err);
     res.status(500).json({ error: 'Internal server error' });
-    return
+    return;
+  }
+});
+
+app.put('/api/editAccount', async (req, res) => {
+  try {
+    const { id, username, email, firstName, lastName } =
+      req.body.updatedUserAccountInfo;
+    if (!email || !username || !firstName || !lastName) {
+      res.status(400).json({
+        error: 'Email, username, firstName, lastName are required',
+      });
+      return;
+    }
+
+    // Check if email or username exists
+    const [rows] = await db.execute(
+      'SELECT email, username FROM usersInfo WHERE (email = ? OR username = ?) AND id != ?',
+      [email, username, id],
+    );
+
+    const userRows = rows as UserInfoFromDB[];
+    const emailExists = userRows.some(
+      (row: UserInfoFromDB) => row.email === email,
+    );
+
+    const usernameExists = userRows.some(
+      (row: UserInfoFromDB) => row.username === username,
+    );
+
+    console.log('emailExists:', emailExists);
+    console.log('usernameExists:', usernameExists);
+
+    if (emailExists || usernameExists) {
+      res.status(409).json({
+        emailAlreadyExists: emailExists,
+        usernameAlreadyExists: usernameExists,
+      });
+      return;
+    }
+    // Update user into DB
+    await db.execute(
+      `UPDATE usersInfo SET email = ?, username = ?, first_name = ?, last_name = ? WHERE id = ?`,
+      [email, username, firstName, lastName, id],
+    );
+
+    res.status(201).json({
+      message: 'Your account information has been updated successfully',
+    });
+    return;
+  } catch (err) {
+    console.error('Update error:', err);
+    res.status(500).json({ error: 'Internal server error.' });
+    return;
   }
 });
 
 app.listen(3000, () => {
   console.log('🚀 Server running at http://localhost:3000');
 });
-
-
 
 export async function sendVerificationEmail({
   to,
@@ -245,19 +314,17 @@ export async function sendVerificationEmail({
   token: string;
 }) {
   const transporter = nodemailer.createTransport({
-    service: "gmail",
+    service: 'gmail',
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
   });
-  console.log("process.env.EMAIL_USER", process.env.EMAIL_USER);
-  console.log("process.env.EMAIL_PASS", process.env.EMAIL_PASS);
 
   const info = await transporter.sendMail({
     from: `"Matcha Team" <${process.env.EMAIL_USER}>`,
     to,
-    subject: "Confirm Your Matcha Account",
+    subject: 'Confirm Your Matcha Account',
     html: `
     <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
       <h2 style="color: #ff4081;">Welcome to Matcha!</h2>
@@ -274,10 +341,8 @@ export async function sendVerificationEmail({
   `,
   });
 
-
-  console.log("Email sent:", info.messageId);
+  console.log('Email sent:', info.messageId);
 }
-
 
 async function startServer() {
   app.listen(3000, () => {

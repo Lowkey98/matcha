@@ -14,38 +14,38 @@ import ButtonPrimary from '../components/Buttons/ButtonPrimary';
 
 import { Helmet } from 'react-helmet';
 
+export const interestsItems = [
+  'Music',
+  'Dancing',
+  'Singing',
+  'Gaming',
+  'Reading',
+  'Writing',
+  'Movies',
+  'Anime',
+  'Traveling',
+  'Hiking',
+  'Fitness',
+  'Yoga',
+  'Cooking',
+  'Baking',
+  'Photography',
+  'Art',
+  'Pets',
+  'Tech',
+  'Coding',
+  'Fashion',
+  'Shopping',
+  'Volunteering',
+];
+export const genders: string[] = ['Men', 'Women'];
+export const sexualPreferences = ['Men', 'Women'];
 export default function CreateProfile() {
-  const genders: string[] = ['Men', 'Women'];
-  const sexualPreferences = ['Men', 'Women'];
-  const interestsItems = [
-    'Music',
-    'Dancing',
-    'Singing',
-    'Gaming',
-    'Reading',
-    'Writing',
-    'Movies',
-    'Anime',
-    'Traveling',
-    'Hiking',
-    'Fitness',
-    'Yoga',
-    'Cooking',
-    'Baking',
-    'Photography',
-    'Art',
-    'Pets',
-    'Tech',
-    'Coding',
-    'Fashion',
-    'Shopping',
-    'Volunteering',
-  ];
   const [age, setAge] = useState<string>('');
   const [gender, setGender] = useState<string>('');
   const [sexualPreference, setSexualPreference] = useState<string>('');
   const [interests, setInterests] = useState<string[]>([]);
-  const [biography, seBiography] = useState<string>('');
+  const [biography, setBiography] = useState<string>('');
   const [formTrail, setFormTrial] = useState<boolean>(false);
   const errorAge = isValidAge(age);
   const errorGender = isValidGender(gender);
@@ -138,7 +138,7 @@ export default function CreateProfile() {
             <TextAreaFormField
               label="Biography"
               placeholder="Write a brief description about yourself"
-              setTextAreaValue={seBiography}
+              setTextAreaValue={setBiography}
               errorTextArea={errorBiography}
               formTrail={formTrail}
               className="lg:w-[48%]"
