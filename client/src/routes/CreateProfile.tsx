@@ -75,13 +75,20 @@ export default function CreateProfile() {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify({
-          age: parseInt(age, 10),
+          age,
           gender,
           sexualPreference,
           interests,
           biography,
         }),
       });
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Profile created successfully:', data);
+      } else {
+        const errorData = await response.json();
+        console.error('Error creating profile:', errorData);
+      }
     }
   }
 

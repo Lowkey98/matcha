@@ -1,11 +1,15 @@
 import { Helmet } from 'react-helmet';
 import InputFormField from '../components/FormFields/InputFormField';
 import { useContext, useEffect, useState } from 'react';
-import { isValidEmail, isValidName, isValidUsername } from '../../Helpers';
+import {
+  isValidEmail,
+  isValidName,
+  isValidUsername,
+} from '../../../shared/Helpers';
 import ButtonPrimary from '../components/Buttons/ButtonPrimary';
 import ButtonSecondary from '../components/Buttons/ButtonSecondary';
 import { UserContext } from '../Root';
-import { UpdateUserInfo, UserInfo } from '../../../shared-types';
+import { UpdateUserInfo, UserInfo } from '../../../shared/types';
 
 export default function Settings() {
   const { user } = useContext(UserContext);

@@ -7,7 +7,7 @@ import {
   isValidGender,
   isValidInterests,
   isValidSexualPreference,
-} from '../../Helpers';
+} from '../../../shared/Helpers';
 import DropdownFormField from '../components/FormFields/DropdownFormField';
 import { genders, interestsItems, sexualPreferences } from './CreateProfile';
 import MultiSelect from '../components/FormFields/MultiSelect';

@@ -37,13 +37,36 @@ app.post('/api/create-profile', async (req, res) => {
   }
   try {
     const { age, gender, sexualPreference, interests, biography } = req.body;
-    if (!isValidAge(age) || !isValidGender(gender) || !isValidSexualPreference(sexualPreference) || !isValidInterests(interests) || !isValidBiography(biography)) {
+    console.log('req.body', req.body);
+    if (!!isValidAge(age) || !!isValidGender(gender) || !!isValidSexualPreference(sexualPreference) || !!isValidInterests(interests) || !!isValidBiography(biography)) {
       res.status(400).json({ error: 'Invalid input data' });
       return;
     }
     // console.log("data", data);
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET
+
+      || 'default_secret',
+    ) as { userId: string };
+
+    await db.execute(
+      `UPDATE usersInfo 
+       SET
+        age
+        = ?, 
+        gender = ?,
+        sexual_preference = ?,
+        interests = ?,
+        biography = ?
+        WHERE id = ?
+       
+      `,
+      [age, gender, sexualPreference, interests, biography, decoded.userId],
+    );
   } catch (err) {
     console.error('Error in /api/create-profile:', err);
+    // add these fields to this user 
     res.status(500).json({ error: 'Internal server error' });
     return;
   }
@@ -133,7 +156,7 @@ app.post('/api/login', async (req, res) => {
     const user: UserInfoFromDB = rows[0];
 
     if (!user) {
-      res.status(400).json({ error: 'Invalid email or password' });
+      res.status(400).json({ error: 'email not registered' });
       return;
     }
 
@@ -217,36 +240,45 @@ app.get('/api/me', async (req, res) => {
     res.status(401).json({ error: 'Unauthorized' });
     return;
   }
+  let decoded;
   try {
-    const decoded = jwt.verify(
+    decoded = jwt.verify(
       token,
       process.env.JWT_SECRET || 'default_secret',
-    );
-    const [row] = await db.execute('SELECT * FROM usersInfo WHERE id = ?', [
-      decoded.userId,
-    ]);
-    const user = row[0] as UserInfo;
-
-    if (!user) {
-      console.error('User not found for token:', token);
-      res.status(404).json({ error: 'User not found' });
-      return;
-    }
-    console.log('token', token);
-    res.json({
-      id: user.id,
-      email: user.email,
-      username: user.username,
-      firstName: user['first_name'],
-      lastName: user['last_name'],
-      isVerified: user.isVerified,
-    });
-    return;
+    )
   } catch (err) {
-    console.error('Error fetching user data:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('JWT verification error:', err);
+    res.status(401).json({ error: 'Invalid token' });
     return;
   }
+  // .catch(
+  //   (err) => {
+  //     console.error('JWT verification error:', err);
+  //     res.status(401).json({ error: 'Invalid token' });
+  //     return;
+  //   },
+  // );
+  const [row] = await db.execute('SELECT * FROM usersInfo WHERE id = ?', [
+    decoded.userId,
+  ]);
+  const user = row[0] as UserInfo;
+
+  if (!user) {
+    console.error('User not found for token:', token);
+    res.status(404).json({ error: 'User not found' });
+    return;
+  }
+  console.log('token', token);
+  res.json({
+    id: user.id,
+    email: user.email,
+    username: user.username,
+    firstName: user['first_name'],
+    lastName: user['last_name'],
+    isVerified: user.isVerified,
+  });
+  return;
+
 });
 
 app.put('/api/editAccount', async (req, res) => {
