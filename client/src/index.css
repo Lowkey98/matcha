@@ -14,3 +14,12 @@
 body {
   @apply font-poppins relative mx-auto max-w-[110rem] min-w-xs px-5;
 }
+
+@keyframes progress {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}
