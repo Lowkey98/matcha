@@ -4,6 +4,7 @@ import ButtonPrimary from '../components/Buttons/ButtonPrimary';
 import { ToastError } from '../components/ToastError';
 import { useState } from 'react';
 import { isValidAddedProfilePicture } from '../../../shared/Helpers';
+import { useLocation } from 'react-router-dom';
 
 export default function AddPictures() {
   const [errorAddPictures, setErrorAddPictures] = useState<string | null>(null);
@@ -11,21 +12,49 @@ export default function AddPictures() {
     useState<NodeJS.Timeout | null>(null);
   const uploadedBuffersPictures: (string | undefined)[] =
     Array(5).fill(undefined);
-  function handleClickDone() {
-    const errorCheckUploadedPictures = isValidAddedProfilePicture(
-      uploadedBuffersPictures,
-    );
-    if (errorCheckUploadedPictures) {
-      if (animationTimeout) clearTimeout(animationTimeout);
-      setErrorAddPictures(errorCheckUploadedPictures);
-      setAnimationTimeout(
-        setTimeout(() => {
-          setErrorAddPictures(null);
-        }, 4000),
-      );
-      return;
+  // get data from navigate state
+  const location = useLocation();
+  console.log('location state:', location.state);
+
+  async function handleClickDone() {
+    // const uploadedBuffersPictures = location.state?.uploadedBuffersPictures || [];
+    const { age, gender, sexualPreference, interests, biography } =
+      location.state || {};
+    const response = await fetch('http://localhost:3000/api/create-profile', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
+      body: JSON.stringify({
+        age,
+        gender,
+        sexualPreference,
+        interests,
+        biography,
+      }),
+    });
+    if (response.ok) {
+      const data = await response.json();
+      console.log('Profile created successfully:', data);
+    } else {
+      const errorData = await response.json();
+      console.error('Error creating profile:', errorData);
     }
-    console.log('uploadedBuffersPictures:', uploadedBuffersPictures);
+    // const errorCheckUploadedPictures = isValidAddedProfilePicture(
+    //   uploadedBuffersPictures,
+    // );
+    // if (errorCheckUploadedPictures) {
+    //   if (animationTimeout) clearTimeout(animationTimeout);
+    //   setErrorAddPictures(errorCheckUploadedPictures);
+    //   setAnimationTimeout(
+    //     setTimeout(() => {
+    //       setErrorAddPictures(null);
+    //     }, 4000),
+    //   );
+    //   return;
+    // }
+    // console.log('uploadedBuffersPictures:', uploadedBuffersPictures);
   }
   return (
     <>
@@ -42,7 +71,7 @@ export default function AddPictures() {
           </span>
         </div>
         <div className="flex flex-col">
-          <div className="mt-12 flex flex-wrap items-center gap-[5%] gap-y-6 lg:gap-y-12 xl:gap-6">
+          {/* <div className="mt-12 flex flex-wrap items-center gap-[5%] gap-y-6 lg:gap-y-12 xl:gap-6">
             {uploadedBuffersPictures.map((__, index) => (
               <UploadImage
                 key={index}
@@ -51,7 +80,7 @@ export default function AddPictures() {
                 className="lg:w-[21.2%] xl:w-48"
               />
             ))}
-          </div>
+          </div> */}
           <div className="mt-12 lg:flex lg:justify-end">
             <ButtonPrimary
               type="button"

@@ -13,6 +13,7 @@ import TextAreaFormField from '../components/FormFields/TextAreaFormField';
 import ButtonPrimary from '../components/Buttons/ButtonPrimary';
 
 import { Helmet } from 'react-helmet';
+import { useNavigate } from 'react-router-dom';
 
 export const interestsItems = [
   'Music',
@@ -47,6 +48,7 @@ export default function CreateProfile() {
   const [interests, setInterests] = useState<string[]>([]);
   const [biography, setBiography] = useState<string>('');
   const [formTrail, setFormTrial] = useState<boolean>(false);
+  const navigate = useNavigate();
   const errorAge = isValidAge(age);
   const errorGender = isValidGender(gender);
   const errorSexualPreference = isValidSexualPreference(sexualPreference);
@@ -67,28 +69,15 @@ export default function CreateProfile() {
     }
 
     if (!errorForm) {
-      console.log(age, gender, sexualPreference, interests, biography);
-      const response = await fetch('http://localhost:3000/api/create-profile', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({
+      navigate(`/createProfile/addPictures`, {
+        state: {
           age,
           gender,
           sexualPreference,
           interests,
           biography,
-        }),
+        },
       });
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Profile created successfully:', data);
-      } else {
-        const errorData = await response.json();
-        console.error('Error creating profile:', errorData);
-      }
     }
   }
 

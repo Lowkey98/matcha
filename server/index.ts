@@ -64,6 +64,11 @@ app.post('/api/create-profile', async (req, res) => {
       `,
       [age, gender, sexualPreference, interests, biography, decoded.userId],
     );
+    res.status(201).json({
+      message:
+        'profile info added successfully',
+    });
+    return;
   } catch (err) {
     console.error('Error in /api/create-profile:', err);
     // add these fields to this user 
@@ -176,7 +181,7 @@ app.post('/api/login', async (req, res) => {
     const token = jwt.sign(
       { userId: user.id },
       process.env.JWT_SECRET || 'default_secret',
-      { expiresIn: '1h' },
+      { expiresIn: '7d' },
     );
 
     res.status(200).json({
