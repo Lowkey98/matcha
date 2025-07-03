@@ -12,6 +12,8 @@
     "concurrently": "^8.2.2"
   },
   "dependencies": {
+    "embla-carousel-autoplay": "^8.6.0",
+    "embla-carousel-react": "^8.6.0",
     "react-router-dom": "^7.6.0"
   }
 }
