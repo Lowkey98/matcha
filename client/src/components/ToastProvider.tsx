@@ -31,7 +31,7 @@ export function ToastContainer() {
   const { toasts, removeToast } = useToast();
 
   return (
-    <div className="fixed bottom-24 left-4 z-40 flex flex-col gap-2 md:bottom-4">
+    <div className="fixed bottom-24 left-4 z-40 flex flex-col gap-2 md:bottom-5">
       {toasts.map((toast) => (
         <ToastBox key={toast.id} toast={toast} removeToast={removeToast} />
       ))}
