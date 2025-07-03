@@ -4,6 +4,7 @@ import Navigation from './components/Navigation';
 import { createContext, useEffect } from 'react';
 import { useState } from 'react';
 import type { UserInfo } from '../../shared-types/index.d.ts';
+import { ToastProvider } from './components/ToastProvider';
 type UserContextType = {
   user: UserInfo | null;
   setUser: React.Dispatch<React.SetStateAction<UserInfo | null>>;
@@ -49,14 +50,16 @@ export default function Root() {
   }, []);
   return (
     <UserContext.Provider value={{ user, setUser, loading }}>
-      {user && (
-        <>
-          <Header />
-          <Navigation />
-        </>
-      )}
-      {/* TODO handle display of sidebar depends on the authentication */}
-      <Outlet />
+      <ToastProvider>
+        {user && (
+          <>
+            <Header />
+            <Navigation />
+          </>
+        )}
+        {/* TODO handle display of sidebar depends on the authentication */}
+        <Outlet />
+      </ToastProvider>
     </UserContext.Provider>
   );
 }
