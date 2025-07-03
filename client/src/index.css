@@ -2,6 +2,7 @@
 @import 'tailwindcss';
 @theme {
   --color-primary: #ea3a90;
+  --color-primaryLight: #fef3f8;
   --color-secondary: #25265d;
   --color-grayDark: #acacac;
   --color-grayDark-100: #eeeeee;
@@ -13,4 +14,13 @@
 
 body {
   @apply font-poppins relative mx-auto max-w-[110rem] min-w-xs px-5;
+}
+
+@keyframes progress {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
 }
