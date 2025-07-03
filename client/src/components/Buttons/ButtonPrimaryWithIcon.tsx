@@ -5,7 +5,7 @@ export default function ButtonPrimaryWithIcon({
   className,
   onClick,
 }: {
-  type: "button" | "submit";
+  type: 'button' | 'submit';
   icon: React.JSX.Element;
   value: string;
   className?: string;
@@ -18,7 +18,7 @@ export default function ButtonPrimaryWithIcon({
   return (
     <button
       type={type}
-      className={`bg-primary border-primary flex h-13 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-2 px-3 ${className}`}
+      className={`bg-primary border-primary flex h-13 cursor-pointer items-center justify-center gap-2 rounded-lg border-2 px-3 ${className}`}
       onClick={handleClick}
     >
       {icon}
