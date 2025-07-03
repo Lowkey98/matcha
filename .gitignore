@@ -25,3 +25,4 @@ dist-ssr
 # env directories
 .env
 server/.env
+server/uploads/*

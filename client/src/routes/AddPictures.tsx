@@ -18,6 +18,21 @@ export default function AddPictures() {
 
   async function handleClickDone() {
     // const uploadedBuffersPictures = location.state?.uploadedBuffersPictures || [];
+    const errorCheckUploadedPictures = isValidAddedProfilePicture(
+      uploadedBuffersPictures,
+    );
+    console.log('errorCheckUploadedPictures', errorCheckUploadedPictures);
+    if (errorCheckUploadedPictures) {
+      if (animationTimeout) clearTimeout(animationTimeout);
+      setErrorAddPictures(errorCheckUploadedPictures);
+      setAnimationTimeout(
+        setTimeout(() => {
+          setErrorAddPictures(null);
+        }, 4000),
+      );
+      return;
+    }
+    console.log('uploadedBuffersPictures:', uploadedBuffersPictures);
     const { age, gender, sexualPreference, interests, biography } =
       location.state || {};
     const response = await fetch('http://localhost:3000/api/create-profile', {
@@ -32,6 +47,7 @@ export default function AddPictures() {
         sexualPreference,
         interests,
         biography,
+        uploadedBuffersPictures,
       }),
     });
     if (response.ok) {
@@ -41,20 +57,6 @@ export default function AddPictures() {
       const errorData = await response.json();
       console.error('Error creating profile:', errorData);
     }
-    // const errorCheckUploadedPictures = isValidAddedProfilePicture(
-    //   uploadedBuffersPictures,
-    // );
-    // if (errorCheckUploadedPictures) {
-    //   if (animationTimeout) clearTimeout(animationTimeout);
-    //   setErrorAddPictures(errorCheckUploadedPictures);
-    //   setAnimationTimeout(
-    //     setTimeout(() => {
-    //       setErrorAddPictures(null);
-    //     }, 4000),
-    //   );
-    //   return;
-    // }
-    // console.log('uploadedBuffersPictures:', uploadedBuffersPictures);
   }
   return (
     <>
@@ -71,7 +73,7 @@ export default function AddPictures() {
           </span>
         </div>
         <div className="flex flex-col">
-          {/* <div className="mt-12 flex flex-wrap items-center gap-[5%] gap-y-6 lg:gap-y-12 xl:gap-6">
+          <div className="mt-12 flex flex-wrap items-center gap-[5%] gap-y-6 lg:gap-y-12 xl:gap-6">
             {uploadedBuffersPictures.map((__, index) => (
               <UploadImage
                 key={index}
@@ -80,7 +82,7 @@ export default function AddPictures() {
                 className="lg:w-[21.2%] xl:w-48"
               />
             ))}
-          </div> */}
+          </div>
           <div className="mt-12 lg:flex lg:justify-end">
             <ButtonPrimary
               type="button"

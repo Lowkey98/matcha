@@ -9,6 +9,8 @@ import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import type { UserInfo } from '../shared/types.js';
 import { isValidAge, isValidGender, isValidSexualPreference, isValidInterests, isValidBiography } from '../shared/Helpers.js';
+import path, { relative } from 'path';
+import fs from 'fs';
 // const { isValidAge, isValidGender, isValidSexualPreference, isValidInterests, isValidBiography } = pkg;
 type UserInfoFromDB = {
   created_at: Date;
@@ -22,48 +24,79 @@ type UserInfoFromDB = {
 };
 dotenv.config();
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '11mb' }));
 app.use(cors());
+app.use(express.urlencoded({ extended: true, limit: '12mb' }));
 
 app.get('/api/ping', (_req, res) => {
   res.send({ msg: 'pong' });
 });
 
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const relativePath = relative(process.cwd(), __filename);
+console.log("relativePath", relativePath)
+console.log("filename", __filename)
+const __dirname = path.dirname(__filename);
+console.log("__dirname", __dirname)
+
 app.post('/api/create-profile', async (req, res) => {
+
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) {
     res.status(401).json({ error: 'Unauthorized' });
     return;
   }
   try {
-    const { age, gender, sexualPreference, interests, biography } = req.body;
-    console.log('req.body', req.body);
-    if (!!isValidAge(age) || !!isValidGender(gender) || !!isValidSexualPreference(sexualPreference) || !!isValidInterests(interests) || !!isValidBiography(biography)) {
-      res.status(400).json({ error: 'Invalid input data' });
-      return;
-    }
-    // console.log("data", data);
+    const { age, gender, sexualPreference, interests, biography, uploadedBuffersPictures } = req.body;
+    // if (!!isValidAge(age) || !!isValidGender(gender) || !!isValidSexualPreference(sexualPreference) || !!isValidInterests(interests) || !!isValidBiography(biography)) {
+    //   res.status(400).json({ error: 'Invalid input data' });
+    //   return;
+    // }
     const decoded = jwt.verify(
       token,
       process.env.JWT_SECRET
 
       || 'default_secret',
     ) as { userId: string };
+    const uploadDir = path.join(__dirname, `uploads/${decoded.userId}`);
+    console.log("uploadDir", uploadDir)
 
-    await db.execute(
-      `UPDATE usersInfo 
-       SET
-        age
-        = ?, 
-        gender = ?,
-        sexual_preference = ?,
-        interests = ?,
-        biography = ?
-        WHERE id = ?
-       
-      `,
-      [age, gender, sexualPreference, interests, biography, decoded.userId],
-    );
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir);
+    }
+    console.log('req.body', req.body);
+    let imagesUrls = []
+    uploadedBuffersPictures.map((buffer, index) => {
+
+      const parts = buffer.split(',');
+      const header = parts[0];
+      const base64Data = parts[1];
+      const ext = header.split('/')[1].split(';')[0];
+
+      const filename = `picture-${Date.now()}-${index}.${ext}`;
+      const filepath = path.join(`./uploads/${decoded.userId}`, filename);
+
+      fs.writeFileSync(filepath, Buffer.from(base64Data, 'base64'));
+
+    })
+    console.log(imagesUrls)
+
+    // await db.execute(
+    //   `UPDATE usersInfo 
+    //    SET
+    //     age
+    //     = ?, 
+    //     gender = ?,
+    //     sexual_preference = ?,
+    //     interests = ?,
+    //     biography = ?
+    //     WHERE id = ?
+
+    //   `,
+    //   [age, gender, sexualPreference, interests, biography, decoded.userId],
+    // );
     res.status(201).json({
       message:
         'profile info added successfully',

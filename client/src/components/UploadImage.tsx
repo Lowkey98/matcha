@@ -16,8 +16,23 @@ export default function UploadImage({
     fileInputRef?.current?.click();
   }
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+    // jpeg, png, webp
     const file = event.target.files?.[0];
     if (file) {
+      if (file.size > maxSize) {
+        console.error(
+          `file size ${(file.size / 1024 / 1024).toFixed(2)} MB exceeds the sime limit [${maxSize / 1024 / 1024} MB]`,
+        );
+        return;
+      }
+      const extension = file.name.split('.').pop();
+      if (extension !== 'jpeg' && extension !== 'png' && extension !== 'webp') {
+        console.error(`.${extension} not allowed`)
+        return
+      }
+      // if format isnt jpeg, png, webp
+
       const reader = new FileReader();
 
       reader.onloadend = () => {
