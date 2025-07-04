@@ -244,20 +244,12 @@ app.put('/api/editAccount', async (req, res) => {
     );
 
     const userRows = rows as UserInfoFromDB[];
-    const emailExists = userRows.some(
-      (row: UserInfoFromDB) => row.email === email,
-    );
-
     const usernameExists = userRows.some(
       (row: UserInfoFromDB) => row.username === username,
     );
 
-    console.log('emailExists:', emailExists);
-    console.log('usernameExists:', usernameExists);
-
-    if (emailExists || usernameExists) {
+    if (usernameExists) {
       res.status(409).json({
-        emailAlreadyExists: emailExists,
         usernameAlreadyExists: usernameExists,
       });
       return;

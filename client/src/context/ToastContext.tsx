@@ -3,14 +3,12 @@ import { createContext } from 'react';
 export type Toast =
   | {
       status: 'error';
-      title: string;
       message: string;
       errorCode: number;
       delay?: number;
     }
   | {
       status: 'success';
-      title: string;
       message: string;
       errorCode?: number;
       delay?: number;
