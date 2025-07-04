@@ -50,10 +50,10 @@ app.post('/api/create-profile', async (req, res) => {
   }
   try {
     const { age, gender, sexualPreference, interests, biography, uploadedBuffersPictures } = req.body;
-    // if (!!isValidAge(age) || !!isValidGender(gender) || !!isValidSexualPreference(sexualPreference) || !!isValidInterests(interests) || !!isValidBiography(biography)) {
-    //   res.status(400).json({ error: 'Invalid input data' });
-    //   return;
-    // }
+    if (!!isValidAge(age) || !!isValidGender(gender) || !!isValidSexualPreference(sexualPreference) || !!isValidInterests(interests) || !!isValidBiography(biography)) {
+      res.status(400).json({ error: 'Invalid input data' });
+      return;
+    }
     const decoded = jwt.verify(
       token,
       process.env.JWT_SECRET
@@ -66,10 +66,8 @@ app.post('/api/create-profile', async (req, res) => {
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir);
     }
-    console.log('req.body', req.body);
     let imagesUrls = []
     uploadedBuffersPictures.map((buffer, index) => {
-
       const parts = buffer.split(',');
       const header = parts[0];
       const base64Data = parts[1];
@@ -79,32 +77,35 @@ app.post('/api/create-profile', async (req, res) => {
       const filepath = path.join(`./uploads/${decoded.userId}`, filename);
 
       fs.writeFileSync(filepath, Buffer.from(base64Data, 'base64'));
-
+      imagesUrls.push(filepath)
     })
     console.log(imagesUrls)
 
-    // await db.execute(
-    //   `UPDATE usersInfo 
-    //    SET
-    //     age
-    //     = ?, 
-    //     gender = ?,
-    //     sexual_preference = ?,
-    //     interests = ?,
-    //     biography = ?
-    //     WHERE id = ?
+    await db.execute(
+      `UPDATE usersInfo 
+       SET
+        age
+        = ?, 
+        gender = ?,
+        sexual_preference = ?,
+        interests = ?,
+        biography = ?,
+        images_urls = ?
+        WHERE id = ?
 
-    //   `,
-    //   [age, gender, sexualPreference, interests, biography, decoded.userId],
-    // );
+      `,
+      [age, gender, sexualPreference, interests, biography, imagesUrls, decoded.userId],
+    );
     res.status(201).json({
       message:
         'profile info added successfully',
+      body: {
+        age, gender, sexualPreference, interests, biography, imagesUrls
+      }
     });
     return;
   } catch (err) {
     console.error('Error in /api/create-profile:', err);
-    // add these fields to this user 
     res.status(500).json({ error: 'Internal server error' });
     return;
   }
@@ -307,14 +308,20 @@ app.get('/api/me', async (req, res) => {
     return;
   }
   console.log('token', token);
-  res.json({
+  const userInfo = {
     id: user.id,
     email: user.email,
     username: user.username,
     firstName: user['first_name'],
     lastName: user['last_name'],
-    isVerified: user.isVerified,
-  });
+    age: user['age'],
+    gender: user['gender'],
+    sexualPreference: user['sexual_preference'],
+    interests: user['interests'],
+    biography: user['biography'],
+    imagesUrls: user['images_urls']
+  }
+  res.json(userInfo);
   return;
 
 });

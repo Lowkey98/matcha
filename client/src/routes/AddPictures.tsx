@@ -2,17 +2,20 @@ import { Helmet } from 'react-helmet';
 import UploadImage from '../components/UploadImage';
 import ButtonPrimary from '../components/Buttons/ButtonPrimary';
 import { ToastError } from '../components/ToastError';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { isValidAddedProfilePicture } from '../../../shared/Helpers';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { UserContext } from '../Root';
 
 export default function AddPictures() {
   const [errorAddPictures, setErrorAddPictures] = useState<string | null>(null);
   const [animationTimeout, setAnimationTimeout] =
     useState<NodeJS.Timeout | null>(null);
+  const { setUser } = useContext(UserContext);
   const uploadedBuffersPictures: (string | undefined)[] =
     Array(5).fill(undefined);
   // get data from navigate state
+  const navigate = useNavigate();
   const location = useLocation();
   console.log('location state:', location.state);
 
@@ -52,7 +55,14 @@ export default function AddPictures() {
     });
     if (response.ok) {
       const data = await response.json();
-      console.log('Profile created successfully:', data);
+      setUser((prev) => {
+        return {
+          ...prev,
+          ...data.body,
+        };
+      });
+      console.log('data', data);
+      navigate('/explore');
     } else {
       const errorData = await response.json();
       console.error('Error creating profile:', errorData);

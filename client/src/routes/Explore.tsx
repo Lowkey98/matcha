@@ -15,6 +15,8 @@ export default function Explore() {
     return <Login />;
   } else if (!user.age) {
     return <CreateProfile />;
+  } else {
+    console.log('user', user);
   }
   return (
     <>
