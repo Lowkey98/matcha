@@ -1,31 +1,24 @@
 import { Helmet } from 'react-helmet';
 import UploadImage from '../components/UploadImage';
 import ButtonPrimary from '../components/Buttons/ButtonPrimary';
-import { ToastError } from '../components/ToastError';
-import { useState } from 'react';
 import { isValidAddedProfilePicture } from '../../Helpers';
+import { useToast } from '../hooks/useToast';
 
 export default function AddPictures() {
-  const [errorAddPictures, setErrorAddPictures] = useState<string | null>(null);
-  const [animationTimeout, setAnimationTimeout] =
-    useState<NodeJS.Timeout | null>(null);
+  const { addToast } = useToast();
   const uploadedBuffersPictures: (string | undefined)[] =
     Array(5).fill(undefined);
   function handleClickDone() {
-    const errorCheckUploadedPictures = isValidAddedProfilePicture(
-      uploadedBuffersPictures,
-    );
-    if (errorCheckUploadedPictures) {
-      if (animationTimeout) clearTimeout(animationTimeout);
-      setErrorAddPictures(errorCheckUploadedPictures);
-      setAnimationTimeout(
-        setTimeout(() => {
-          setErrorAddPictures(null);
-        }, 4000),
-      );
-      return;
+    const errorCheckUploadedPictures: string | null =
+      isValidAddedProfilePicture(uploadedBuffersPictures);
+    if (!errorCheckUploadedPictures) {
+      console.log('uploadedBuffersPictures:', uploadedBuffersPictures);
+    } else {
+      addToast({
+        status: 'error',
+        message: errorCheckUploadedPictures,
+      });
     }
-    console.log('uploadedBuffersPictures:', uploadedBuffersPictures);
   }
   return (
     <>
@@ -61,14 +54,6 @@ export default function AddPictures() {
             />
           </div>
         </div>
-        {errorAddPictures && (
-          <ToastError
-            message={errorAddPictures}
-            setErrorShowToast={setErrorAddPictures}
-            animationTimeout={animationTimeout}
-            setAnimationTimeout={setAnimationTimeout}
-          />
-        )}
       </main>
     </>
   );

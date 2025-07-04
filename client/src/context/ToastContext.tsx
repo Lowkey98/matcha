@@ -4,7 +4,7 @@ export type Toast =
   | {
       status: 'error';
       message: string;
-      errorCode: number;
+      errorCode?: number;
       delay?: number;
     }
   | {

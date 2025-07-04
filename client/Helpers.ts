@@ -72,7 +72,7 @@ export function isValidAddedProfilePicture(
 ) {
   for (let index = 0; index < uploadedBuffersPictures.length; index++) {
     const uploadedBufferPicture = uploadedBuffersPictures[index];
-    if (!uploadedBufferPicture) return 'Add at least five images.';
+    if (!uploadedBufferPicture) return 'Add at least five images';
   }
   return null;
 }
