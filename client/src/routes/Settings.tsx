@@ -88,7 +88,7 @@ export default function Settings() {
             });
             addToast({
               status: 'success',
-              message: 'Your account information updated successfully',
+              message: 'Your account information updated successfully.',
             });
           }
         }

@@ -1,20 +1,26 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import InputFormField from '../components/FormFields/InputFormField';
 import PasswordFormField from '../components/FormFields/PasswordFormField';
 import ButtonPrimary from '../components//Buttons/ButtonPrimary';
 import ButtonSecondaryWithIcon from '../components//Buttons/ButtonSecondaryWithIcon';
 import { GoogleIcon } from '../components/Icons';
 import { isValidEmail, isValidPassword } from '../../Helpers';
+import { getUserInfo, login } from '../../Api';
 import { Helmet } from 'react-helmet';
+import { useToast } from '../hooks/useToast';
+import { UserContext } from '../Root';
+import { UserInfo } from '../../../shared-types';
 
 export default function Login() {
+  const { setUser, setLoading } = useContext(UserContext);
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [errorPassword, setErrorPassword] = useState<string | null>(null);
   const [formTrail, setFormTrial] = useState<boolean>(false);
-  const errorEmail: string | null = isValidEmail(email);
   const navigate = useNavigate();
+  const { addToast } = useToast();
+  const errorEmail: string | null = isValidEmail(email);
 
   async function handleClickLogin() {
     let errorForm: boolean = false;
@@ -31,28 +37,34 @@ export default function Login() {
       errorForm = true;
     }
     if (!errorForm) {
-      const response = await fetch('http://localhost:3000/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        if (errorData.error) {
-          setErrorPassword(errorData.error);
-        } else {
-          setErrorPassword('An unexpected error occurred. Please try again.');
-        }
-      } else {
-        const data = await response.json();
-        localStorage.setItem('token', data.token);        
-        navigate('/createProfile');
-      }
+      login({ email, password })
+        .then(() => {
+          const token = localStorage.getItem('token');
+          if (token) {
+            getUserInfo({ token })
+              .then((userInfo) => {
+                console.log('User data fetched:', userInfo);
+                setUser(userInfo as UserInfo);
+                setLoading(false);
+                navigate('/createProfile');
+              })
+              .catch((error) => {
+                console.error('Error fetching user data:', error.message);
+                setUser(null); // Reset user if there's an error
+                setLoading(false);
+              });
+          }
+        })
+        .catch((error) => {
+          const errorMessage = error.error;
+          if (errorMessage) setErrorPassword(errorMessage);
+          else {
+            addToast({
+              status: 'error',
+              message: 'An unexpected error occurred. Please try again.',
+            });
+          }
+        });
     }
   }
 

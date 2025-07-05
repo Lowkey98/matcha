@@ -1,6 +1,8 @@
+import { useContext } from 'react';
 import { EditIcon, LogoutIcon, SettingsIcon } from '../Icons';
 import { HeaderDesktop } from './HeaderDesktop';
 import HeaderMobile from './HeaderMobile';
+import { UserContext } from '../../Root';
 
 export type HeaderNavigationItem = {
   route: string;
@@ -8,18 +10,22 @@ export type HeaderNavigationItem = {
   icon: React.JSX.Element;
 };
 export default function Header() {
+  const { user } = useContext(UserContext);
   const headerNavigationItems: HeaderNavigationItem[] = [
     {
       route: '/settings',
       name: 'Settings',
       icon: <SettingsIcon />,
     },
-    // TODO handle display of edit profile depends on the authentication
-    {
-      route: '/editProfile',
-      name: 'Edit profile',
-      icon: <EditIcon />,
-    },
+    ...(user?.age
+      ? [
+          {
+            route: '/editProfile',
+            name: 'Edit profile',
+            icon: <EditIcon />,
+          },
+        ]
+      : []),
     {
       route: '/',
       name: 'Logout',
