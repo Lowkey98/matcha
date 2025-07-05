@@ -8,6 +8,9 @@ import { UserContext } from '../Root';
 import { UpdateUserInfo } from '../../../shared-types';
 import DisabledInputFormField from '../components/FormFields/DisabledInputFormField';
 import { useToast } from '../hooks/useToast';
+import { updateUserInfoAccount } from '../../Api';
+import { ArrowLongLeftIcon } from '../components/Icons';
+import { Link } from 'react-router-dom';
 
 export default function Settings() {
   const { user, setUser } = useContext(UserContext);
@@ -65,32 +68,22 @@ export default function Settings() {
           JSON.stringify(updatedUserAccountInfo);
 
         if (userInfoChanged) {
-          const response = await fetch(
-            'http://localhost:3000/api/editAccount',
-            {
-              method: 'PUT',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                updatedUserAccountInfo,
-              }),
-            },
-          );
-          if (!response.ok) {
-            const { usernameAlreadyExists } = await response.json();
-            if (usernameAlreadyExists)
-              setErrorUsernameAlreadyExists('Username already exists');
-          } else {
-            setUser({
-              ...user,
-              ...updatedUserAccountInfo,
+          updateUserInfoAccount({ updatedUserAccountInfo })
+            .then(() => {
+              setUser({
+                ...user,
+                ...updatedUserAccountInfo,
+              });
+              addToast({
+                status: 'success',
+                message: 'Your account information updated successfully.',
+              });
+            })
+            .catch((error) => {
+              const { usernameAlreadyExists } = error;
+              if (usernameAlreadyExists)
+                setErrorUsernameAlreadyExists('Username already exists');
             });
-            addToast({
-              status: 'success',
-              message: 'Your account information updated successfully.',
-            });
-          }
         }
       }
     }
@@ -110,13 +103,23 @@ export default function Settings() {
       <Helmet>
         <title>Matcha - Settings</title>
       </Helmet>
-      <main className="mt-12 mb-22 flex justify-center lg:mb-0 lg:ml-57">
+      <main
+        className={`mt-12 mb-22 flex justify-center lg:mb-0 ${user?.age ? 'lg:ml-57' : ''}`}
+      >
         <div className="w-full lg:w-4xl">
-          <div>
-            <h1 className="text-secondary text-2xl font-bold">Settings</h1>
-            <span className="lg:text-md text-sm font-light text-gray-300">
-              Manage your account details
-            </span>
+          <div className="flex items-start gap-4">
+            <Link
+              to="/"
+              className="border-grayDark-100 rounded-full border-2 bg-white p-1"
+            >
+              <ArrowLongLeftIcon className="fill-secondary h-6 w-6" />
+            </Link>
+            <div>
+              <h1 className="text-secondary text-2xl font-bold">Settings</h1>
+              <span className="lg:text-md text-sm font-light text-gray-300">
+                Manage your account details
+              </span>
+            </div>
           </div>
           <form className="mt-12 flex flex-col">
             <div className="flex flex-col gap-8 lg:flex-row lg:flex-wrap lg:justify-between lg:gap-0 lg:gap-y-10">

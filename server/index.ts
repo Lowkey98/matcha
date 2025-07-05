@@ -226,7 +226,7 @@ app.get('/api/me', async (req, res) => {
   }
 });
 
-app.put('/api/editAccount', async (req, res) => {
+app.put('/api/updateAccount', async (req, res) => {
   try {
     const { id, username, email, firstName, lastName } =
       req.body.updatedUserAccountInfo;
@@ -239,8 +239,8 @@ app.put('/api/editAccount', async (req, res) => {
 
     // Check if email or username exists
     const [rows] = await db.execute(
-      'SELECT email, username FROM usersInfo WHERE (email = ? OR username = ?) AND id != ?',
-      [email, username, id],
+      'SELECT username FROM usersInfo WHERE (username = ?) AND id != ?',
+      [username, id],
     );
 
     const userRows = rows as UserInfoFromDB[];

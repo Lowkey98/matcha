@@ -1,5 +1,27 @@
+import { RegisteredUserInfo, UpdateUserInfo } from '../shared-types';
+
 const HOST: string = 'http://localhost:3000';
 
+export async function register({
+  registeredUser,
+}: {
+  registeredUser: RegisteredUserInfo;
+}) {
+  const response = await fetch(`${HOST}/api/register`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      registeredUser,
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw error;
+  }
+}
 export async function login({
   email,
   password,
@@ -18,12 +40,32 @@ export async function login({
     }),
   });
   if (!response.ok) {
-    const errorData = await response.json();
-    throw errorData;
+    const error = await response.json();
+    throw error;
   } else {
     const jsonResponse = await response.json();
     const token = jsonResponse.token;
     localStorage.setItem('token', token);
+  }
+}
+
+export async function updateUserInfoAccount({
+  updatedUserAccountInfo,
+}: {
+  updatedUserAccountInfo: UpdateUserInfo;
+}) {
+  const response = await fetch(`${HOST}/api/updateAccount`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      updatedUserAccountInfo,
+    }),
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw error;
   }
 }
 

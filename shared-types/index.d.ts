@@ -10,6 +10,13 @@ export type UserInfo = {
   password: string;
   age?: number;
 };
+export type RegisteredUserInfo = {
+  email: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  password: string;
+};
 
 export type UpdateUserInfo = {
   id: string;
