@@ -1,31 +1,32 @@
 import { Helmet } from 'react-helmet';
 import InputFormField from '../components/FormFields/InputFormField';
 import { useContext, useEffect, useState } from 'react';
-import {
-  isValidEmail,
-  isValidName,
-  isValidUsername,
-} from '../../../shared/Helpers';
+import { isValidName, isValidUsername } from '../../../shared/Helpers';
 import ButtonPrimary from '../components/Buttons/ButtonPrimary';
 import ButtonSecondary from '../components/Buttons/ButtonSecondary';
 import { UserContext } from '../Root';
-import { UpdateUserInfo, UserInfo } from '../../../shared/types';
+import { UpdateUserInfo } from '../../../shared/types';
+import DisabledInputFormField from '../components/FormFields/DisabledInputFormField';
+import { useToast } from '../hooks/useToast';
+import { updateUserInfoAccount } from '../../Api';
+import { ArrowLongLeftIcon } from '../components/Icons';
+import { Link } from 'react-router-dom';
 
 export default function Settings() {
-  const { user } = useContext(UserContext);
+  const { user, setUser } = useContext(UserContext);
   const [email, setEmail] = useState<string>('');
   const [username, setUsername] = useState<string>('');
   const [firstName, setFirstName] = useState<string>('');
   const [lastName, setLastName] = useState<string>('');
   const [formTrail, setFormTrial] = useState<boolean>(false);
-  const [errorEmailAlreadyExists, setErrorEmailAlreadyExists] = useState<
-    string | null
-  >(null);
+  const [defaultValues, setDefaultValues] = useState<UpdateUserInfo | null>(
+    null,
+  );
   const [errorUsernameAlreadyExists, setErrorUsernameAlreadyExists] = useState<
     string | null
   >(null);
-  const errorEmail: string | null =
-    isValidEmail(email) ?? errorEmailAlreadyExists;
+
+  const { addToast } = useToast();
   const errorUsername: string | null =
     isValidUsername(username) ?? errorUsernameAlreadyExists;
   const errorFirstName: string | null = isValidName(firstName);
@@ -37,6 +38,13 @@ export default function Settings() {
       setUsername(user.username);
       setFirstName(user.firstName);
       setLastName(user.lastName);
+      setDefaultValues({
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      });
     }
   }, [user]);
 
@@ -44,7 +52,7 @@ export default function Settings() {
     if (user) {
       let errorForm: boolean = false;
       setFormTrial(true);
-      if (errorEmail || errorUsername || errorFirstName || errorLastName) {
+      if (errorUsername || errorFirstName || errorLastName) {
         errorForm = true;
       }
       if (!errorForm) {
@@ -55,27 +63,38 @@ export default function Settings() {
           firstName,
           lastName,
         };
-        const response = await fetch('http://localhost:3000/api/editAccount', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            updatedUserAccountInfo,
-          }),
-        });
-        if (!response.ok) {
-          const { emailAlreadyExists, usernameAlreadyExists } =
-            await response.json();
+        const userInfoChanged =
+          JSON.stringify(defaultValues) !==
+          JSON.stringify(updatedUserAccountInfo);
 
-          if (emailAlreadyExists)
-            setErrorEmailAlreadyExists('Email already exists');
-          if (usernameAlreadyExists)
-            setErrorUsernameAlreadyExists('Username already exists');
-        } else {
-          console.log('done');
+        if (userInfoChanged) {
+          updateUserInfoAccount({ updatedUserAccountInfo })
+            .then(() => {
+              setUser({
+                ...user,
+                ...updatedUserAccountInfo,
+              });
+              addToast({
+                status: 'success',
+                message: 'Your account information updated successfully.',
+              });
+            })
+            .catch((error) => {
+              const { usernameAlreadyExists } = error;
+              if (usernameAlreadyExists)
+                setErrorUsernameAlreadyExists('Username already exists');
+            });
         }
       }
+    }
+  }
+
+  function handleClickCancel() {
+    if (defaultValues) {
+      setEmail(defaultValues.email);
+      setUsername(defaultValues.username);
+      setFirstName(defaultValues.firstName);
+      setLastName(defaultValues.lastName);
     }
   }
 
@@ -84,24 +103,30 @@ export default function Settings() {
       <Helmet>
         <title>Matcha - Settings</title>
       </Helmet>
-      <main className="mt-12 mb-22 flex justify-center lg:mb-0 lg:ml-57">
+      <main
+        className={`mt-12 mb-22 flex justify-center lg:mb-0 ${user?.age ? 'lg:ml-57' : ''}`}
+      >
         <div className="w-full lg:w-4xl">
-          <div>
-            <h1 className="text-secondary text-2xl font-bold">Settings</h1>
-            <span className="lg:text-md text-sm font-light text-gray-300">
-              Manage your account details
-            </span>
+          <div className="flex items-start gap-4">
+            <Link
+              to="/"
+              className="border-grayDark-100 rounded-full border-2 bg-white p-1"
+            >
+              <ArrowLongLeftIcon className="fill-secondary h-6 w-6" />
+            </Link>
+            <div>
+              <h1 className="text-secondary text-2xl font-bold">Settings</h1>
+              <span className="lg:text-md text-sm font-light text-gray-300">
+                Manage your account details
+              </span>
+            </div>
           </div>
           <form className="mt-12 flex flex-col">
             <div className="flex flex-col gap-8 lg:flex-row lg:flex-wrap lg:justify-between lg:gap-0 lg:gap-y-10">
-              <InputFormField
+              <DisabledInputFormField
                 label="Email"
                 placeholder="e.g., john.doe@example.com"
                 className="lg:w-[48%]"
-                setInputValue={setEmail}
-                errorInput={errorEmail}
-                formTrail={formTrail}
-                setFieldAlreadyExists={setErrorEmailAlreadyExists}
                 defaultValue={email}
                 required
               />
@@ -148,6 +173,7 @@ export default function Settings() {
                 type="button"
                 value="Cancel"
                 className="w-full lg:w-38"
+                onClick={handleClickCancel}
               />
             </div>
           </form>

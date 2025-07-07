@@ -5,14 +5,17 @@ import { createContext, useEffect } from 'react';
 import { useState } from 'react';
 import type { UserInfo } from '../../shared/types';
 import { ToastProvider } from './components/ToastProvider';
+import { getUserInfo } from '../Api';
 type UserContextType = {
   user: UserInfo | null;
   setUser: React.Dispatch<React.SetStateAction<UserInfo | null>>;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   loading: boolean;
 };
 export const UserContext = createContext<UserContextType>({
   user: null,
   setUser: () => {},
+  setLoading: () => {},
   loading: true,
 });
 
@@ -24,11 +27,8 @@ export default function Root() {
     const fetchUser = async () => {
       const token = localStorage.getItem('token');
       if (token) {
-        const response = await fetch('http://localhost:3000/api/me', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await getUserInfo({ token });
+
         if (response.status === 401) {
           console.error('Unauthorized access, resetting user state');
           setUser(null); // Reset user if unauthorized
@@ -48,12 +48,12 @@ export default function Root() {
     fetchUser();
   }, []);
   return (
-    <UserContext.Provider value={{ user, setUser, loading }}>
+    <UserContext.Provider value={{ user, setUser, loading, setLoading }}>
       <ToastProvider>
         {user && (
           <>
             <Header />
-            <Navigation />
+            {user.age ? <Navigation /> : null}
           </>
         )}
         {/* TODO handle display of sidebar depends on the authentication */}

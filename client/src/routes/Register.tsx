@@ -4,7 +4,7 @@ import InputFormField from '../components/FormFields/InputFormField';
 import PasswordFormField from '../components/FormFields/PasswordFormField';
 import ButtonPrimaryWithIcon from '../components//Buttons/ButtonPrimaryWithIcon';
 import ButtonSecondaryWithIcon from '../components//Buttons/ButtonSecondaryWithIcon';
-import { AddUserIcon, EmailSentIcon, GoogleIcon } from '../components/Icons';
+import { AddUserIcon, GoogleIcon } from '../components/Icons';
 import { Helmet } from 'react-helmet';
 
 import {
@@ -15,6 +15,8 @@ import {
   isValidConfirmedPassword,
 } from '../../../shared/Helpers';
 import EmailSent from '../components/EmailSent';
+import { RegisteredUserInfo } from '../../../shared-types';
+import { register } from '../../Api';
 
 export default function Register() {
   const [email, setEmail] = useState<string>('');
@@ -70,34 +72,24 @@ export default function Register() {
     }
 
     if (!errorForm) {
-      const registeredUser = {
-        username: username,
+      const registeredUser: RegisteredUserInfo = {
         email: email,
+        username: username,
         firstName: firstName,
         lastName: lastName,
         password: password,
       };
-
-      const response = await fetch('http://localhost:3000/api/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          registeredUser,
-        }),
-      });
-
-      if (!response.ok) {
-        const { emailAlreadyExists, usernameAlreadyExists } =
-          await response.json();
-        if (emailAlreadyExists)
-          setErrorEmailAlreadyExists('Email already exists');
-        if (usernameAlreadyExists)
-          setErrorUsernameAlreadyExists('Username already exists');
-      } else {
-        setShowEmailSent(true);
-      }
+      register({ registeredUser })
+        .then(() => {
+          setShowEmailSent(true);
+        })
+        .catch((error) => {
+          const { emailAlreadyExists, usernameAlreadyExists } = error;
+          if (emailAlreadyExists)
+            setErrorEmailAlreadyExists('Email already exists');
+          if (usernameAlreadyExists)
+            setErrorUsernameAlreadyExists('Username already exists');
+        });
     }
   }
 

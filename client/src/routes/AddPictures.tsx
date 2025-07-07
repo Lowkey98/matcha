@@ -1,11 +1,12 @@
 import { Helmet } from 'react-helmet';
 import UploadImage from '../components/UploadImage';
 import ButtonPrimary from '../components/Buttons/ButtonPrimary';
-import { ToastError } from '../components/ToastError';
+// import { ToastError } from '../components/ToastError';
 import { useContext, useState } from 'react';
 import { isValidAddedProfilePicture } from '../../../shared/Helpers';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { UserContext } from '../Root';
+import { useToast } from '../hooks/useToast';
 
 export default function AddPictures() {
   const [errorAddPictures, setErrorAddPictures] = useState<string | null>(null);
@@ -17,6 +18,7 @@ export default function AddPictures() {
   // get data from navigate state
   const navigate = useNavigate();
   const location = useLocation();
+  const { addToast } = useToast();
   console.log('location state:', location.state);
 
   async function handleClickDone() {
@@ -66,6 +68,10 @@ export default function AddPictures() {
     } else {
       const errorData = await response.json();
       console.error('Error creating profile:', errorData);
+      addToast({
+        status: 'error',
+        message: errorCheckUploadedPictures,
+      });
     }
   }
   return (
@@ -102,14 +108,6 @@ export default function AddPictures() {
             />
           </div>
         </div>
-        {errorAddPictures && (
-          <ToastError
-            message={errorAddPictures}
-            setErrorShowToast={setErrorAddPictures}
-            animationTimeout={animationTimeout}
-            setAnimationTimeout={setAnimationTimeout}
-          />
-        )}
       </main>
     </>
   );

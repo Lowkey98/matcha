@@ -326,7 +326,7 @@ app.get('/api/me', async (req, res) => {
 
 });
 
-app.put('/api/editAccount', async (req, res) => {
+app.put('/api/updateAccount', async (req, res) => {
   try {
     const { id, username, email, firstName, lastName } =
       req.body.updatedUserAccountInfo;
@@ -339,25 +339,17 @@ app.put('/api/editAccount', async (req, res) => {
 
     // Check if email or username exists
     const [rows] = await db.execute(
-      'SELECT email, username FROM usersInfo WHERE (email = ? OR username = ?) AND id != ?',
-      [email, username, id],
+      'SELECT username FROM usersInfo WHERE (username = ?) AND id != ?',
+      [username, id],
     );
 
     const userRows = rows as UserInfoFromDB[];
-    const emailExists = userRows.some(
-      (row: UserInfoFromDB) => row.email === email,
-    );
-
     const usernameExists = userRows.some(
       (row: UserInfoFromDB) => row.username === username,
     );
 
-    console.log('emailExists:', emailExists);
-    console.log('usernameExists:', usernameExists);
-
-    if (emailExists || usernameExists) {
+    if (usernameExists) {
       res.status(409).json({
-        emailAlreadyExists: emailExists,
         usernameAlreadyExists: usernameExists,
       });
       return;
