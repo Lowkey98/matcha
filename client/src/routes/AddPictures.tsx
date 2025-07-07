@@ -70,7 +70,8 @@ export default function AddPictures() {
       console.error('Error creating profile:', errorData);
       addToast({
         status: 'error',
-        message: errorCheckUploadedPictures,
+        message: errorData,
+        errorCode: 103
       });
     }
   }

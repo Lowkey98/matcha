@@ -27,19 +27,16 @@ export default function Root() {
     const fetchUser = async () => {
       const token = localStorage.getItem('token');
       if (token) {
-        const response = await getUserInfo({ token });
-
-        if (response.status === 401) {
-          console.error('Unauthorized access, resetting user state');
-          setUser(null); // Reset user if unauthorized
+        getUserInfo({ token }).then((userInfo) => {
+          setUser(userInfo);
           setLoading(false);
-          localStorage.removeItem('token');
-          navigate('/login'); // Redirect to login page
-          return;
-        }
-        const data = await response.json();
-        setUser(data);
+        }).catch;
+
+        console.error('Unauthorized access, resetting user state');
+        setUser(null); // Reset user if unauthorized
         setLoading(false);
+        localStorage.removeItem('token');
+        navigate('/login'); // Redirect to login page
       } else {
         setUser(null); // Reset user if no token is found
         setLoading(false);

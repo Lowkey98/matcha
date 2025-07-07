@@ -3,7 +3,14 @@ import { useCallback, useEffect, useState } from 'react';
 import Autoplay from 'embla-carousel-autoplay';
 import { ArrowLeftIcon, ArrowRightIcon, StarIcon } from './Icons';
 
-export default function ImagesCarousel({ className }: { className?: string }) {
+export default function ImagesCarousel({
+  imgsUrls,
+  className,
+}: {
+  imgsUrls: string[];
+  className?: string;
+}) {
+  const BACKEND_STATIC_FOLDER = 'http://localhost:3000/';
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [
     Autoplay({
@@ -43,30 +50,18 @@ export default function ImagesCarousel({ className }: { className?: string }) {
         onTouchEnd={() => setIsPaused(false)}
       >
         <div className="flex h-full">
-          <img
-            src="/profile-slides-images/slide-1.jpg"
-            alt="slide"
-            className="flex-none basis-full object-cover select-none"
-            draggable={false}
-          />
-          <img
-            src="/profile-slides-images/slide-2.jpg"
-            alt="slide"
-            className="flex-none basis-full object-cover select-none"
-            draggable={false}
-          />
-          <img
-            src="/profile-slides-images/slide-3.jpg"
-            alt="slide"
-            className="flex-none basis-full object-cover select-none"
-            draggable={false}
-          />
-          <img
-            src="/profile-slides-images/slide-4.jpg"
-            alt="slide"
-            className="flex-none basis-full object-cover select-none"
-            draggable={false}
-          />
+          {imgsUrls.map((relativeUrl) => {
+            const url = `${BACKEND_STATIC_FOLDER}${relativeUrl}`;
+            console.log('url', url);
+            return (
+              <img
+                src={url}
+                alt="slide"
+                className="flex-none basis-full object-cover select-none"
+                draggable={false}
+              />
+            );
+          })}
         </div>
       </div>
 

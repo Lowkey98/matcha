@@ -36,9 +36,11 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const relativePath = relative(process.cwd(), __filename);
+const __dirname = path.dirname(__filename);
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 console.log("relativePath", relativePath)
 console.log("filename", __filename)
-const __dirname = path.dirname(__filename);
 console.log("__dirname", __dirname)
 
 app.post('/api/create-profile', async (req, res) => {

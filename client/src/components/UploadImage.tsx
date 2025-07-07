@@ -26,7 +26,6 @@ export default function UploadImage({
       if (file.size > maxSize) {
         addToast({
           status: 'error',
-          title: 'error',
           errorCode: 101,
           message: `file size ${(file.size / MB).toFixed(2)} MB exceeds the sime limit [${maxSize / MB} MB]`,
         });
@@ -39,7 +38,6 @@ export default function UploadImage({
       if (extension !== 'jpeg' && extension !== 'png' && extension !== 'webp') {
         addToast({
           status: 'error',
-          title: 'error',
           errorCode: 102,
           message: `extension .${extension} not allowed`,
         });

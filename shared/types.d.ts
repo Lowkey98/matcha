@@ -9,6 +9,10 @@ export type UserInfo = {
   isVerified: boolean;
   password: string;
   age?: number;
+  gender?: string;
+  sexualPreference?: string;
+  interests?: string[]
+  imagesUrls?: string[]
 };
 export type RegisteredUserInfo = {
   email: string;

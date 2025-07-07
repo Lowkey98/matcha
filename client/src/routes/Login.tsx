@@ -46,7 +46,9 @@ export default function Login() {
                 console.log('User data fetched:', userInfo);
                 setUser(userInfo as UserInfo);
                 setLoading(false);
-                navigate('/createProfile');
+                userInfo.age
+                  ? navigate('/explore')
+                  : navigate('/createProfile');
               })
               .catch((error) => {
                 console.error('Error fetching user data:', error.message);
