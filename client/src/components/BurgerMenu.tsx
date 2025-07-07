@@ -4,6 +4,7 @@ import FameRate from './FameRate';
 import { HeaderNavigationItem } from './Headers/Header';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../Root';
+import { handleClickLogout } from './DropdownHeaderItem';
 
 export default function HeaderBurger({
   headerNavigationItems,
@@ -12,7 +13,7 @@ export default function HeaderBurger({
 }) {
   const [showMobileNav, setShowMobileNav] = useState<boolean>(false);
   const navigate = useNavigate();
-  const { user } = useContext(UserContext);
+  const { user, setUser } = useContext(UserContext);
 
   function handleClickOpenMobileNav() {
     setShowMobileNav(true);
@@ -43,19 +44,22 @@ export default function HeaderBurger({
           <div className="mt-12">
             <div className="flex items-center gap-5">
               <div className="flex items-center gap-1 pl-5">
-                {/* TODO handle display of user icon or user image depends on the authentication */}
-                {user?.age &&  (
-                  <>
-                    <UserIcon className="fill-primary h-5 w-5" />
-                    <div className="border-primary mr-1 h-8 w-8 rounded-full border-2">
-                      <img src="" alt="user" className="object-cover" />
-                    </div>
-                  </>
+                {user?.age ? (
+                  <div className="border-primary mr-1 h-8 w-8 rounded-full border-2">
+                    {/* <img src="" alt="user" className="object-cover" /> */}
+                  </div>
+                ) : (
+                  <UserIcon className="fill-primary h-5 w-5" />
                 )}
+
                 <span className="text-secondary text-sm">Username</span>
               </div>
-              <span className="text-gray-300">|</span>
-              {user && <FameRate className="border-grayDark" />}
+              {user?.age && (
+                <>
+                  <span className="text-gray-300">|</span>
+                  <FameRate className="border-grayDark" />
+                </>
+              )}
             </div>
             <div className="mt-10 flex flex-col gap-2">
               {headerNavigationItems.map(
@@ -66,6 +70,12 @@ export default function HeaderBurger({
                       type="button"
                       className="text-secondary flex cursor-pointer items-center gap-2 py-3 pl-5 text-left text-sm hover:bg-gray-50"
                       onClick={() => {
+                        if (
+                          headerNavigationItem.name.toLocaleLowerCase() ===
+                          'logout'
+                        )
+                          handleClickLogout({ navigate, setUser });
+
                         setShowMobileNav(false);
                         navigate(headerNavigationItem.route);
                       }}

@@ -1,12 +1,14 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowDownIcon, ArrowUpIcon } from './Icons';
+import { ArrowDownIcon, ArrowUpIcon, UserIcon } from './Icons';
 import React, { useContext, useState } from 'react';
 import { HeaderNavigationItem } from './Headers/Header';
+import { UserContext } from '../Root';
 export default function DropdownNavItem({
   headerNavigationItems,
 }: {
   headerNavigationItems: HeaderNavigationItem[];
 }) {
+  const { user, setUser } = useContext(UserContext);
   const [showItems, setShowItems] = useState<boolean>(false);
   const navigate = useNavigate();
   function handleClickDropdownNavItem() {
@@ -21,12 +23,14 @@ export default function DropdownNavItem({
         onClick={handleClickDropdownNavItem}
       >
         <div className="flex items-center gap-1">
-          {/* TODO handle display of user icon or user image depends on the authentication */}
-          {/* <UserIcon className="fill-primary h-5 w-5" /> */}
-          <div className="border-primary mr-1 h-8 w-8 rounded-full border-2">
-            {/* <img src="" alt="user" className="object-cover" /> */}
-          </div>
-          <span className="text-secondary text-sm">Username</span>
+          {!user?.age ? (
+            <UserIcon className="fill-primary h-5 w-5" />
+          ) : (
+            <div className="border-primary mr-1 h-8 w-8 rounded-full border-2">
+              {/* <img src="" alt="user" className="object-cover" /> */}
+            </div>
+          )}
+          <span className="text-secondary text-sm">{user?.username}</span>
         </div>
         {showItems ? (
           <ArrowUpIcon className="fill-secondary h-3.5 w-3.5" />
@@ -42,6 +46,8 @@ export default function DropdownNavItem({
               type="button"
               className="text-secondary flex cursor-pointer items-center gap-2 p-3 text-left text-sm hover:bg-gray-50"
               onClick={() => {
+                if (headerNavigationItem.name.toLocaleLowerCase() === 'logout')
+                  handleClickLogout({ navigate, setUser });
                 setShowItems(false);
                 navigate(headerNavigationItem.route);
               }}
