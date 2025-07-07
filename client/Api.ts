@@ -1,4 +1,4 @@
-import { RegisteredUserInfo, UpdateUserInfo } from '../shared-types';
+import type { RegisteredUserInfo, UpdateUserInfo } from '../shared/types';
 
 const HOST: string = 'http://localhost:3000';
 
@@ -48,13 +48,50 @@ export async function login({
     localStorage.setItem('token', token);
   }
 }
+export async function createUserProfile({
+  age,
+  gender,
+  sexualPreference,
+  interests, biography, uploadedBuffersPictures, token
+}: {
+  age: number,
+  gender: string,
+  sexualPreference: string,
+  interests: string[],
+  biography: string,
+  uploadedBuffersPictures: string[]
+  , token: string;
+}) {
 
+  try {
+
+    const response = await fetch('http://localhost:3000/api/create-profile', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        age,
+        gender,
+        sexualPreference,
+        interests,
+        biography,
+        uploadedBuffersPictures,
+      }),
+    })
+    return await response.json();
+  }
+  catch (error) {
+    throw error
+  }
+}
 export async function updateUserInfoAccount({
   updatedUserAccountInfo,
 }: {
   updatedUserAccountInfo: UpdateUserInfo;
 }) {
-  const response = await fetch(`${HOST}/api/updateAccount`, {
+  const response = await fetch(`${HOST} / api / updateAccount`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -71,7 +108,7 @@ export async function updateUserInfoAccount({
 
 export async function getUserInfo({ token }: { token: string }) {
   try {
-    const response = await fetch(`${HOST}/api/me`, {
+    const response = await fetch(`${HOST} / api / me`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

@@ -7,6 +7,8 @@ import { isValidAddedProfilePicture } from '../../../shared/Helpers';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { UserContext } from '../Root';
 import { useToast } from '../hooks/useToast';
+import { createUserProfile } from '../../Api';
+import { UserInfo } from '../../../shared/types';
 
 export default function AddPictures() {
   const [errorAddPictures, setErrorAddPictures] = useState<string | null>(null);
@@ -27,7 +29,7 @@ export default function AddPictures() {
       uploadedBuffersPictures,
     );
     console.log('errorCheckUploadedPictures', errorCheckUploadedPictures);
-    if (errorCheckUploadedPictures) {
+    if (errorCheckUploadedPictures || uploadedBuffersPictures) {
       if (animationTimeout) clearTimeout(animationTimeout);
       setErrorAddPictures(errorCheckUploadedPictures);
       setAnimationTimeout(
@@ -40,40 +42,29 @@ export default function AddPictures() {
     console.log('uploadedBuffersPictures:', uploadedBuffersPictures);
     const { age, gender, sexualPreference, interests, biography } =
       location.state || {};
-    const response = await fetch('http://localhost:3000/api/create-profile', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      },
-      body: JSON.stringify({
-        age,
-        gender,
-        sexualPreference,
-        interests,
-        biography,
-        uploadedBuffersPictures,
-      }),
-    });
-    if (response.ok) {
-      const data = await response.json();
-      setUser((prev) => {
-        return {
-          ...prev,
-          ...data.body,
-        };
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    createUserProfile({
+      age,
+      gender,
+      sexualPreference,
+      interests,
+      biography,
+      uploadedBuffersPictures: uploadedBuffersPictures,
+      token,
+    })
+      .then(async (userInfo) => {
+        setUser(userInfo);
+        navigate('/explore');
+      })
+      .catch((e) => {
+        console.error('Error creating profile:', e);
+        addToast({
+          status: 'error',
+          message: e,
+          errorCode: 103,
+        });
       });
-      console.log('data', data);
-      navigate('/explore');
-    } else {
-      const errorData = await response.json();
-      console.error('Error creating profile:', errorData);
-      addToast({
-        status: 'error',
-        message: errorData,
-        errorCode: 103
-      });
-    }
   }
   return (
     <>
