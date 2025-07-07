@@ -65,7 +65,7 @@ export async function createUserProfile({
 
   try {
 
-    const response = await fetch('http://localhost:3000/api/create-profile', {
+    const response = await fetch(`${HOST}/api/create-profile`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
