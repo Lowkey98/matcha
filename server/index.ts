@@ -7,7 +7,10 @@ import { randomUUID } from 'crypto';
 import jwt from 'jsonwebtoken';
 
 import dotenv from 'dotenv';
-import type { UserInfo } from '../shared-types/index.d.ts';
+import type { UserInfo } from '../shared/types.js';
+import { isValidAge, isValidGender, isValidSexualPreference, isValidInterests, isValidBiography } from '../shared/Helpers.js';
+import path, { relative } from 'path';
+import fs from 'fs';
 
 type UserInfoFromDB = {
   created_at: Date;
@@ -21,12 +24,89 @@ type UserInfoFromDB = {
 };
 dotenv.config();
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '11mb' }));
 app.use(cors());
+app.use(express.urlencoded({ extended: true, limit: '12mb' }));
 
 app.get('/api/ping', (_req, res) => {
   res.send({ msg: 'pong' });
 });
+
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+app.post('/api/create-profile', async (req, res) => {
+
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  try {
+    const { age, gender, sexualPreference, interests, biography, uploadedBuffersPictures } = req.body;
+    if (!!isValidAge(age) || !!isValidGender(gender) || !!isValidSexualPreference(sexualPreference) || !!isValidInterests(interests) || !!isValidBiography(biography)) {
+      res.status(400).json({ error: 'Invalid input data' });
+      return;
+    }
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET
+
+      || 'default_secret',
+    ) as { userId: string };
+    const uploadDir = path.join(__dirname, `uploads/${decoded.userId}`);
+
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir);
+    }
+    let imagesUrls = []
+    uploadedBuffersPictures.map((buffer, index) => {
+      const parts = buffer.split(',');
+      const header = parts[0];
+      const base64Data = parts[1];
+      const ext = header.split('/')[1].split(';')[0];
+
+      const filename = `picture-${Date.now()}-${index}.${ext}`;
+      const filepath = path.join(`./uploads/${decoded.userId}`, filename);
+
+      fs.writeFileSync(filepath, Buffer.from(base64Data, 'base64'));
+      imagesUrls.push(filepath)
+    })
+
+    await db.execute(
+      `UPDATE usersInfo 
+       SET
+        age
+        = ?, 
+        gender = ?,
+        sexual_preference = ?,
+        interests = ?,
+        biography = ?,
+        images_urls = ?
+        WHERE id = ?
+
+      `,
+      [age, gender, sexualPreference, interests, biography, imagesUrls, decoded.userId],
+    );
+    res.status(201).json({
+      message:
+        'profile info added successfully',
+      body: {
+        age, gender, sexualPreference, interests, biography, imagesUrls
+      }
+    });
+    return;
+  } catch (err) {
+    console.error('Error in /api/create-profile:', err);
+    res.status(500).json({ error: 'Internal server error' });
+    return;
+  }
+});
+
+
 
 app.post('/api/register', async (req, res) => {
   try {
@@ -110,7 +190,7 @@ app.post('/api/login', async (req, res) => {
     const user: UserInfoFromDB = rows[0];
 
     if (!user) {
-      res.status(400).json({ error: 'Invalid email or password' });
+      res.status(400).json({ error: 'email not registered' });
       return;
     }
 
@@ -130,7 +210,7 @@ app.post('/api/login', async (req, res) => {
     const token = jwt.sign(
       { userId: user.id },
       process.env.JWT_SECRET || 'default_secret',
-      { expiresIn: '1h' },
+      { expiresIn: '7d' },
     );
 
     res.status(200).json({
@@ -161,9 +241,7 @@ app.get('/api/verify', async (req, res) => {
       return;
     }
 
-    console.log('token', token);
 
-    // Find user with that token
     const [rows] = await db.execute(
       'SELECT * FROM usersInfo WHERE verification_token = ?',
       [token],
@@ -175,7 +253,6 @@ app.get('/api/verify', async (req, res) => {
       return;
     }
 
-    console.log('user', user);
     await db.execute(
       'UPDATE usersInfo SET is_verified = ?, verification_token = NULL WHERE id = ?',
       [true, user.id],
@@ -194,36 +271,43 @@ app.get('/api/me', async (req, res) => {
     res.status(401).json({ error: 'Unauthorized' });
     return;
   }
+  let decoded;
   try {
-    const decoded = jwt.verify(
+    decoded = jwt.verify(
       token,
       process.env.JWT_SECRET || 'default_secret',
-    );
-    const [row] = await db.execute('SELECT * FROM usersInfo WHERE id = ?', [
-      decoded.userId,
-    ]);
-    const user = row[0] as UserInfo;
-
-    if (!user) {
-      console.error('User not found for token:', token);
-      res.status(404).json({ error: 'User not found' });
-      return;
-    }
-    console.log('token', token);
-    res.json({
-      id: user.id,
-      email: user.email,
-      username: user.username,
-      firstName: user['first_name'],
-      lastName: user['last_name'],
-      isVerified: user.isVerified,
-    });
-    return;
+    )
   } catch (err) {
-    console.error('Error fetching user data:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('JWT verification error:', err);
+    res.status(401).json({ error: 'Invalid token' });
     return;
   }
+  const [row] = await db.execute('SELECT * FROM usersInfo WHERE id = ?', [
+    decoded.userId,
+  ]);
+  const user = row[0] as UserInfo;
+
+  if (!user) {
+    console.error('User not found for token:', token);
+    res.status(404).json({ error: 'User not found' });
+    return;
+  }
+  const userInfo = {
+    id: user.id,
+    email: user.email,
+    username: user.username,
+    firstName: user['first_name'],
+    lastName: user['last_name'],
+    age: user['age'],
+    gender: user['gender'],
+    sexualPreference: user['sexual_preference'],
+    interests: user['interests'],
+    biography: user['biography'],
+    imagesUrls: user['images_urls']
+  }
+  res.json(userInfo);
+  return;
+
 });
 
 app.put('/api/updateAccount', async (req, res) => {
@@ -289,8 +373,6 @@ export async function sendVerificationEmail({
       pass: process.env.EMAIL_PASS,
     },
   });
-  console.log('process.env.EMAIL_USER', process.env.EMAIL_USER);
-  console.log('process.env.EMAIL_PASS', process.env.EMAIL_PASS);
 
   const info = await transporter.sendMail({
     from: `"Matcha Team" <${process.env.EMAIL_USER}>`,

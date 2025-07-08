@@ -1,11 +1,11 @@
 import { Helmet } from 'react-helmet';
 import InputFormField from '../components/FormFields/InputFormField';
 import { useContext, useEffect, useState } from 'react';
-import { isValidName, isValidUsername } from '../../Helpers';
+import { isValidName, isValidUsername } from '../../../shared/Helpers';
 import ButtonPrimary from '../components/Buttons/ButtonPrimary';
 import ButtonSecondary from '../components/Buttons/ButtonSecondary';
 import { UserContext } from '../Root';
-import { UpdateUserInfo } from '../../../shared-types';
+import { UpdateUserInfo } from '../../../shared/types';
 import DisabledInputFormField from '../components/FormFields/DisabledInputFormField';
 import { useToast } from '../hooks/useToast';
 import { updateUserInfoAccount } from '../../Api';

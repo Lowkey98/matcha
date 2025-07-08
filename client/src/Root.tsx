@@ -1,9 +1,9 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import Header from './components/Headers/Header';
 import Navigation from './components/Navigation';
 import { createContext, useEffect } from 'react';
 import { useState } from 'react';
-import type { UserInfo } from '../../shared-types/index.d.ts';
+import type { UserInfo } from '../../shared/types';
 import { ToastProvider } from './components/ToastProvider';
 import { getUserInfo } from '../Api';
 type UserContextType = {
@@ -22,23 +22,24 @@ export const UserContext = createContext<UserContextType>({
 export default function Root() {
   const [user, setUser] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-
+  const navigate = useNavigate();
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
       getUserInfo({ token })
         .then((userInfo) => {
-          console.log('User data fetched:', userInfo);
-          setUser(userInfo as UserInfo);
+          setUser(userInfo);
           setLoading(false);
         })
-        .catch((error) => {
-          console.error('Error fetching user data:', error.message);
-          setUser(null); // Reset user if there's an error
+        .catch(() => {
+          console.error('Unauthorized access, resetting user state');
+          setUser(null);
           setLoading(false);
+          localStorage.removeItem('token');
+          navigate('/login');
         });
     } else {
-      setUser(null); // Reset user if no token is found
+      setUser(null);
       setLoading(false);
     }
   }, []);

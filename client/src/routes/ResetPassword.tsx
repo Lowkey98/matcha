@@ -1,13 +1,16 @@
-import { useState } from "react";
-import PasswordFormField from "../components/FormFields/PasswordFormField";
-import ButtonPrimary from "../components//Buttons/ButtonPrimary";
-import { isValidConfirmedPassword, isValidPassword } from "../../Helpers";
-import { Helmet } from "react-helmet";
+import { useState } from 'react';
+import PasswordFormField from '../components/FormFields/PasswordFormField';
+import ButtonPrimary from '../components//Buttons/ButtonPrimary';
+import {
+  isValidConfirmedPassword,
+  isValidPassword,
+} from '../../../shared/Helpers';
+import { Helmet } from 'react-helmet';
 
 export default function ResetPassword() {
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [confirmPassword, setConfirmPassword] = useState<string>("");
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [confirmPassword, setConfirmPassword] = useState<string>('');
   const [errorPassword, setErrorPassword] = useState<string | null>(null);
   const [errorConfirmPassword, setErrorConfirmPassword] = useState<
     string | null

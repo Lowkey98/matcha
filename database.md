@@ -11,7 +11,19 @@ last_name VARCHAR(255) NOT NULL,
 password VARCHAR(255) NOT NULL,
 is_verified BOOLEAN DEFAULT FALSE,
 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-verification_token VARCHAR(255)
+verification_token VARCHAR(255),
+age INT,
+gender VARCHAR(255),
+sexual_preference VARCHAR(255),
+interests JSON,
+biography VARCHAR(255)
 );
 
+ALTER TABLE usersInfo
+ADD COLUMN age INT DEFAULT NULL,
+ADD COLUMN gender VARCHAR(255) DEFAULT NULL,
+ADD COLUMN sexual_preference VARCHAR(255) DEFAULT NULL,
+ADD COLUMN interests JSON DEFAULT NULL,
+ADD COLUMN images_urls JSON DEFAULT NULL,
+ADD COLUMN biography VARCHAR(255) DEFAULT NULL;
 SELECT \* FROM usersInfo;

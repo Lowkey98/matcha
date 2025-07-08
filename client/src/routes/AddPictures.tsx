@@ -1,18 +1,52 @@
 import { Helmet } from 'react-helmet';
 import UploadImage from '../components/UploadImage';
 import ButtonPrimary from '../components/Buttons/ButtonPrimary';
-import { isValidAddedProfilePicture } from '../../Helpers';
+// import { ToastError } from '../components/ToastError';
+import { useContext, useState } from 'react';
+import { isValidAddedProfilePicture } from '../../../shared/Helpers';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { UserContext } from '../Root';
 import { useToast } from '../hooks/useToast';
+import { createUserProfile } from '../../Api';
+import { UserInfo } from '../../../shared/types';
 
 export default function AddPictures() {
+  const { setUser } = useContext(UserContext);
+  const uploadedBuffersPictures: string[] = Array(5).fill(undefined);
+  // get data from navigate state
+  const navigate = useNavigate();
+  const location = useLocation();
   const { addToast } = useToast();
-  const uploadedBuffersPictures: (string | undefined)[] =
-    Array(5).fill(undefined);
+
   function handleClickDone() {
     const errorCheckUploadedPictures: string | null =
       isValidAddedProfilePicture(uploadedBuffersPictures);
     if (!errorCheckUploadedPictures) {
-      console.log('uploadedBuffersPictures:', uploadedBuffersPictures);
+      const { age, gender, sexualPreference, interests, biography } =
+        location.state || {};
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      createUserProfile({
+        age,
+        gender,
+        sexualPreference,
+        interests,
+        biography,
+        uploadedBuffersPictures,
+        token,
+      })
+        .then(async (userInfo) => {
+          setUser(userInfo);
+          navigate('/explore');
+        })
+        .catch((e) => {
+          console.error('Error creating profile:', e);
+          addToast({
+            status: 'error',
+            message: e,
+            errorCode: 103,
+          });
+        });
     } else {
       addToast({
         status: 'error',

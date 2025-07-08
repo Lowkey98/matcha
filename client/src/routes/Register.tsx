@@ -13,7 +13,7 @@ import {
   isValidPassword,
   isValidUsername,
   isValidConfirmedPassword,
-} from '../../Helpers';
+} from '../../../shared/Helpers';
 import EmailSent from '../components/EmailSent';
 import { RegisteredUserInfo } from '../../../shared-types';
 import { register } from '../../Api';

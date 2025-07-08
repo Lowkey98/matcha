@@ -5,7 +5,7 @@ import {
   isValidSexualPreference,
   isValidInterests,
   isValidBiography,
-} from '../../Helpers';
+} from '../../../shared/Helpers';
 import InputFormField from '../components/FormFields/InputFormField';
 import DropdownFormField from '../components/FormFields/DropdownFormField';
 import MultiSelect from '../components/FormFields/MultiSelect';
@@ -13,6 +13,7 @@ import TextAreaFormField from '../components/FormFields/TextAreaFormField';
 import ButtonPrimary from '../components/Buttons/ButtonPrimary';
 
 import { Helmet } from 'react-helmet';
+import { useNavigate } from 'react-router-dom';
 
 export const interestsItems = [
   'Music',
@@ -47,13 +48,14 @@ export default function CreateProfile() {
   const [interests, setInterests] = useState<string[]>([]);
   const [biography, setBiography] = useState<string>('');
   const [formTrail, setFormTrial] = useState<boolean>(false);
+  const navigate = useNavigate();
   const errorAge = isValidAge(age);
   const errorGender = isValidGender(gender);
   const errorSexualPreference = isValidSexualPreference(sexualPreference);
   const errorInterests = isValidInterests(interests);
   const errorBiography = isValidBiography(biography);
 
-  function handleClickNextCreateProfile() {
+  async function handleClickNextCreateProfile() {
     let errorForm: boolean = false;
     if (
       errorAge ||
@@ -67,7 +69,15 @@ export default function CreateProfile() {
     }
 
     if (!errorForm) {
-      console.log(age, gender, sexualPreference, interests, biography);
+      navigate(`/createProfile/addPictures`, {
+        state: {
+          age,
+          gender,
+          sexualPreference,
+          interests,
+          biography,
+        },
+      });
     }
   }
 

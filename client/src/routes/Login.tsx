@@ -5,12 +5,12 @@ import PasswordFormField from '../components/FormFields/PasswordFormField';
 import ButtonPrimary from '../components//Buttons/ButtonPrimary';
 import ButtonSecondaryWithIcon from '../components//Buttons/ButtonSecondaryWithIcon';
 import { GoogleIcon } from '../components/Icons';
-import { isValidEmail, isValidPassword } from '../../Helpers';
+import { isValidEmail, isValidPassword } from '../../../shared/Helpers';
 import { getUserInfo, login } from '../../Api';
 import { Helmet } from 'react-helmet';
 import { useToast } from '../hooks/useToast';
 import { UserContext } from '../Root';
-import { UserInfo } from '../../../shared-types';
+import type { UserInfo } from '../../../shared/types';
 
 export default function Login() {
   const { setUser, setLoading } = useContext(UserContext);
@@ -46,7 +46,9 @@ export default function Login() {
                 console.log('User data fetched:', userInfo);
                 setUser(userInfo as UserInfo);
                 setLoading(false);
-                navigate('/createProfile');
+                userInfo.age
+                  ? navigate('/explore')
+                  : navigate('/createProfile');
               })
               .catch((error) => {
                 console.error('Error fetching user data:', error.message);
