@@ -108,12 +108,14 @@ export default function Settings() {
       >
         <div className="w-full lg:w-4xl">
           <div className="flex items-start gap-4">
-            <Link
-              to="/"
-              className="border-grayDark-100 rounded-full border-2 bg-white p-1"
-            >
-              <ArrowLongLeftIcon className="fill-secondary h-6 w-6" />
-            </Link>
+            {!user?.age && (
+              <Link
+                to="/"
+                className="border-grayDark-100 rounded-full border-2 bg-white p-1"
+              >
+                <ArrowLongLeftIcon className="fill-secondary h-6 w-6" />
+              </Link>
+            )}
             <div>
               <h1 className="text-secondary text-2xl font-bold">Settings</h1>
               <span className="lg:text-md text-sm font-light text-gray-300">
