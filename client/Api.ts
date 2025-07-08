@@ -52,19 +52,20 @@ export async function createUserProfile({
   age,
   gender,
   sexualPreference,
-  interests, biography, uploadedBuffersPictures, token
+  interests,
+  biography,
+  uploadedBuffersPictures,
+  token,
 }: {
-  age: number,
-  gender: string,
-  sexualPreference: string,
-  interests: string[],
-  biography: string,
-  uploadedBuffersPictures: string[]
-  , token: string;
+  age: number;
+  gender: string;
+  sexualPreference: string;
+  interests: string[];
+  biography: string;
+  uploadedBuffersPictures: string[];
+  token: string;
 }) {
-
   try {
-
     const response = await fetch(`${HOST}/api/create-profile`, {
       method: 'POST',
       headers: {
@@ -79,11 +80,11 @@ export async function createUserProfile({
         biography,
         uploadedBuffersPictures,
       }),
-    })
-    return await response.json();
-  }
-  catch (error) {
-    throw error
+    });
+    const jsonResponse = await response.json();
+    return { userInfo: jsonResponse.body, message: jsonResponse.message };
+  } catch (error) {
+    throw error;
   }
 }
 export async function updateUserInfoAccount({

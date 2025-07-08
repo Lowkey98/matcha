@@ -11,7 +11,7 @@ import { createUserProfile } from '../../Api';
 import { UserInfo } from '../../../shared/types';
 
 export default function AddPictures() {
-  const { setUser } = useContext(UserContext);
+  const { user, setUser } = useContext(UserContext);
   const uploadedBuffersPictures: string[] = Array(5).fill(undefined);
   // get data from navigate state
   const navigate = useNavigate();
@@ -35,8 +35,8 @@ export default function AddPictures() {
         uploadedBuffersPictures,
         token,
       })
-        .then(async (userInfo) => {
-          setUser(userInfo);
+        .then(async ({ userInfo }) => {
+          setUser({ ...user, ...userInfo });
           navigate('/explore');
         })
         .catch((e) => {

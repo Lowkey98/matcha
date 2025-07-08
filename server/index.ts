@@ -8,7 +8,13 @@ import jwt from 'jsonwebtoken';
 
 import dotenv from 'dotenv';
 import type { UserInfo } from '../shared/types.ts';
-import { isValidAge, isValidGender, isValidSexualPreference, isValidInterests, isValidBiography } from '../shared/Helpers.ts';
+import {
+  isValidAge,
+  isValidGender,
+  isValidSexualPreference,
+  isValidInterests,
+  isValidBiography,
+} from '../shared/Helpers.ts';
 import path, { relative } from 'path';
 import fs from 'fs';
 
@@ -36,33 +42,43 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.post('/api/create-profile', async (req, res) => {
-
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) {
     res.status(401).json({ error: 'Unauthorized' });
     return;
   }
   try {
-    const { age, gender, sexualPreference, interests, biography, uploadedBuffersPictures } = req.body;
-    if (!!isValidAge(age) || !!isValidGender(gender) || !!isValidSexualPreference(sexualPreference) || !!isValidInterests(interests) || !!isValidBiography(biography)) {
+    const {
+      age,
+      gender,
+      sexualPreference,
+      interests,
+      biography,
+      uploadedBuffersPictures,
+    } = req.body;
+    if (
+      !!isValidAge(age) ||
+      !!isValidGender(gender) ||
+      !!isValidSexualPreference(sexualPreference) ||
+      !!isValidInterests(interests) ||
+      !!isValidBiography(biography)
+    ) {
       res.status(400).json({ error: 'Invalid input data' });
       return;
     }
     const decoded = jwt.verify(
       token,
-      process.env.JWT_SECRET
-
-      || 'default_secret',
+      process.env.JWT_SECRET || 'default_secret',
     ) as { userId: string };
     const uploadDir = path.join(__dirname, `uploads/${decoded.userId}`);
 
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir);
     }
-    let imagesUrls = []
+    let imagesUrls = [];
     uploadedBuffersPictures.map((buffer, index) => {
       const parts = buffer.split(',');
       const header = parts[0];
@@ -73,8 +89,8 @@ app.post('/api/create-profile', async (req, res) => {
       const filepath = path.join(`./uploads/${decoded.userId}`, filename);
 
       fs.writeFileSync(filepath, Buffer.from(base64Data, 'base64'));
-      imagesUrls.push(filepath)
-    })
+      imagesUrls.push(filepath);
+    });
 
     await db.execute(
       `UPDATE usersInfo 
@@ -89,14 +105,35 @@ app.post('/api/create-profile', async (req, res) => {
         WHERE id = ?
 
       `,
-      [age, gender, sexualPreference, interests, biography, imagesUrls, decoded.userId],
+      [
+        age,
+        gender,
+        sexualPreference,
+        interests,
+        biography,
+        imagesUrls,
+        decoded.userId,
+      ],
     );
+    console.log(
+      age,
+      gender,
+      sexualPreference,
+      interests,
+      biography,
+      imagesUrls,
+    );
+
     res.status(201).json({
-      message:
-        'profile info added successfully',
+      message: 'profile info added successfully',
       body: {
-        age, gender, sexualPreference, interests, biography, imagesUrls
-      }
+        age,
+        gender,
+        sexualPreference,
+        interests,
+        biography,
+        imagesUrls,
+      },
     });
     return;
   } catch (err) {
@@ -105,8 +142,6 @@ app.post('/api/create-profile', async (req, res) => {
     return;
   }
 });
-
-
 
 app.post('/api/register', async (req, res) => {
   try {
@@ -241,7 +276,6 @@ app.get('/api/verify', async (req, res) => {
       return;
     }
 
-
     const [rows] = await db.execute(
       'SELECT * FROM usersInfo WHERE verification_token = ?',
       [token],
@@ -273,10 +307,7 @@ app.get('/api/me', async (req, res) => {
   }
   let decoded;
   try {
-    decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET || 'default_secret',
-    )
+    decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
   } catch (err) {
     console.error('JWT verification error:', err);
     res.status(401).json({ error: 'Invalid token' });
@@ -303,11 +334,10 @@ app.get('/api/me', async (req, res) => {
     sexualPreference: user['sexual_preference'],
     interests: user['interests'],
     biography: user['biography'],
-    imagesUrls: user['images_urls']
-  }
+    imagesUrls: user['images_urls'],
+  };
   res.json(userInfo);
   return;
-
 });
 
 app.put('/api/updateAccount', async (req, res) => {
