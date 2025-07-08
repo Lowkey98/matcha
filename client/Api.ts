@@ -91,7 +91,7 @@ export async function updateUserInfoAccount({
 }: {
   updatedUserAccountInfo: UpdateUserInfo;
 }) {
-  const response = await fetch(`${HOST} / api / updateAccount`, {
+  const response = await fetch(`${HOST}/api/updateAccount`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -108,7 +108,7 @@ export async function updateUserInfoAccount({
 
 export async function getUserInfo({ token }: { token: string }) {
   try {
-    const response = await fetch(`${HOST} / api / me`, {
+    const response = await fetch(`${HOST}/api/me`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
