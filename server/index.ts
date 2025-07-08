@@ -11,7 +11,7 @@ import type { UserInfo } from '../shared/types.js';
 import { isValidAge, isValidGender, isValidSexualPreference, isValidInterests, isValidBiography } from '../shared/Helpers.js';
 import path, { relative } from 'path';
 import fs from 'fs';
-// const { isValidAge, isValidGender, isValidSexualPreference, isValidInterests, isValidBiography } = pkg;
+
 type UserInfoFromDB = {
   created_at: Date;
   verification_token: string;
