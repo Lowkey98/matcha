@@ -11,60 +11,48 @@ import { createUserProfile } from '../../Api';
 import { UserInfo } from '../../../shared/types';
 
 export default function AddPictures() {
-  const [errorAddPictures, setErrorAddPictures] = useState<string | null>(null);
-  const [animationTimeout, setAnimationTimeout] =
-    useState<NodeJS.Timeout | null>(null);
   const { setUser } = useContext(UserContext);
-  const uploadedBuffersPictures: (string | undefined)[] =
-    Array(5).fill(undefined);
+  const uploadedBuffersPictures: string[] = Array(5).fill(undefined);
   // get data from navigate state
   const navigate = useNavigate();
   const location = useLocation();
   const { addToast } = useToast();
-  console.log('location state:', location.state);
 
-  async function handleClickDone() {
-    // const uploadedBuffersPictures = location.state?.uploadedBuffersPictures || [];
-    const errorCheckUploadedPictures = isValidAddedProfilePicture(
-      uploadedBuffersPictures,
-    );
-    console.log('errorCheckUploadedPictures', errorCheckUploadedPictures);
-    if (errorCheckUploadedPictures || uploadedBuffersPictures) {
-      if (animationTimeout) clearTimeout(animationTimeout);
-      setErrorAddPictures(errorCheckUploadedPictures);
-      setAnimationTimeout(
-        setTimeout(() => {
-          setErrorAddPictures(null);
-        }, 4000),
-      );
-      return;
-    }
-    console.log('uploadedBuffersPictures:', uploadedBuffersPictures);
-    const { age, gender, sexualPreference, interests, biography } =
-      location.state || {};
-    const token = localStorage.getItem('token');
-    if (!token) return;
-    createUserProfile({
-      age,
-      gender,
-      sexualPreference,
-      interests,
-      biography,
-      uploadedBuffersPictures: uploadedBuffersPictures,
-      token,
-    })
-      .then(async (userInfo) => {
-        setUser(userInfo);
-        navigate('/explore');
+  function handleClickDone() {
+    const errorCheckUploadedPictures: string | null =
+      isValidAddedProfilePicture(uploadedBuffersPictures);
+    if (!errorCheckUploadedPictures) {
+      const { age, gender, sexualPreference, interests, biography } =
+        location.state || {};
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      createUserProfile({
+        age,
+        gender,
+        sexualPreference,
+        interests,
+        biography,
+        uploadedBuffersPictures,
+        token,
       })
-      .catch((e) => {
-        console.error('Error creating profile:', e);
-        addToast({
-          status: 'error',
-          message: e,
-          errorCode: 103,
+        .then(async (userInfo) => {
+          setUser(userInfo);
+          navigate('/explore');
+        })
+        .catch((e) => {
+          console.error('Error creating profile:', e);
+          addToast({
+            status: 'error',
+            message: e,
+            errorCode: 103,
+          });
         });
+    } else {
+      addToast({
+        status: 'error',
+        message: errorCheckUploadedPictures,
       });
+    }
   }
   return (
     <>
