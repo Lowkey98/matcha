@@ -24,25 +24,24 @@ export default function Root() {
   const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
   useEffect(() => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        getUserInfo({ token })
-          .then((userInfo) => {
-            setUser(userInfo);
-            setLoading(false);
-          })
-          .catch(() => {
-            console.error('Unauthorized access, resetting user state');
-            setUser(null); // Reset user if unauthorized
-            setLoading(false);
-            localStorage.removeItem('token');
-            navigate('/login'); // Redirect to login page
-          });
-      } else {
-        setUser(null); // Reset user if no token is found
-        setLoading(false);
-      }
-    };
+    const token = localStorage.getItem('token');
+    if (token) {
+      getUserInfo({ token })
+        .then((userInfo) => {
+          setUser(userInfo);
+          setLoading(false);
+        })
+        .catch(() => {
+          console.error('Unauthorized access, resetting user state');
+          setUser(null);
+          setLoading(false);
+          localStorage.removeItem('token');
+          navigate('/login');
+        });
+    } else {
+      setUser(null);
+      setLoading(false);
+    }
   }, []);
   return (
     <UserContext.Provider value={{ user, setUser, loading, setLoading }}>

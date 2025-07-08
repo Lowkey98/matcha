@@ -35,13 +35,8 @@ app.get('/api/ping', (_req, res) => {
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
-const relativePath = relative(process.cwd(), __filename);
 const __dirname = path.dirname(__filename);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-
-console.log("relativePath", relativePath)
-console.log("filename", __filename)
-console.log("__dirname", __dirname)
 
 app.post('/api/create-profile', async (req, res) => {
 
@@ -63,7 +58,6 @@ app.post('/api/create-profile', async (req, res) => {
       || 'default_secret',
     ) as { userId: string };
     const uploadDir = path.join(__dirname, `uploads/${decoded.userId}`);
-    console.log("uploadDir", uploadDir)
 
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir);
@@ -81,7 +75,6 @@ app.post('/api/create-profile', async (req, res) => {
       fs.writeFileSync(filepath, Buffer.from(base64Data, 'base64'));
       imagesUrls.push(filepath)
     })
-    console.log(imagesUrls)
 
     await db.execute(
       `UPDATE usersInfo 
@@ -248,9 +241,7 @@ app.get('/api/verify', async (req, res) => {
       return;
     }
 
-    console.log('token', token);
 
-    // Find user with that token
     const [rows] = await db.execute(
       'SELECT * FROM usersInfo WHERE verification_token = ?',
       [token],
@@ -262,7 +253,6 @@ app.get('/api/verify', async (req, res) => {
       return;
     }
 
-    console.log('user', user);
     await db.execute(
       'UPDATE usersInfo SET is_verified = ?, verification_token = NULL WHERE id = ?',
       [true, user.id],
@@ -292,13 +282,6 @@ app.get('/api/me', async (req, res) => {
     res.status(401).json({ error: 'Invalid token' });
     return;
   }
-  // .catch(
-  //   (err) => {
-  //     console.error('JWT verification error:', err);
-  //     res.status(401).json({ error: 'Invalid token' });
-  //     return;
-  //   },
-  // );
   const [row] = await db.execute('SELECT * FROM usersInfo WHERE id = ?', [
     decoded.userId,
   ]);
@@ -309,7 +292,6 @@ app.get('/api/me', async (req, res) => {
     res.status(404).json({ error: 'User not found' });
     return;
   }
-  console.log('token', token);
   const userInfo = {
     id: user.id,
     email: user.email,
