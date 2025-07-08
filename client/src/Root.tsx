@@ -24,7 +24,6 @@ export default function Root() {
   const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
   useEffect(() => {
-    const fetchUser = async () => {
       const token = localStorage.getItem('token');
       if (token) {
         getUserInfo({ token })
@@ -44,7 +43,6 @@ export default function Root() {
         setLoading(false);
       }
     };
-    fetchUser();
   }, []);
   return (
     <UserContext.Provider value={{ user, setUser, loading, setLoading }}>
