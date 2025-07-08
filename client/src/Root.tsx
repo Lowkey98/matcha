@@ -41,6 +41,7 @@ export default function Root() {
     } else {
       setUser(null);
       setLoading(false);
+      navigate('/login');
     }
   }, []);
   return (

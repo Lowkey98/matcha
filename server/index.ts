@@ -1,5 +1,5 @@
 import express from 'express';
-import db from './db.js';
+import db from './db.ts';
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import nodemailer from 'nodemailer';
@@ -7,8 +7,8 @@ import { randomUUID } from 'crypto';
 import jwt from 'jsonwebtoken';
 
 import dotenv from 'dotenv';
-import type { UserInfo } from '../shared/types.js';
-import { isValidAge, isValidGender, isValidSexualPreference, isValidInterests, isValidBiography } from '../shared/Helpers.js';
+import type { UserInfo } from '../shared/types.ts';
+import { isValidAge, isValidGender, isValidSexualPreference, isValidInterests, isValidBiography } from '../shared/Helpers.ts';
 import path, { relative } from 'path';
 import fs from 'fs';
 
