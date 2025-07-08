@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { EditIcon, PlusIcon } from './Icons';
+import { useToast } from '../hooks/useToast';
 
 export default function UploadImage({
   uploadedBuffersPictures,
@@ -12,12 +13,38 @@ export default function UploadImage({
 }) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [imagePreview, setImagePreview] = useState<string | undefined>();
+  const { addToast } = useToast();
   function handleClickUploadImage() {
     fileInputRef?.current?.click();
   }
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const KB = 1024;
+    const MB = KB * 1024;
+    const maxSize = 2 * MB;
     const file = event.target.files?.[0];
     if (file) {
+      if (file.size > maxSize) {
+        addToast({
+          status: 'error',
+          errorCode: 101,
+          message: `file size ${(file.size / MB).toFixed(2)} MB exceeds the sime limit [${maxSize / MB} MB]`,
+        });
+        console.error(
+          `file size ${(file.size / MB).toFixed(2)} MB exceeds the sime limit [${maxSize / MB} MB]`,
+        );
+        return;
+      }
+      const extension = file.name.split('.').pop();
+      if (extension !== 'jpeg' && extension !== 'png' && extension !== 'webp') {
+        addToast({
+          status: 'error',
+          errorCode: 102,
+          message: `extension .${extension} not allowed`,
+        });
+        return;
+      }
+      // if format isnt jpeg, png, webp
+
       const reader = new FileReader();
 
       reader.onloadend = () => {
@@ -33,9 +60,9 @@ export default function UploadImage({
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
         onChange={handleFileChange}
         className="hidden"
+        accept=".jpeg,.jpg,.png,.webp"
       />
       <button
         type="button"

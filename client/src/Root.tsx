@@ -1,60 +1,55 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import Header from './components/Headers/Header';
 import Navigation from './components/Navigation';
 import { createContext, useEffect } from 'react';
 import { useState } from 'react';
-import type { UserInfo } from '../../shared-types/index.d.ts';
+import type { UserInfo } from '../../shared/types';
 import { ToastProvider } from './components/ToastProvider';
+import { getUserInfo } from '../Api';
 type UserContextType = {
   user: UserInfo | null;
   setUser: React.Dispatch<React.SetStateAction<UserInfo | null>>;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   loading: boolean;
 };
 export const UserContext = createContext<UserContextType>({
   user: null,
   setUser: () => {},
+  setLoading: () => {},
   loading: true,
 });
 
 export default function Root() {
   const [user, setUser] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const navigate = useNavigate();
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      fetch('http://localhost:3000/api/me', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error('Failed to fetch user data');
-          }
-          return response.json();
-        })
-        .then((data) => {
-          console.log('User data fetched:', data);
-          setUser(data);
+      getUserInfo({ token })
+        .then((userInfo) => {
+          setUser(userInfo);
           setLoading(false);
         })
-        .catch((error) => {
-          console.error('Error fetching user data:', error.message);
-          setUser(null); // Reset user if there's an error
+        .catch(() => {
+          console.error('Unauthorized access, resetting user state');
+          setUser(null);
           setLoading(false);
+          localStorage.removeItem('token');
+          navigate('/login');
         });
     } else {
-      setUser(null); // Reset user if no token is found
+      setUser(null);
       setLoading(false);
     }
   }, []);
   return (
-    <UserContext.Provider value={{ user, setUser, loading }}>
+    <UserContext.Provider value={{ user, setUser, loading, setLoading }}>
       <ToastProvider>
         {user && (
           <>
             <Header />
-            <Navigation />
+            {user.age ? <Navigation /> : null}
           </>
         )}
         {/* TODO handle display of sidebar depends on the authentication */}
