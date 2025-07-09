@@ -1,4 +1,6 @@
 import express from 'express';
+import type { Request } from 'express';
+
 import db from './db.ts';
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
@@ -7,7 +9,12 @@ import { randomUUID } from 'crypto';
 import jwt from 'jsonwebtoken';
 
 import dotenv from 'dotenv';
-import type { UserInfo } from '../shared/types.ts';
+import type {
+  CreateProfileRequest,
+  LoginRequest,
+  RegisterRequest,
+  UserInfo,
+} from '../shared/types.ts';
 import {
   isValidAge,
   isValidGender,
@@ -15,12 +22,11 @@ import {
   isValidInterests,
   isValidBiography,
 } from '../shared/Helpers.ts';
-import path, { relative } from 'path';
+import path from 'path';
 import fs from 'fs';
 
 type UserInfoFromDB = {
   created_at: Date;
-  verification_token: string;
   id: string;
   age?: number;
   email: string;
@@ -44,56 +50,58 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-app.post('/api/create-profile', async (req, res) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) {
-    res.status(401).json({ error: 'Unauthorized' });
-    return;
-  }
-  try {
-    const {
-      age,
-      gender,
-      sexualPreference,
-      interests,
-      biography,
-      uploadedBuffersPictures,
-    } = req.body;
-    if (
-      !!isValidAge(age) ||
-      !!isValidGender(gender) ||
-      !!isValidSexualPreference(sexualPreference) ||
-      !!isValidInterests(interests) ||
-      !!isValidBiography(biography)
-    ) {
-      res.status(400).json({ error: 'Invalid input data' });
+app.post(
+  '/api/create-profile',
+  async (req: Request<{}, {}, CreateProfileRequest>, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      res.status(401).json({ error: 'Unauthorized' });
       return;
     }
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET || 'default_secret',
-    ) as { userId: string };
-    const uploadDir = path.join(__dirname, `uploads/${decoded.userId}`);
+    try {
+      const {
+        age,
+        gender,
+        sexualPreference,
+        interests,
+        biography,
+        uploadedBuffersPictures,
+      } = req.body;
+      if (
+        !!isValidAge(age) ||
+        !!isValidGender(gender) ||
+        !!isValidSexualPreference(sexualPreference) ||
+        !!isValidInterests(interests) ||
+        !!isValidBiography(biography)
+      ) {
+        res.status(400).json({ error: 'Invalid input data' });
+        return;
+      }
+      const decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET || 'default_secret',
+      ) as { userId: string };
+      const uploadDir = path.join(__dirname, `uploads/${decoded.userId}`);
 
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir);
-    }
-    let imagesUrls = [];
-    uploadedBuffersPictures.map((buffer, index) => {
-      const parts = buffer.split(',');
-      const header = parts[0];
-      const base64Data = parts[1];
-      const ext = header.split('/')[1].split(';')[0];
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir);
+      }
+      let imagesUrls = [];
+      uploadedBuffersPictures.map((buffer, index) => {
+        const parts = buffer.split(',');
+        const header = parts[0];
+        const base64Data = parts[1];
+        const ext = header.split('/')[1].split(';')[0];
 
-      const filename = `picture-${Date.now()}-${index}.${ext}`;
-      const filepath = path.join(`./uploads/${decoded.userId}`, filename);
+        const filename = `picture-${Date.now()}-${index}.${ext}`;
+        const filepath = path.join(`./uploads/${decoded.userId}`, filename);
 
-      fs.writeFileSync(filepath, Buffer.from(base64Data, 'base64'));
-      imagesUrls.push(filepath);
-    });
+        fs.writeFileSync(filepath, Buffer.from(base64Data, 'base64'));
+        imagesUrls.push(filepath);
+      });
 
-    await db.execute(
-      `UPDATE usersInfo 
+      await db.execute(
+        `UPDATE usersInfo 
        SET
         age
         = ?, 
@@ -105,113 +113,115 @@ app.post('/api/create-profile', async (req, res) => {
         WHERE id = ?
 
       `,
-      [
+        [
+          age,
+          gender,
+          sexualPreference,
+          interests,
+          biography,
+          imagesUrls,
+          decoded.userId,
+        ],
+      );
+      console.log(
         age,
         gender,
         sexualPreference,
         interests,
         biography,
         imagesUrls,
-        decoded.userId,
-      ],
-    );
-    console.log(
-      age,
-      gender,
-      sexualPreference,
-      interests,
-      biography,
-      imagesUrls,
-    );
+      );
 
-    res.status(201).json({
-      message: 'profile info added successfully',
-      body: {
-        age,
-        gender,
-        sexualPreference,
-        interests,
-        biography,
-        imagesUrls,
-      },
-    });
-    return;
-  } catch (err) {
-    console.error('Error in /api/create-profile:', err);
-    res.status(500).json({ error: 'Internal server error' });
-    return;
-  }
-});
-
-app.post('/api/register', async (req, res) => {
-  try {
-    const { username, email, firstName, lastName, password } =
-      req.body.registeredUser;
-    if (!email || !password || !username || !firstName || !lastName) {
-      res.status(400).json({
-        error: 'Email, username, firstName, lastName, password are required',
+      res.status(201).json({
+        body: {
+          age,
+          gender,
+          sexualPreference,
+          interests,
+          biography,
+          imagesUrls,
+        },
       });
       return;
-    }
-
-    // Check if email or username exists
-    const [rows] = await db.execute(
-      'SELECT email, username FROM usersInfo WHERE email = ? OR username = ?',
-      [email, username],
-    );
-
-    const userRows = rows as UserInfoFromDB[];
-    const emailExists = userRows.some(
-      (row: UserInfoFromDB) => row.email === email,
-    );
-    const usernameExists = userRows.some(
-      (row: UserInfoFromDB) => row.username === username,
-    );
-
-    if (emailExists || usernameExists) {
-      res.status(409).json({
-        emailAlreadyExists: emailExists,
-        usernameAlreadyExists: usernameExists,
-      });
+    } catch (err) {
+      console.error('Error in /api/create-profile:', err);
+      res.status(500).json({ error: 'Internal server error' });
       return;
     }
+  },
+);
 
-    // Hash password and create verification token
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const verificationToken = randomUUID();
+app.post(
+  '/api/register',
+  async (req: Request<{}, {}, RegisterRequest>, res) => {
+    try {
+      const { username, email, firstName, lastName, password } = req.body;
+      if (!email || !password || !username || !firstName || !lastName) {
+        res.status(400).json({
+          error: 'Email, username, firstName, lastName, password are required',
+        });
+        return;
+      }
 
-    // Insert user into DB
-    await db.execute(
-      `INSERT INTO usersInfo
+      // Check if email or username exists
+      const [rows] = await db.execute(
+        'SELECT email, username FROM usersInfo WHERE email = ? OR username = ?',
+        [email, username],
+      );
+
+      const userRows = rows as UserInfoFromDB[];
+      const emailExists = userRows.some(
+        (row: UserInfoFromDB) => row.email === email,
+      );
+      const usernameExists = userRows.some(
+        (row: UserInfoFromDB) => row.username === username,
+      );
+
+      if (emailExists || usernameExists) {
+        res.status(409).json({
+          emailAlreadyExists: emailExists,
+          usernameAlreadyExists: usernameExists,
+        });
+        return;
+      }
+
+      // Hash password and create verification token
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const verificationToken = randomUUID();
+
+      // Insert user into DB
+      await db.execute(
+        `INSERT INTO usersInfo
        (username, email, first_name, last_name, password, is_verified, created_at, verification_token) 
        VALUES (?, ?, ?, ?, ?, ?, NOW(), ?)`,
-      [
-        username,
-        email,
-        firstName,
-        lastName,
-        hashedPassword,
-        false,
-        verificationToken,
-      ],
-    );
+        [
+          username,
+          email,
+          firstName,
+          lastName,
+          hashedPassword,
+          false,
+          verificationToken,
+        ],
+      );
 
-    // Send verification email
-    sendVerificationEmail({ to: email, token: verificationToken });
+      // Send verification email
+      sendVerificationEmail({ to: email, token: verificationToken });
 
-    res.status(201).json({
-      message:
-        'Registration successful. Please check your email to verify your account.',
-    });
-    return;
-  } catch (err) {
-    console.error('Registration error:', err);
-    res.status(500).json({ error: 'Internal server error.' });
-    return;
-  }
-});
+      res.status(201).json({
+        message:
+          'Registration successful. Please check your email to verify your account.',
+      });
+      return;
+    } catch (err) {
+      console.error('Registration error:', err);
+      res.status(500).json({ error: 'Internal server error.' });
+      return;
+    }
+  },
+);
 
-app.post('/api/login', async (req, res) => {
+app.post('/api/login', async (req: Request<{}, {}, LoginRequest>, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -251,16 +261,6 @@ app.post('/api/login', async (req, res) => {
     res.status(200).json({
       message: 'Login successful',
       token,
-      user: {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        isVerified: user.is_verified,
-        created_at: user.created_at,
-        age: user?.age,
-        verification_token: user.verification_token,
-        password: user.password,
-      } as UserInfo,
     });
   } catch (err) {
     console.error('Login error:', err);
@@ -323,7 +323,7 @@ app.get('/api/me', async (req, res) => {
     res.status(404).json({ error: 'User not found' });
     return;
   }
-  const userInfo = {
+  const userInfo: UserInfo = {
     id: user.id,
     email: user.email,
     username: user.username,

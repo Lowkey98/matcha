@@ -10,7 +10,7 @@ import {
   ProfileIcon,
 } from '../components/Icons';
 import { useContext } from 'react';
-import { UserContext } from '../Root';
+import { UserContext } from '../context/UserContext';
 export default function Profile() {
   const { user } = useContext(UserContext);
 

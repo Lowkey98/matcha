@@ -2,8 +2,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ArrowDownIcon, ArrowUpIcon, UserIcon } from './Icons';
 import React, { useContext, useState } from 'react';
 import { HeaderNavigationItem } from './Headers/Header';
-import { UserContext } from '../Root';
 import { BACKEND_STATIC_FOLDER } from './ImagesCarousel';
+import { UserContext } from '../context/UserContext';
 export default function DropdownNavItem({
   headerNavigationItems,
 }: {

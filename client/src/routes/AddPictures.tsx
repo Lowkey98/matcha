@@ -5,10 +5,13 @@ import ButtonPrimary from '../components/Buttons/ButtonPrimary';
 import { useContext, useState } from 'react';
 import { isValidAddedProfilePicture } from '../../../shared/Helpers';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { UserContext } from '../Root';
 import { useToast } from '../hooks/useToast';
 import { createUserProfile } from '../../Api';
-import { UserInfo } from '../../../shared/types';
+import {
+  CreateProfileRequest,
+  CreateProfileResponse,
+} from '../../../shared/types';
+import { UserContext } from '../context/UserContext';
 
 export default function AddPictures() {
   const { user, setUser } = useContext(UserContext);
@@ -21,12 +24,13 @@ export default function AddPictures() {
   function handleClickDone() {
     const errorCheckUploadedPictures: string | null =
       isValidAddedProfilePicture(uploadedBuffersPictures);
+
     if (!errorCheckUploadedPictures) {
       const { age, gender, sexualPreference, interests, biography } =
         location.state || {};
       const token = localStorage.getItem('token');
       if (!token) return;
-      createUserProfile({
+      const userProfileInfo: CreateProfileRequest = {
         age,
         gender,
         sexualPreference,
@@ -34,9 +38,11 @@ export default function AddPictures() {
         biography,
         uploadedBuffersPictures,
         token,
-      })
-        .then(async ({ userInfo }) => {
-          setUser({ ...user, ...userInfo });
+      };
+
+      createUserProfile({ userProfileInfo })
+        .then((userProfileInfo: CreateProfileResponse) => {
+          if (user) setUser({ ...user, ...userProfileInfo });
           navigate('/explore');
         })
         .catch((e) => {

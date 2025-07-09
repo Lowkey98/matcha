@@ -37,11 +37,9 @@ export function isValidConfirmedPassword({
   return null;
 }
 
-export function isValidAge(age: string): string | null {
-  if (isEmpty(age)) return 'This field is required.';
-  if (!/^[0-9]+(\.[0-9]+)?$/.test(age)) return 'Enter a valid age.';
-  if (Number(age) < 18 || Number(age) > 60)
-    return 'Enter age between 18 and 60';
+export function isValidAge(age: number): string | null {
+  if (age === 0) return 'This field is required.';
+  if (age < 18 || age > 60) return 'Enter age between 18 and 60';
   return null;
 }
 

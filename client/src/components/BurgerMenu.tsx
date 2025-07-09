@@ -3,9 +3,9 @@ import { BurgerIcon, CloseIcon, UserIcon } from './Icons';
 import FameRate from './FameRate';
 import { HeaderNavigationItem } from './Headers/Header';
 import { useNavigate } from 'react-router-dom';
-import { UserContext } from '../Root';
 import { handleClickLogout } from './DropdownHeaderItem';
 import { BACKEND_STATIC_FOLDER } from './ImagesCarousel';
+import { UserContext } from '../context/UserContext';
 
 export default function HeaderBurger({
   headerNavigationItems,

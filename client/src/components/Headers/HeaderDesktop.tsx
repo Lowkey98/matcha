@@ -1,9 +1,9 @@
 import FameRate from '../FameRate';
 import DropdownHeaderItem from '../DropdownHeaderItem';
 import NotificationsHeaderItem from '../NotificationsHeaderItem';
-import { UserContext } from '../../Root';
 import { useContext } from 'react';
 import { HeaderNavigationItem } from './Header';
+import { UserContext } from '../../context/UserContext';
 
 export function HeaderDesktop({
   headerNavigationItems,

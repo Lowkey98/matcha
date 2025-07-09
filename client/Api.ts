@@ -1,11 +1,18 @@
-import type { RegisteredUserInfo, UpdateUserInfo } from '../shared/types';
+import type {
+  CreateProfileRequest,
+  CreateProfileResponse,
+  LoginRequest,
+  RegisterRequest,
+  UserInfo,
+  UserInfoBase,
+} from '../shared/types';
 
 const HOST: string = 'http://localhost:3000';
 
 export async function register({
   registeredUser,
 }: {
-  registeredUser: RegisteredUserInfo;
+  registeredUser: RegisterRequest;
 }) {
   const response = await fetch(`${HOST}/api/register`, {
     method: 'POST',
@@ -13,7 +20,7 @@ export async function register({
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      registeredUser,
+      ...registeredUser,
     }),
   });
 
@@ -23,12 +30,11 @@ export async function register({
   }
 }
 export async function login({
-  email,
-  password,
+  loggedUserInfo,
 }: {
-  email: string;
-  password: string;
-}) {
+  loggedUserInfo: LoginRequest;
+}): Promise<string> {
+  const { email, password } = loggedUserInfo;
   const response = await fetch(`${HOST}/api/login`, {
     method: 'POST',
     headers: {
@@ -44,53 +50,36 @@ export async function login({
     throw error;
   } else {
     const jsonResponse = await response.json();
-    const token = jsonResponse.token;
-    localStorage.setItem('token', token);
+    const token: string = jsonResponse.token;
+    return token;
   }
 }
 export async function createUserProfile({
-  age,
-  gender,
-  sexualPreference,
-  interests,
-  biography,
-  uploadedBuffersPictures,
-  token,
+  userProfileInfo,
 }: {
-  age: number;
-  gender: string;
-  sexualPreference: string;
-  interests: string[];
-  biography: string;
-  uploadedBuffersPictures: string[];
-  token: string;
+  userProfileInfo: CreateProfileRequest;
 }) {
   try {
     const response = await fetch(`${HOST}/api/create-profile`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${userProfileInfo.token}`,
       },
-      body: JSON.stringify({
-        age,
-        gender,
-        sexualPreference,
-        interests,
-        biography,
-        uploadedBuffersPictures,
-      }),
+      body: JSON.stringify(userProfileInfo),
     });
     const jsonResponse = await response.json();
-    return { userInfo: jsonResponse.body, message: jsonResponse.message };
+    const userProfileInfoFromDb: CreateProfileResponse =
+      jsonResponse.body as CreateProfileResponse;
+    return userProfileInfoFromDb;
   } catch (error) {
     throw error;
   }
 }
-export async function updateUserInfoAccount({
+export async function updateUserAccount({
   updatedUserAccountInfo,
 }: {
-  updatedUserAccountInfo: UpdateUserInfo;
+  updatedUserAccountInfo: UserInfoBase;
 }) {
   const response = await fetch(`${HOST}/api/updateAccount`, {
     method: 'PUT',
@@ -107,14 +96,19 @@ export async function updateUserInfoAccount({
   }
 }
 
-export async function getUserInfo({ token }: { token: string }) {
+export async function getUserInfo({
+  token,
+}: {
+  token: string;
+}): Promise<UserInfo> {
   try {
     const response = await fetch(`${HOST}/api/me`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    return response.json();
+    const jsonResponse = await response.json();
+    return jsonResponse as UserInfo;
   } catch (error) {
     throw error;
   }
