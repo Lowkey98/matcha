@@ -3,8 +3,9 @@ import { BurgerIcon, CloseIcon, UserIcon } from './Icons';
 import FameRate from './FameRate';
 import { HeaderNavigationItem } from './Headers/Header';
 import { useNavigate } from 'react-router-dom';
-import { UserContext } from '../Root';
 import { handleClickLogout } from './DropdownHeaderItem';
+import { BACKEND_STATIC_FOLDER } from './ImagesCarousel';
+import { UserContext } from '../context/UserContext';
 
 export default function HeaderBurger({
   headerNavigationItems,
@@ -45,8 +46,12 @@ export default function HeaderBurger({
             <div className="flex items-center gap-5">
               <div className="flex items-center gap-1 pl-5">
                 {user?.age ? (
-                  <div className="border-primary mr-1 h-8 w-8 rounded-full border-2">
-                    {/* <img src="" alt="user" className="object-cover" /> */}
+                  <div className="border-primary mr-1 h-8 w-8 overflow-hidden rounded-full border-2">
+                    <img
+                      src={`${BACKEND_STATIC_FOLDER}${user.imagesUrls?.[0]}`}
+                      alt="user"
+                      className="object-cover"
+                    />
                   </div>
                 ) : (
                   <UserIcon className="fill-primary h-5 w-5" />

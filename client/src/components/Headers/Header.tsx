@@ -2,7 +2,7 @@ import { useContext } from 'react';
 import { EditIcon, LogoutIcon, SettingsIcon } from '../Icons';
 import { HeaderDesktop } from './HeaderDesktop';
 import HeaderMobile from './HeaderMobile';
-import { UserContext } from '../../Root';
+import { UserContext } from '../../context/UserContext';
 
 export type HeaderNavigationItem = {
   route: string;

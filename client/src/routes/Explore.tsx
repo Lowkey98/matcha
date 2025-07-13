@@ -1,9 +1,8 @@
 import { useContext } from 'react';
 import { Helmet } from 'react-helmet';
-import { UserContext } from '../Root';
 import Login from './Login';
-import Profile from './Profile';
 import CreateProfile from './CreateProfile';
+import { UserContext } from '../context/UserContext';
 
 export default function Explore() {
   const { user, loading } = useContext(UserContext);

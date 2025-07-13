@@ -15,8 +15,8 @@ import {
   isValidConfirmedPassword,
 } from '../../../shared/Helpers';
 import EmailSent from '../components/EmailSent';
-import { RegisteredUserInfo } from '../../../shared-types';
 import { register } from '../../Api';
+import { RegisterRequest } from '../../../shared/types';
 
 export default function Register() {
   const [email, setEmail] = useState<string>('');
@@ -72,7 +72,7 @@ export default function Register() {
     }
 
     if (!errorForm) {
-      const registeredUser: RegisteredUserInfo = {
+      const registeredUser: RegisterRequest = {
         email: email,
         username: username,
         firstName: firstName,
