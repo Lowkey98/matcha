@@ -38,3 +38,7 @@ export type CreateProfileRequest = CreateProfileBase & {
 export type CreateProfileResponse = CreateProfileBase & {
   imagesUrls: string[];
 };
+
+export type UpdatedUserProfileInfos = CreateProfileResponse & {
+  id: string;
+};

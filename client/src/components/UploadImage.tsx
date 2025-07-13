@@ -5,14 +5,18 @@ import { useToast } from '../hooks/useToast';
 export default function UploadImage({
   uploadedBuffersPictures,
   indexImage,
+  defaultValue,
   className,
 }: {
   uploadedBuffersPictures: (string | undefined)[];
   indexImage: number;
+  defaultValue?: string;
   className?: string;
 }) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | undefined>();
+  const [imagePreview, setImagePreview] = useState<string | undefined>(
+    defaultValue,
+  );
   const { addToast } = useToast();
   function handleClickUploadImage() {
     fileInputRef?.current?.click();
