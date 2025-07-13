@@ -49,7 +49,7 @@ export default function CreateProfile() {
   const [biography, setBiography] = useState<string>('');
   const [formTrail, setFormTrial] = useState<boolean>(false);
   const navigate = useNavigate();
-  const errorAge = isValidAge(age);
+  const errorAge = isValidAge(Number(age));
   const errorGender = isValidGender(gender);
   const errorSexualPreference = isValidSexualPreference(sexualPreference);
   const errorInterests = isValidInterests(interests);
@@ -86,7 +86,7 @@ export default function CreateProfile() {
       <Helmet>
         <title>Matcha - Create profile</title>
       </Helmet>
-      <main className="py-16 lg:pb-0">
+      <main className="py-16 lg:mb-5 lg:pb-0">
         <div className="flex flex-col items-center justify-center">
           <h1 className="text-secondary text-2xl font-bold">
             Create your profile

@@ -1,31 +1,40 @@
-export type UserInfo = {
+export type UserInfoBase = {
   id: string;
   email: string;
   username: string;
   firstName: string;
   lastName: string;
-  created_at: Date;
-  verification_token: string;
-  isVerified: boolean;
-  password: string;
+};
+export type CreateProfileBase = {
+  age: number;
+  gender: string;
+  sexualPreference: string;
+  biography: string;
+  interests: string[];
+};
+export type UserInfo = UserInfoBase & {
   age?: number;
   gender?: string;
   sexualPreference?: string;
-  interests?: string[]
-  imagesUrls?: string[]
+  biography?: string;
+  interests?: string[];
+  imagesUrls?: string[];
 };
-export type RegisteredUserInfo = {
+
+export type LoginRequest = {
   email: string;
-  username: string;
-  firstName: string;
-  lastName: string;
   password: string;
 };
 
-export type UpdateUserInfo = {
-  id: string;
-  email: string;
-  username: string;
-  firstName: string;
-  lastName: string;
+export type RegisterRequest = Omit<UserInfoBase, 'id'> & {
+  password: string;
+};
+
+export type CreateProfileRequest = CreateProfileBase & {
+  uploadedBuffersPictures: string[];
+  token: string;
+};
+
+export type CreateProfileResponse = CreateProfileBase & {
+  imagesUrls: string[];
 };

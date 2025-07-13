@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Autoplay from 'embla-carousel-autoplay';
 import { ArrowLeftIcon, ArrowRightIcon, StarIcon } from './Icons';
 
+export const BACKEND_STATIC_FOLDER = 'http://localhost:3000/';
 export default function ImagesCarousel({
   imgsUrls,
   className,
@@ -10,7 +11,6 @@ export default function ImagesCarousel({
   imgsUrls: string[];
   className?: string;
 }) {
-  const BACKEND_STATIC_FOLDER = 'http://localhost:3000/';
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [
     Autoplay({

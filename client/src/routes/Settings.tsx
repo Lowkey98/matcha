@@ -4,13 +4,13 @@ import { useContext, useEffect, useState } from 'react';
 import { isValidName, isValidUsername } from '../../../shared/Helpers';
 import ButtonPrimary from '../components/Buttons/ButtonPrimary';
 import ButtonSecondary from '../components/Buttons/ButtonSecondary';
-import { UserContext } from '../Root';
-import { UpdateUserInfo } from '../../../shared/types';
 import DisabledInputFormField from '../components/FormFields/DisabledInputFormField';
 import { useToast } from '../hooks/useToast';
-import { updateUserInfoAccount } from '../../Api';
 import { ArrowLongLeftIcon } from '../components/Icons';
 import { Link } from 'react-router-dom';
+import { UserInfoBase } from '../../../shared/types';
+import { updateUserAccount } from '../../Api';
+import { UserContext } from '../context/UserContext';
 
 export default function Settings() {
   const { user, setUser } = useContext(UserContext);
@@ -19,9 +19,7 @@ export default function Settings() {
   const [firstName, setFirstName] = useState<string>('');
   const [lastName, setLastName] = useState<string>('');
   const [formTrail, setFormTrial] = useState<boolean>(false);
-  const [defaultValues, setDefaultValues] = useState<UpdateUserInfo | null>(
-    null,
-  );
+  const [defaultValues, setDefaultValues] = useState<UserInfoBase | null>(null);
   const [errorUsernameAlreadyExists, setErrorUsernameAlreadyExists] = useState<
     string | null
   >(null);
@@ -56,7 +54,7 @@ export default function Settings() {
         errorForm = true;
       }
       if (!errorForm) {
-        const updatedUserAccountInfo: UpdateUserInfo = {
+        const updatedUserAccountInfo: UserInfoBase = {
           id: user.id,
           email,
           username,
@@ -68,7 +66,7 @@ export default function Settings() {
           JSON.stringify(updatedUserAccountInfo);
 
         if (userInfoChanged) {
-          updateUserInfoAccount({ updatedUserAccountInfo })
+          updateUserAccount({ updatedUserAccountInfo })
             .then(() => {
               setUser({
                 ...user,
@@ -108,12 +106,14 @@ export default function Settings() {
       >
         <div className="w-full lg:w-4xl">
           <div className="flex items-start gap-4">
-            <Link
-              to="/"
-              className="border-grayDark-100 rounded-full border-2 bg-white p-1"
-            >
-              <ArrowLongLeftIcon className="fill-secondary h-6 w-6" />
-            </Link>
+            {!user?.age && (
+              <Link
+                to="/"
+                className="border-grayDark-100 rounded-full border-2 bg-white p-1"
+              >
+                <ArrowLongLeftIcon className="fill-secondary h-6 w-6" />
+              </Link>
+            )}
             <div>
               <h1 className="text-secondary text-2xl font-bold">Settings</h1>
               <span className="lg:text-md text-sm font-light text-gray-300">

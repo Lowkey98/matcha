@@ -9,8 +9,8 @@ import { isValidEmail, isValidPassword } from '../../../shared/Helpers';
 import { getUserInfo, login } from '../../Api';
 import { Helmet } from 'react-helmet';
 import { useToast } from '../hooks/useToast';
-import { UserContext } from '../Root';
-import type { UserInfo } from '../../../shared/types';
+import type { LoginRequest, UserInfo } from '../../../shared/types';
+import { UserContext } from '../context/UserContext';
 
 export default function Login() {
   const { setUser, setLoading } = useContext(UserContext);
@@ -37,14 +37,18 @@ export default function Login() {
       errorForm = true;
     }
     if (!errorForm) {
-      login({ email, password })
-        .then(() => {
-          const token = localStorage.getItem('token');
+      const loggedUserInfo: LoginRequest = {
+        email,
+        password,
+      };
+      login({ loggedUserInfo })
+        .then((token: string) => {
           if (token) {
+            localStorage.setItem('token', token);
             getUserInfo({ token })
-              .then((userInfo) => {
+              .then((userInfo: UserInfo) => {
                 console.log('User data fetched:', userInfo);
-                setUser(userInfo as UserInfo);
+                setUser(userInfo);
                 setLoading(false);
                 userInfo.age
                   ? navigate('/explore')

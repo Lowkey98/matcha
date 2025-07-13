@@ -2,7 +2,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ArrowDownIcon, ArrowUpIcon, UserIcon } from './Icons';
 import React, { useContext, useState } from 'react';
 import { HeaderNavigationItem } from './Headers/Header';
-import { UserContext } from '../Root';
+import { BACKEND_STATIC_FOLDER } from './ImagesCarousel';
+import { UserContext } from '../context/UserContext';
 export default function DropdownNavItem({
   headerNavigationItems,
 }: {
@@ -15,22 +16,30 @@ export default function DropdownNavItem({
     setShowItems(!showItems);
   }
 
+  console.log('user:', user);
+
   return (
     <div className="relative">
       <button
         type="button"
-        className="border-grayDark-100 flex cursor-pointer items-center justify-between gap-6 rounded-lg border-2 bg-white px-3 py-2"
+        className="border-grayDark-100 flex cursor-pointer items-center justify-between gap-3 rounded-lg border-2 bg-white px-3 py-2 text-left"
         onClick={handleClickDropdownNavItem}
       >
         <div className="flex items-center gap-1">
           {!user?.age ? (
             <UserIcon className="fill-primary h-5 w-5" />
           ) : (
-            <div className="border-primary mr-1 h-8 w-8 rounded-full border-2">
-              {/* <img src="" alt="user" className="object-cover" /> */}
+            <div className="border-primary mr-1 h-8 w-8 overflow-hidden rounded-full border-2">
+              <img
+                src={`${BACKEND_STATIC_FOLDER}${user.imagesUrls?.[0]}`}
+                alt="user"
+                className="object-cover"
+              />
             </div>
           )}
-          <span className="text-secondary text-sm">{user?.username}</span>
+          <div className="text-secondary w-22 overflow-hidden text-sm overflow-ellipsis">
+            {user?.username}
+          </div>
         </div>
         {showItems ? (
           <ArrowUpIcon className="fill-secondary h-3.5 w-3.5" />
