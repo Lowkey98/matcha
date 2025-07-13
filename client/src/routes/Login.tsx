@@ -44,6 +44,7 @@ export default function Login() {
       login({ loggedUserInfo })
         .then((token: string) => {
           if (token) {
+            localStorage.setItem('token', token);
             getUserInfo({ token })
               .then((userInfo: UserInfo) => {
                 console.log('User data fetched:', userInfo);
