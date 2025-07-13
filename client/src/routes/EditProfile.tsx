@@ -85,8 +85,6 @@ export default function Settings() {
           updatedUserProfileInfos,
           Object.keys(updatedUserProfileInfos).sort(),
         );
-      console.log('updatedUserProfileInfos:', updatedUserProfileInfos);
-
       if (userProfileInfosChanged) {
         updateUserProfileInfos({ updatedUserProfileInfos })
           .then(() => {
