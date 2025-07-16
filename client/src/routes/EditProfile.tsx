@@ -17,16 +17,11 @@ import CreateProfile, {
 import MultiSelect from '../components/FormFields/MultiSelect';
 import TextAreaFormField from '../components/FormFields/TextAreaFormField';
 import LocationFormField from '../components/FormFields/LocationFormField';
-import UploadImage from '../components/UploadImage';
+import { ButtonAddImage, EditedUploadImage } from '../components/UploadImage';
 import ButtonPrimary from '../components/Buttons/ButtonPrimary';
 import ButtonSecondary from '../components/Buttons/ButtonSecondary';
 import { UserContext } from '../context/UserContext';
-import {
-  CreateProfileBase,
-  CreateProfileResponse,
-  UpdatedUserProfileInfos,
-  UserInfo,
-} from '../../../shared/types';
+import { UpdatedUserProfileInfos } from '../../../shared/types';
 import { useToast } from '../hooks/useToast';
 import { updateUserProfileInfos } from '../../Api';
 import { BACKEND_STATIC_FOLDER } from '../components/ImagesCarousel';
@@ -41,7 +36,7 @@ export default function Settings() {
   const [interests, setInterests] = useState<string[]>([]);
   const [biography, setBiography] = useState<string>('');
   const [location, setLocation] = useState<string>('');
-  const [imagesUrls, setImagesUrls] = useState<(string | undefined)[]>([]);
+  const [imagesUrls, setImagesUrls] = useState<string[]>([]);
   const [formTrail, setFormTrial] = useState<boolean>(false);
   const { addToast } = useToast();
   const errorAge = isValidAge(Number(age));
@@ -77,7 +72,7 @@ export default function Settings() {
         sexualPreference,
         biography,
         interests,
-        imagesUrls: user.imagesUrls || [],
+        imagesUrls,
       };
       const userProfileInfosChanged =
         JSON.stringify(defaultValues, Object.keys(defaultValues).sort()) !==
@@ -211,20 +206,21 @@ export default function Settings() {
             <div className="border-grayDark-100 border-t lg:border-t-0 lg:border-r"></div>
             <div className="lg:flex-1">
               <div className="flex flex-wrap gap-[5%] gap-y-6">
-                {imagesUrls.map((imageUrl: string | undefined, index) => {
+                {imagesUrls.map((imageUrl: string, index) => {
                   return (
-                    <UploadImage
+                    <EditedUploadImage
                       key={index}
-                      uploadedBuffersPictures={imagesUrls}
+                      imagesUrls={imagesUrls}
+                      setImagesUrls={setImagesUrls}
                       indexImage={index}
                       defaultValue={imageUrl}
                       className="lg:w-[47.5%]"
                     />
                   );
                 })}
-                <UploadImage
-                  uploadedBuffersPictures={imagesUrls}
-                  indexImage={imagesUrls.length}
+                <ButtonAddImage
+                  imagesUrls={imagesUrls}
+                  setImagesUrls={setImagesUrls}
                   className="lg:w-[47.5%]"
                 />
               </div>
