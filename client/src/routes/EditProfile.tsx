@@ -28,8 +28,6 @@ import { BACKEND_STATIC_FOLDER } from '../components/ImagesCarousel';
 
 export default function Settings() {
   const { user, setUser } = useContext(UserContext);
-  console.log('user:', user);
-
   const [age, setAge] = useState<string>('');
   const [gender, setGender] = useState<string>('');
   const [sexualPreference, setSexualPreference] = useState<string>('');
@@ -65,6 +63,10 @@ export default function Settings() {
         interests: user.interests || [],
         imagesUrls: user.imagesUrls || [],
       };
+      const updatedImagesUrlsWithoutHostName = imagesUrls.map((imageUrl) => {
+        if (imageUrl.includes(BACKEND_STATIC_FOLDER))
+          return imageUrl.replace(BACKEND_STATIC_FOLDER, '');
+      });
       const updatedUserProfileInfos: UpdatedUserProfileInfos = {
         id: user.id,
         age: Number(age),
@@ -77,28 +79,41 @@ export default function Settings() {
       const userProfileInfosChanged =
         JSON.stringify(defaultValues, Object.keys(defaultValues).sort()) !==
         JSON.stringify(
-          updatedUserProfileInfos,
-          Object.keys(updatedUserProfileInfos).sort(),
+          {
+            ...updatedUserProfileInfos,
+            imagesUrls: updatedImagesUrlsWithoutHostName,
+          },
+          Object.keys({
+            ...updatedUserProfileInfos,
+            imagesUrls: updatedImagesUrlsWithoutHostName,
+          }).sort(),
         );
       if (userProfileInfosChanged) {
-        updateUserProfileInfos({ updatedUserProfileInfos })
-          .then(() => {
-            setUser({
-              ...user,
-              ...updatedUserProfileInfos,
-            });
-            addToast({
-              status: 'success',
-              message: 'Your profile information updated successfully.',
-            });
+        const token = localStorage.getItem('token');
+        if (token) {
+          updateUserProfileInfos({
+            updatedUserProfileInfos: { ...updatedUserProfileInfos, token },
           })
-          .catch((error) => {
-            const errorMessage = error.error;
-            addToast({
-              status: 'error',
-              message: errorMessage,
+            .then(
+              (updatedUserProfileInfosResponse: UpdatedUserProfileInfos) => {
+                setUser({
+                  ...user,
+                  ...updatedUserProfileInfosResponse,
+                });
+                addToast({
+                  status: 'success',
+                  message: 'Your profile information updated successfully.',
+                });
+              },
+            )
+            .catch((error) => {
+              const errorMessage = error.error;
+              addToast({
+                status: 'error',
+                message: errorMessage,
+              });
             });
-          });
+        }
       }
     }
   }
@@ -109,6 +124,12 @@ export default function Settings() {
       setSexualPreference(user.sexualPreference || '');
       setBiography(user.biography || '');
       setInterests(user.interests || []);
+      if (user.imagesUrls) {
+        const imageUrlsWithHostName: string[] = user.imagesUrls.map(
+          (imageUrl) => `${BACKEND_STATIC_FOLDER}${imageUrl}`,
+        );
+        setImagesUrls(imageUrlsWithHostName);
+      }
     }
   }
 
@@ -206,23 +227,27 @@ export default function Settings() {
             <div className="border-grayDark-100 border-t lg:border-t-0 lg:border-r"></div>
             <div className="lg:flex-1">
               <div className="flex flex-wrap gap-[5%] gap-y-6">
-                {imagesUrls.map((imageUrl: string, index) => {
-                  return (
-                    <EditedUploadImage
-                      key={index}
+                {imagesUrls.length ? (
+                  <>
+                    {imagesUrls.map((imageUrl: string, index) => {
+                      return (
+                        <EditedUploadImage
+                          key={index}
+                          imagesUrls={imagesUrls}
+                          setImagesUrls={setImagesUrls}
+                          indexImage={index}
+                          defaultValue={imageUrl}
+                          className="lg:w-[47.5%]"
+                        />
+                      );
+                    })}
+                    <ButtonAddImage
                       imagesUrls={imagesUrls}
                       setImagesUrls={setImagesUrls}
-                      indexImage={index}
-                      defaultValue={imageUrl}
                       className="lg:w-[47.5%]"
                     />
-                  );
-                })}
-                <ButtonAddImage
-                  imagesUrls={imagesUrls}
-                  setImagesUrls={setImagesUrls}
-                  className="lg:w-[47.5%]"
-                />
+                  </>
+                ) : null}
               </div>
             </div>
           </div>

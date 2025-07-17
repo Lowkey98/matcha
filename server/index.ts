@@ -48,6 +48,7 @@ app.get('/api/ping', (_req, res) => {
 
 import { fileURLToPath } from 'url';
 
+export const BACKEND_STATIC_FOLDER = 'http://localhost:3000/';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -391,7 +392,10 @@ app.put(
 
 app.put(
   '/api/updateProfile',
-  async (req: Request<{}, {}, UpdatedUserProfileInfos>, res) => {
+  async (
+    req: Request<{}, {}, UpdatedUserProfileInfos & { token: string }>,
+    res,
+  ) => {
     try {
       const {
         id,
@@ -401,6 +405,7 @@ app.put(
         biography,
         interests,
         imagesUrls,
+        token,
       } = req.body;
       if (
         !age ||
@@ -416,15 +421,68 @@ app.put(
         });
         return;
       }
+      const decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET || 'default_secret',
+      ) as { userId: string };
+      const [row] = await db.execute(
+        'SELECT images_urls FROM usersInfo WHERE id = ?',
+        [id],
+      );
+      const imagesUrlsFromDb = row[0]['images_urls'] as string[];
+
+      imagesUrlsFromDb.forEach((imageUrlFromDb) => {
+        const imageUrlExistsInImagesUrls = imagesUrls.find((imageUrl) => {
+          return (
+            imageUrl.includes(BACKEND_STATIC_FOLDER) &&
+            imageUrl.replace(BACKEND_STATIC_FOLDER, '') === imageUrlFromDb
+          );
+        });
+        if (!imageUrlExistsInImagesUrls) {
+          if (fs.existsSync(imageUrlFromDb)) fs.unlinkSync(imageUrlFromDb);
+        }
+      });
+      let imagesUrlsToDb = [];
+      imagesUrls.map((buffer, index) => {
+        let filepath: string | null = null;
+        if (!buffer.includes(BACKEND_STATIC_FOLDER)) {
+          const parts = buffer.split(',');
+          const header = parts[0];
+          const base64Data = parts[1];
+          const ext = header.split('/')[1].split(';')[0];
+
+          const filename = `picture-${Date.now()}-${index}.${ext}`;
+          filepath = path.join(`./uploads/${decoded.userId}`, filename);
+
+          fs.writeFileSync(filepath, Buffer.from(base64Data, 'base64'));
+          imagesUrlsToDb.push(filepath);
+        } else {
+          filepath = buffer;
+          imagesUrlsToDb.push(filepath.replace(BACKEND_STATIC_FOLDER, ''));
+        }
+      });
 
       // Update user profile info into DB
       await db.execute(
         `UPDATE usersInfo SET age = ?, gender = ?, sexual_preference = ?, biography = ?, interests = ?, images_urls = ?  WHERE id = ?`,
-        [age, gender, sexualPreference, biography, interests, imagesUrls, id],
+        [
+          age,
+          gender,
+          sexualPreference,
+          biography,
+          interests,
+          imagesUrlsToDb,
+          id,
+        ],
       );
 
       res.status(201).json({
-        message: 'Your profile information has been updated successfully',
+        age,
+        gender,
+        sexualPreference,
+        biography,
+        interests,
+        imagesUrls: imagesUrlsToDb,
       });
       return;
     } catch (err) {

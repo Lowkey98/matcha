@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { CloseIcon, EditIcon, PlusIcon, StarBoldIcon } from './Icons';
 import { useToast } from '../hooks/useToast';
+import { BACKEND_STATIC_FOLDER } from './ImagesCarousel';
 
 export function UploadImage({
   uploadedBuffersPictures,

@@ -92,7 +92,7 @@ export async function updateUserAccount({
 export async function updateUserProfileInfos({
   updatedUserProfileInfos,
 }: {
-  updatedUserProfileInfos: UpdatedUserProfileInfos;
+  updatedUserProfileInfos: UpdatedUserProfileInfos & { token: string };
 }) {
   const response = await fetch(`${HOST}/api/updateProfile`, {
     method: 'PUT',
@@ -105,6 +105,8 @@ export async function updateUserProfileInfos({
     const error = await response.json();
     throw error;
   }
+  const jsonResponse = await response.json();
+  return jsonResponse as UpdatedUserProfileInfos;
 }
 export async function getUserInfo({
   token,
