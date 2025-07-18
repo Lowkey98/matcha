@@ -5,8 +5,9 @@ import { isValidEmail } from '../../../shared/Helpers';
 import InputFormField from '../components/FormFields/InputFormField';
 import ButtonPrimary from '../components/Buttons/ButtonPrimary';
 import { Helmet } from 'react-helmet';
+import { sendForgotPasswordMail } from '../../Api';
 
-export default function ForgetPassword() {
+export default function ForgotPassword() {
   const [email, setEmail] = useState<string>('');
   const [formTrail, setFormTrial] = useState<boolean>(false);
   const errorEmail: string | null = isValidEmail(email);
@@ -18,18 +19,23 @@ export default function ForgetPassword() {
     }
     if (!errorForm) {
       console.log(email);
+      sendForgotPasswordMail({
+        email,
+      }).then(() => {
+        console.log('sent successfully');
+      });
     }
   }
   return (
     <>
       <Helmet>
-        <title>Matcha - Forget password</title>
+        <title>Matcha - Forgot password</title>
       </Helmet>
       <main className="mt-12 flex flex-col items-center lg:mx-auto lg:w-[26rem]">
         <PasswordIcon className="h-26 w-26" />
         <div className="mt-12 flex flex-col items-center">
           <h1 className="text-secondary text-center text-xl font-bold sm:text-2xl">
-            Forget your password ?
+            Forgot your password ?
           </h1>
           <p className="text-grayDark mt-4 text-center font-light sm:w-[21rem]">
             Enter your email address below and we’ll send you a link to reset

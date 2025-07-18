@@ -113,3 +113,27 @@ export async function getUserInfo({
     throw error;
   }
 }
+
+export async function sendForgotPasswordMail({
+  email
+}: {
+  email: string
+}) {
+  const response = await fetch(`${HOST}/api/sendForgotPasswordMail`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      email: email
+    })
+  });
+
+
+  
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw error
+  }
+}

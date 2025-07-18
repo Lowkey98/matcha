@@ -3,7 +3,7 @@ import Notfound from './routes/Notfound';
 import ErrorBoundary from './ErrorBoundary';
 import Register from './routes/Register';
 import Login from './routes/Login';
-import ForgetPassword from './routes/ForgetPassword';
+import ForgotPassword from './routes/ForgotPassword';
 import ResetPassword from './routes/ResetPassword';
 import CreateProfile from './routes/CreateProfile';
 import AddPictures from './routes/AddPictures';
@@ -39,8 +39,8 @@ const routeConfig = [
         element: <Login />,
       },
       {
-        path: '/forgetPassword',
-        element: <ForgetPassword />,
+        path: '/forgotPassword',
+        element: <ForgotPassword />,
       },
       {
         path: '/resetPassword',

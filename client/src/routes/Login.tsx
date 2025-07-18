@@ -117,10 +117,10 @@ export default function Login() {
                 />
                 <div className="mt-2 flex justify-end">
                   <Link
-                    to="/forgetPassword"
+                    to="/forgotPassword"
                     className="text-secondary border-b-2 pb-1 text-sm"
                   >
-                    Forget password
+                    Forgot password
                   </Link>
                 </div>
               </div>

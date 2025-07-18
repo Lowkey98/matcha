@@ -1,6 +1,4 @@
-import express from 'express';
-import type { Request } from 'express';
-
+import express, { Request, Response } from 'express';
 import db from './db.ts';
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
@@ -385,9 +383,30 @@ app.put('/api/updateAccount', async (req, res) => {
   }
 });
 
+// async (req: Request<{}, {}, CreateProfileRequest>, res: Response<CreateProfileResponse>) => {
+
+app.post('/api/sendForgotPasswordMail', async (req: Request<{}, {}, { email: string }>, res: Response<any>) => {
+  const { email } = req.body
+  // const jwtToken =
+  const [row] = await db.execute('SELECT * FROM usersInfo WHERE email = ?', [
+    email,
+  ]);
+  const user = row[0] as UserInfo;
+
+  const token = jwt.sign(
+    { userId: user.id },
+    process.env.JWT_SECRET || 'default_secret',
+    { expiresIn: '7d' },
+  );
+  sendForgotPasswordMail({ to: email, token })
+  // console.log("email", email)
+
+})
+
 app.listen(3000, () => {
   console.log('🚀 Server running at http://localhost:3000');
 });
+
 
 export async function sendVerificationEmail({
   to,
@@ -426,7 +445,53 @@ export async function sendVerificationEmail({
 
   console.log('Email sent:', info.messageId);
 }
+export async function sendForgotPasswordMail({
+  to,
+  token,
+}: {
+  to: string;
+  token: string;
+}) {
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
 
+  const info = await transporter.sendMail({
+    from: `"Matcha Team" <${process.env.EMAIL_USER}>`,
+    to,
+    subject: 'Reset Your Password',
+    html: `
+    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 8px; background: #fafafa;">
+            <img src="/logo.svg" alt="logo" className="mx-5 w-42" />
+<h2 style="color: #ff4081; text-align: center; margin-bottom: 20px;">Matcha</h2>
+      <p style="font-size: 16px; line-height: 1.5; text-align: center;">
+        We received a request to reset your password. Click the button below to change it:
+      </p>
+      <div style="text-align: center; margin: 30px 0;">
+        <a 
+          href="http://localhost:3000/api/changePassword?token=${token}" 
+          style="display: inline-block; padding: 12px 24px; background-color: #ff4081; color: #fff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;"
+        >
+          Reset Password
+        </a>
+      </div>
+      <p style="font-size: 14px; color: #777; text-align: center;">
+        If you didn’t request this, you can safely ignore this email.
+      </p>
+      <p style="font-size: 14px; color: #777; text-align: center; margin-top: 40px;">
+        — The Matcha Team
+      </p>
+    </div>
+  `,
+  });
+
+
+  console.log('Email sent:', info.messageId);
+}
 async function startServer() {
   app.listen(3000, () => {
     console.log('🚀 Server running at http://localhost:3000');
