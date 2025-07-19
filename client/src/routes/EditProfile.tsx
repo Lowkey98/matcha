@@ -27,6 +27,7 @@ export default function Settings() {
   const [interests, setInterests] = useState<string[]>([]);
   const [biography, setBiography] = useState<string>('');
   const [location, setLocation] = useState<UserLocation | null>(null);
+  const [loaderLocation, setLoaderLocation] = useState<boolean>(false);
   const [formTrail, setFormTrial] = useState<boolean>(false);
   const errorAge = isValidAge(Number(age));
   const errorGender = isValidGender(gender);
@@ -37,10 +38,7 @@ export default function Settings() {
     Array(5).fill(undefined);
   useEffect(() => {
     if (user) {
-      if (user.location) {
-        const parsedUserLocation: UserLocation = JSON.parse(user.location);
-        setLocation(parsedUserLocation);
-      }
+      if (user.location) setLocation(user.location);
     }
   }, [user]);
 
@@ -117,6 +115,8 @@ export default function Settings() {
                     className="xl:w-[48%]"
                     location={location}
                     setLocation={setLocation}
+                    loaderLocation={loaderLocation}
+                    setLoaderLocation={setLoaderLocation}
                   />
                 ) : null}
               </div>

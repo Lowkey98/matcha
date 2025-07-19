@@ -11,6 +11,7 @@ export type CreateProfileBase = {
   sexualPreference: string;
   biography: string;
   interests: string[];
+  location: UserLocation;
 };
 export type UserInfo = UserInfoBase & {
   age?: number;
@@ -19,7 +20,7 @@ export type UserInfo = UserInfoBase & {
   biography?: string;
   interests?: string[];
   imagesUrls?: string[];
-  location?: string;
+  location?: UserLocation;
 };
 
 export type LoginRequest = {

@@ -5,7 +5,6 @@ import type {
   RegisterRequest,
   UserInfo,
   UserInfoBase,
-  UserLocation,
 } from '../shared/types';
 
 const HOST: string = 'http://localhost:3000';
@@ -125,28 +124,6 @@ export async function getUserInfo({
     });
     const jsonResponse = await response.json();
     return jsonResponse as UserInfo;
-  } catch (error) {
-    throw error;
-  }
-}
-
-export async function addUserLocation({
-  userLocation,
-  token,
-}: {
-  userLocation: UserLocation;
-  token: string;
-}) {
-  try {
-    const response = await fetch(`${HOST}/api/addUserLocation`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(userLocation),
-    });
-    return;
   } catch (error) {
     throw error;
   }

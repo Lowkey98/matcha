@@ -18,7 +18,7 @@ export default function AddPictures() {
   const uploadedBuffersPictures: string[] = Array(5).fill(undefined);
   // get data from navigate state
   const navigate = useNavigate();
-  const location = useLocation();
+  const locationRoutes = useLocation();
   const { addToast } = useToast();
 
   function handleClickDone() {
@@ -26,8 +26,9 @@ export default function AddPictures() {
       isValidAddedProfilePicture(uploadedBuffersPictures);
 
     if (!errorCheckUploadedPictures) {
-      const { age, gender, sexualPreference, interests, biography } =
-        location.state || {};
+      const { age, gender, sexualPreference, interests, biography, location } =
+        locationRoutes.state || {};
+
       const token = localStorage.getItem('token');
       if (!token) return;
       const userProfileInfo: CreateProfileRequest = {
@@ -37,6 +38,7 @@ export default function AddPictures() {
         interests,
         biography,
         uploadedBuffersPictures,
+        location,
         token,
       };
 

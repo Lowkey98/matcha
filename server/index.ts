@@ -66,6 +66,7 @@ app.post(
         interests,
         biography,
         uploadedBuffersPictures,
+        location,
       } = req.body;
       if (
         !!isValidAge(age) ||
@@ -109,6 +110,7 @@ app.post(
         sexual_preference = ?,
         interests = ?,
         biography = ?,
+        location = ?,
         images_urls = ?
         WHERE id = ?
 
@@ -119,6 +121,7 @@ app.post(
           sexualPreference,
           interests,
           biography,
+          location,
           imagesUrls,
           decoded.userId,
         ],
@@ -268,33 +271,6 @@ app.post('/api/login', async (req: Request<{}, {}, LoginRequest>, res) => {
   }
 });
 
-app.post('/api/addUserLocation', async (req: Request<{}, {}, string>, res) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) {
-    res.status(401).json({ error: 'Unauthorized' });
-    return;
-  }
-  try {
-    const userLocation = req.body;
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET || 'default_secret',
-    ) as { userId: string };
-
-    await db.execute(`UPDATE usersInfo SET location = ? WHERE id = ?`, [
-      userLocation,
-      decoded.userId,
-    ]);
-
-    res.status(201);
-    return;
-  } catch (err) {
-    console.error('Error in /api/addUserLocation:', err);
-    res.status(500).json({ error: 'Internal server error' });
-    return;
-  }
-});
-
 app.get('/api/verify', async (req, res) => {
   try {
     const { token } = req.query;
@@ -350,6 +326,7 @@ app.get('/api/me', async (req, res) => {
     res.status(404).json({ error: 'User not found' });
     return;
   }
+
   const userInfo: UserInfo = {
     id: user.id,
     email: user.email,
@@ -362,7 +339,8 @@ app.get('/api/me', async (req, res) => {
     interests: user['interests'],
     biography: user['biography'],
     imagesUrls: user['images_urls'],
-    location: user['location'],
+    location:
+      typeof user['location'] === 'string' && JSON.parse(user['location']),
   };
   res.json(userInfo);
   return;
