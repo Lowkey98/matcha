@@ -23,8 +23,10 @@ export default function Explore() {
       <Helmet>
         <title>Matcha - Explore</title>
       </Helmet>
-      <main className="mb-21 flex h-1/2 flex-1 pt-5 lg:mb-5 lg:ml-57 [:has(&)]:flex [:has(&)]:h-full [:has(&)]:w-full [:has(&)]:flex-1 [:has(&)]:flex-col">
-        <ProfileSlider className="lg:w-lg xl:w-[30vw]" />
+      <main className="mb-21 flex h-1/2 flex-1 pt-5 lg:mb-0 lg:ml-57 lg:items-center lg:justify-center lg:py-5 [:has(&)]:flex [:has(&)]:h-full [:has(&)]:w-full [:has(&)]:flex-1 [:has(&)]:flex-col">
+        <div className="lg:h-[40rem] 2xl:h-[45rem]">
+          <ProfileSlider className="lg:w-[27rem] 2xl:w-[30rem]" />
+        </div>
       </main>
     </>
   );

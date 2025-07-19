@@ -11,7 +11,7 @@ export default function SidebarDesktop({
 }) {
   return (
     <div
-      className={`border-grayDark-100 fixed top-0 flex h-screen flex-col border-r pt-5 [:has(&)]:lg:!pl-0 ${className}`}
+      className={`border-grayDark-100 fixed top-0 flex h-screen flex-col border-r 2xl:border-l pt-5 [:has(&)]:lg:!pl-0 ${className}`}
     >
       <img src="/logo.svg" alt="logo" className="mx-5 w-42" />
       <div className="flex grow flex-col justify-center gap-11">
