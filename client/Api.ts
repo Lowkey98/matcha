@@ -5,9 +5,25 @@ import type {
   RegisterRequest,
   UserInfo,
   UserInfoBase,
+  UserLocation,
 } from '../shared/types';
 
 const HOST: string = 'http://localhost:3000';
+
+export async function getAddress({
+  latitude,
+  longitude,
+}: {
+  latitude: number;
+  longitude: number;
+}): Promise<string> {
+  const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`;
+  const response = await fetch(url);
+  if (response.ok) {
+    const jsonResponse = await response.json();
+    return `${jsonResponse.address.neighbourhood}, ${jsonResponse.address.city}`;
+  } else throw 'Error converting latitude longitude to address';
+}
 
 export async function register({
   registeredUser,
@@ -109,6 +125,28 @@ export async function getUserInfo({
     });
     const jsonResponse = await response.json();
     return jsonResponse as UserInfo;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function addUserLocation({
+  userLocation,
+  token,
+}: {
+  userLocation: UserLocation;
+  token: string;
+}) {
+  try {
+    const response = await fetch(`${HOST}/api/addUserLocation`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(userLocation),
+    });
+    return;
   } catch (error) {
     throw error;
   }

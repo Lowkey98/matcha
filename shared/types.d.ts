@@ -19,6 +19,7 @@ export type UserInfo = UserInfoBase & {
   biography?: string;
   interests?: string[];
   imagesUrls?: string[];
+  location?: string;
 };
 
 export type LoginRequest = {
@@ -37,4 +38,10 @@ export type CreateProfileRequest = CreateProfileBase & {
 
 export type CreateProfileResponse = CreateProfileBase & {
   imagesUrls: string[];
+};
+
+export type UserLocation = {
+  address: string;
+  latitude: number;
+  longitude: number;
 };

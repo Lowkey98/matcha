@@ -1,6 +1,6 @@
 import { Helmet } from 'react-helmet';
 import InputFormField from '../components/FormFields/InputFormField';
-import { useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import {
   isValidAge,
   isValidBiography,
@@ -16,39 +16,34 @@ import LocationFormField from '../components/FormFields/LocationFormField';
 import UploadImage from '../components/UploadImage';
 import ButtonPrimary from '../components/Buttons/ButtonPrimary';
 import ButtonSecondary from '../components/Buttons/ButtonSecondary';
+import { UserContext } from '../context/UserContext';
+import { UserLocation } from '../../../shared/types';
 
 export default function Settings() {
+  const { user } = useContext(UserContext);
   const [age, setAge] = useState<string>('');
   const [gender, setGender] = useState<string>('');
   const [sexualPreference, setSexualPreference] = useState<string>('');
   const [interests, setInterests] = useState<string[]>([]);
   const [biography, setBiography] = useState<string>('');
-  const [location, setLocation] = useState<string>('');
+  const [location, setLocation] = useState<UserLocation | null>(null);
   const [formTrail, setFormTrial] = useState<boolean>(false);
-  const errorAge = isValidAge(age);
+  const errorAge = isValidAge(Number(age));
   const errorGender = isValidGender(gender);
   const errorSexualPreference = isValidSexualPreference(sexualPreference);
   const errorInterests = isValidInterests(interests);
   const errorBiography = isValidBiography(biography);
   const uploadedBuffersPictures: (string | undefined)[] =
     Array(5).fill(undefined);
-  function handleClickNextCreateProfile() {
-    let errorForm: boolean = false;
-    if (
-      errorAge ||
-      errorGender ||
-      errorSexualPreference ||
-      errorInterests ||
-      errorBiography
-    ) {
-      setFormTrial(true);
-      errorForm = true;
+  useEffect(() => {
+    if (user) {
+      if (user.location) {
+        const parsedUserLocation: UserLocation = JSON.parse(user.location);
+        setLocation(parsedUserLocation);
+      }
     }
+  }, [user]);
 
-    if (!errorForm) {
-      console.log(age, gender, sexualPreference, interests, biography);
-    }
-  }
   return (
     <>
       <Helmet>
@@ -117,10 +112,13 @@ export default function Settings() {
                   className="xl:w-[48%]"
                   required
                 />
-                <LocationFormField
-                  className="xl:w-[48%]"
-                  setLocationValue={setLocation}
-                />
+                {location ? (
+                  <LocationFormField
+                    className="xl:w-[48%]"
+                    location={location}
+                    setLocation={setLocation}
+                  />
+                ) : null}
               </div>
             </div>
             <div className="border-grayDark-100 border-t lg:border-t-0 lg:border-r"></div>
