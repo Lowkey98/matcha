@@ -13,7 +13,9 @@ import type {
   CreateProfileRequest,
   LoginRequest,
   RegisterRequest,
+  UpdatedUserProfileInfos,
   UserInfo,
+  UserInfoBase,
 } from '../shared/types.ts';
 import {
   isValidAge,
@@ -46,6 +48,7 @@ app.get('/api/ping', (_req, res) => {
 
 import { fileURLToPath } from 'url';
 
+export const BACKEND_STATIC_FOLDER = 'http://localhost:3000/';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -340,50 +343,155 @@ app.get('/api/me', async (req, res) => {
   return;
 });
 
-app.put('/api/updateAccount', async (req, res) => {
-  try {
-    const { id, username, email, firstName, lastName } =
-      req.body.updatedUserAccountInfo;
-    if (!email || !username || !firstName || !lastName) {
-      res.status(400).json({
-        error: 'Email, username, firstName, lastName are required',
+app.put(
+  '/api/updateAccount',
+  async (req: Request<{}, {}, UserInfoBase>, res) => {
+    try {
+      const { id, username, email, firstName, lastName } = req.body;
+      if (!email || !username || !firstName || !lastName) {
+        res.status(400).json({
+          error: 'Email, username, firstName, lastName are required',
+        });
+        return;
+      }
+
+      // Check if email or username exists
+      const [rows] = await db.execute(
+        'SELECT username FROM usersInfo WHERE (username = ?) AND id != ?',
+        [username, id],
+      );
+
+      const userRows = rows as UserInfoFromDB[];
+      const usernameExists = userRows.some(
+        (row: UserInfoFromDB) => row.username === username,
+      );
+
+      if (usernameExists) {
+        res.status(409).json({
+          usernameAlreadyExists: usernameExists,
+        });
+        return;
+      }
+      // Update user into DB
+      await db.execute(
+        `UPDATE usersInfo SET email = ?, username = ?, first_name = ?, last_name = ? WHERE id = ?`,
+        [email, username, firstName, lastName, id],
+      );
+
+      res.status(201).json({
+        message: 'Your account information has been updated successfully',
       });
       return;
-    }
-
-    // Check if email or username exists
-    const [rows] = await db.execute(
-      'SELECT username FROM usersInfo WHERE (username = ?) AND id != ?',
-      [username, id],
-    );
-
-    const userRows = rows as UserInfoFromDB[];
-    const usernameExists = userRows.some(
-      (row: UserInfoFromDB) => row.username === username,
-    );
-
-    if (usernameExists) {
-      res.status(409).json({
-        usernameAlreadyExists: usernameExists,
-      });
+    } catch (err) {
+      console.error('Update error:', err);
+      res.status(500).json({ error: 'Internal server error.' });
       return;
     }
-    // Update user into DB
-    await db.execute(
-      `UPDATE usersInfo SET email = ?, username = ?, first_name = ?, last_name = ? WHERE id = ?`,
-      [email, username, firstName, lastName, id],
-    );
+  },
+);
 
-    res.status(201).json({
-      message: 'Your account information has been updated successfully',
-    });
-    return;
-  } catch (err) {
-    console.error('Update error:', err);
-    res.status(500).json({ error: 'Internal server error.' });
-    return;
-  }
-});
+app.put(
+  '/api/updateProfile',
+  async (
+    req: Request<{}, {}, UpdatedUserProfileInfos & { token: string }>,
+    res,
+  ) => {
+    try {
+      const {
+        id,
+        age,
+        gender,
+        sexualPreference,
+        biography,
+        interests,
+        imagesUrls,
+        token,
+      } = req.body;
+      if (
+        !age ||
+        !gender ||
+        !sexualPreference ||
+        !biography ||
+        !interests ||
+        !imagesUrls
+      ) {
+        res.status(400).json({
+          error:
+            'Age, gender, sexualPreference, interests, imagesUrls are required',
+        });
+        return;
+      }
+      const decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET || 'default_secret',
+      ) as { userId: string };
+      const [row] = await db.execute(
+        'SELECT images_urls FROM usersInfo WHERE id = ?',
+        [id],
+      );
+      const imagesUrlsFromDb = row[0]['images_urls'] as string[];
+
+      imagesUrlsFromDb.forEach((imageUrlFromDb) => {
+        const imageUrlExistsInImagesUrls = imagesUrls.find((imageUrl) => {
+          return (
+            imageUrl.includes(BACKEND_STATIC_FOLDER) &&
+            imageUrl.replace(BACKEND_STATIC_FOLDER, '') === imageUrlFromDb
+          );
+        });
+        if (!imageUrlExistsInImagesUrls) {
+          if (fs.existsSync(imageUrlFromDb)) fs.unlinkSync(imageUrlFromDb);
+        }
+      });
+      let imagesUrlsToDb = [];
+      imagesUrls.map((buffer, index) => {
+        let filepath: string | null = null;
+        if (!buffer.includes(BACKEND_STATIC_FOLDER)) {
+          const parts = buffer.split(',');
+          const header = parts[0];
+          const base64Data = parts[1];
+          const ext = header.split('/')[1].split(';')[0];
+
+          const filename = `picture-${Date.now()}-${index}.${ext}`;
+          filepath = path.join(`./uploads/${decoded.userId}`, filename);
+
+          fs.writeFileSync(filepath, Buffer.from(base64Data, 'base64'));
+          imagesUrlsToDb.push(filepath);
+        } else {
+          filepath = buffer;
+          imagesUrlsToDb.push(filepath.replace(BACKEND_STATIC_FOLDER, ''));
+        }
+      });
+
+      // Update user profile info into DB
+      await db.execute(
+        `UPDATE usersInfo SET age = ?, gender = ?, sexual_preference = ?, biography = ?, interests = ?, images_urls = ?  WHERE id = ?`,
+        [
+          age,
+          gender,
+          sexualPreference,
+          biography,
+          interests,
+          imagesUrlsToDb,
+          id,
+        ],
+      );
+
+      res.status(201).json({
+        age,
+        gender,
+        sexualPreference,
+        biography,
+        interests,
+        imagesUrls: imagesUrlsToDb,
+      });
+      return;
+    } catch (err) {
+      console.error('Update error:', err);
+      res.status(500).json({ error: 'Internal server error.' });
+      return;
+    }
+  },
+);
 
 app.listen(3000, () => {
   console.log('🚀 Server running at http://localhost:3000');

@@ -1,6 +1,6 @@
 import { Helmet } from 'react-helmet';
 import InputFormField from '../components/FormFields/InputFormField';
-import { useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import {
   isValidAge,
   isValidBiography,
@@ -9,46 +9,145 @@ import {
   isValidSexualPreference,
 } from '../../../shared/Helpers';
 import DropdownFormField from '../components/FormFields/DropdownFormField';
-import { genders, interestsItems, sexualPreferences } from './CreateProfile';
+import CreateProfile, {
+  genders,
+  interestsItems,
+  sexualPreferences,
+} from './CreateProfile';
 import MultiSelect from '../components/FormFields/MultiSelect';
 import TextAreaFormField from '../components/FormFields/TextAreaFormField';
 import LocationFormField from '../components/FormFields/LocationFormField';
-import UploadImage from '../components/UploadImage';
+import { ButtonAddImage, EditedUploadImage } from '../components/UploadImage';
 import ButtonPrimary from '../components/Buttons/ButtonPrimary';
 import ButtonSecondary from '../components/Buttons/ButtonSecondary';
+import { UserContext } from '../context/UserContext';
+import { UpdatedUserProfileInfos } from '../../../shared/types';
+import { useToast } from '../hooks/useToast';
+import { updateUserProfileInfos } from '../../Api';
+import { BACKEND_STATIC_FOLDER } from '../components/ImagesCarousel';
 
 export default function Settings() {
+  const { user, setUser } = useContext(UserContext);
   const [age, setAge] = useState<string>('');
   const [gender, setGender] = useState<string>('');
   const [sexualPreference, setSexualPreference] = useState<string>('');
   const [interests, setInterests] = useState<string[]>([]);
   const [biography, setBiography] = useState<string>('');
   const [location, setLocation] = useState<string>('');
+  const [imagesUrls, setImagesUrls] = useState<string[]>([]);
   const [formTrail, setFormTrial] = useState<boolean>(false);
-  const errorAge = isValidAge(age);
+  const { addToast } = useToast();
+  const errorAge = isValidAge(Number(age));
   const errorGender = isValidGender(gender);
   const errorSexualPreference = isValidSexualPreference(sexualPreference);
   const errorInterests = isValidInterests(interests);
   const errorBiography = isValidBiography(biography);
-  const uploadedBuffersPictures: (string | undefined)[] =
-    Array(5).fill(undefined);
-  function handleClickNextCreateProfile() {
-    let errorForm: boolean = false;
-    if (
-      errorAge ||
-      errorGender ||
-      errorSexualPreference ||
-      errorInterests ||
-      errorBiography
-    ) {
-      setFormTrial(true);
-      errorForm = true;
-    }
 
-    if (!errorForm) {
-      console.log(age, gender, sexualPreference, interests, biography);
+  function handleClickSaveUserProfileInfos() {
+    if (user) {
+      setFormTrial(true);
+      if (
+        errorAge ||
+        errorGender ||
+        errorSexualPreference ||
+        errorInterests ||
+        errorBiography
+      )
+        return;
+      const defaultValues: UpdatedUserProfileInfos = {
+        id: user.id,
+        age: Number(user.age),
+        gender: user.gender || '',
+        sexualPreference: user.sexualPreference || '',
+        biography: user.biography || '',
+        interests: user.interests || [],
+        imagesUrls: user.imagesUrls || [],
+      };
+      const updatedImagesUrlsWithoutHostName = imagesUrls.map((imageUrl) => {
+        if (imageUrl.includes(BACKEND_STATIC_FOLDER))
+          return imageUrl.replace(BACKEND_STATIC_FOLDER, '');
+      });
+      const updatedUserProfileInfos: UpdatedUserProfileInfos = {
+        id: user.id,
+        age: Number(age),
+        gender,
+        sexualPreference,
+        biography,
+        interests,
+        imagesUrls,
+      };
+      const userProfileInfosChanged =
+        JSON.stringify(defaultValues, Object.keys(defaultValues).sort()) !==
+        JSON.stringify(
+          {
+            ...updatedUserProfileInfos,
+            imagesUrls: updatedImagesUrlsWithoutHostName,
+          },
+          Object.keys({
+            ...updatedUserProfileInfos,
+            imagesUrls: updatedImagesUrlsWithoutHostName,
+          }).sort(),
+        );
+      if (userProfileInfosChanged) {
+        const token = localStorage.getItem('token');
+        if (token) {
+          updateUserProfileInfos({
+            updatedUserProfileInfos: { ...updatedUserProfileInfos, token },
+          })
+            .then(
+              (updatedUserProfileInfosResponse: UpdatedUserProfileInfos) => {
+                setUser({
+                  ...user,
+                  ...updatedUserProfileInfosResponse,
+                });
+                addToast({
+                  status: 'success',
+                  message: 'Your profile information updated successfully.',
+                });
+              },
+            )
+            .catch((error) => {
+              const errorMessage = error.error;
+              addToast({
+                status: 'error',
+                message: errorMessage,
+              });
+            });
+        }
+      }
     }
   }
+  function handleClickCancel() {
+    if (user) {
+      setAge(String(user.age));
+      setGender(user.gender || '');
+      setSexualPreference(user.sexualPreference || '');
+      setBiography(user.biography || '');
+      setInterests(user.interests || []);
+      if (user.imagesUrls) {
+        const imageUrlsWithHostName: string[] = user.imagesUrls.map(
+          (imageUrl) => `${BACKEND_STATIC_FOLDER}${imageUrl}`,
+        );
+        setImagesUrls(imageUrlsWithHostName);
+      }
+    }
+  }
+
+  useEffect(() => {
+    if (user) {
+      setAge(String(user.age));
+      setGender(user.gender || '');
+      setSexualPreference(user.sexualPreference || '');
+      setBiography(user.biography || '');
+      setInterests(user.interests || []);
+      if (user.imagesUrls) {
+        const imageUrlsWithHostName: string[] = user.imagesUrls.map(
+          (imageUrl) => `${BACKEND_STATIC_FOLDER}${imageUrl}`,
+        );
+        setImagesUrls(imageUrlsWithHostName);
+      }
+    }
+  }, [user]);
   return (
     <>
       <Helmet>
@@ -73,6 +172,7 @@ export default function Settings() {
                   errorInput={errorAge}
                   formTrail={formTrail}
                   className="xl:w-[48%]"
+                  defaultValue={age}
                   required
                 />
                 <DropdownFormField
@@ -106,6 +206,7 @@ export default function Settings() {
                   errorTextArea={errorBiography}
                   formTrail={formTrail}
                   className="xl:w-[48%]"
+                  defaultValue={biography}
                   required
                 />
                 <MultiSelect
@@ -126,19 +227,27 @@ export default function Settings() {
             <div className="border-grayDark-100 border-t lg:border-t-0 lg:border-r"></div>
             <div className="lg:flex-1">
               <div className="flex flex-wrap gap-[5%] gap-y-6">
-                {[...uploadedBuffersPictures].map((__, index) => (
-                  <UploadImage
-                    key={index}
-                    uploadedBuffersPictures={uploadedBuffersPictures}
-                    indexImage={index}
-                    className="lg:w-[47.5%]"
-                  />
-                ))}
-                <UploadImage
-                  uploadedBuffersPictures={uploadedBuffersPictures}
-                  indexImage={uploadedBuffersPictures.length}
-                  className="lg:w-[47.5%]"
-                />
+                {imagesUrls.length ? (
+                  <>
+                    {imagesUrls.map((imageUrl: string, index) => {
+                      return (
+                        <EditedUploadImage
+                          key={index}
+                          imagesUrls={imagesUrls}
+                          setImagesUrls={setImagesUrls}
+                          indexImage={index}
+                          defaultValue={imageUrl}
+                          className="lg:w-[47.5%]"
+                        />
+                      );
+                    })}
+                    <ButtonAddImage
+                      imagesUrls={imagesUrls}
+                      setImagesUrls={setImagesUrls}
+                      className="lg:w-[47.5%]"
+                    />
+                  </>
+                ) : null}
               </div>
             </div>
           </div>
@@ -147,11 +256,13 @@ export default function Settings() {
               type="submit"
               value="Save"
               className="w-full lg:w-38"
+              onClick={handleClickSaveUserProfileInfos}
             />
             <ButtonSecondary
               type="button"
               value="Cancel"
               className="w-full lg:w-38"
+              onClick={handleClickCancel}
             />
           </div>
         </form>
