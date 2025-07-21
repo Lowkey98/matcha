@@ -38,3 +38,8 @@ export type CreateProfileRequest = CreateProfileBase & {
 export type CreateProfileResponse = CreateProfileBase & {
   imagesUrls: string[];
 };
+
+export type Sort = {
+  name: string;
+  sort: 'asc' | 'desc';
+};
