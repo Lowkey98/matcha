@@ -1,4 +1,4 @@
-import { ExclamationIcon } from "../Icons";
+import { ExclamationIcon } from '../Icons';
 export default function TextAreaFormField({
   label,
   placeholder,
@@ -6,6 +6,7 @@ export default function TextAreaFormField({
   setTextAreaValue,
   errorTextArea,
   formTrail,
+  defaultValue,
   required,
 }: {
   label: string;
@@ -14,6 +15,7 @@ export default function TextAreaFormField({
   setTextAreaValue: React.Dispatch<React.SetStateAction<string>>;
   errorTextArea: string | null;
   formTrail: boolean;
+  defaultValue?: string;
   required?: boolean;
 }) {
   function handleChangeTextAreaValue(
@@ -28,12 +30,13 @@ export default function TextAreaFormField({
         {required ? <span className="text-redLight ml-0.5">*</span> : null}
       </label>
       <div
-        className={`relative mt-2 rounded-lg border-2 ${formTrail && errorTextArea ? "border-redLight pr-3" : "border-secondary"}`}
+        className={`relative mt-2 rounded-lg border-2 ${formTrail && errorTextArea ? 'border-redLight pr-3' : 'border-secondary'}`}
       >
         <textarea
           className="text-secondary h-32 w-full p-3 outline-none placeholder:text-sm placeholder:text-gray-300"
           placeholder={placeholder}
           onChange={handleChangeTextAreaValue}
+          value={defaultValue}
         ></textarea>
         {formTrail && errorTextArea && (
           <ExclamationIcon className="fill-redLight absolute top-3 right-3 h-5 w-5" />

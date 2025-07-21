@@ -43,3 +43,6 @@ export type Sort = {
   name: string;
   sort: 'asc' | 'desc';
 };
+export type UpdatedUserProfileInfos = CreateProfileResponse & {
+  id: string;
+};

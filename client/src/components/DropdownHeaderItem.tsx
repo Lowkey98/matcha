@@ -16,8 +16,6 @@ export default function DropdownNavItem({
     setShowItems(!showItems);
   }
 
-  console.log('user:', user);
-
   return (
     <div className="relative">
       <button
