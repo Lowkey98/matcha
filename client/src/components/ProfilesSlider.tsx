@@ -1,6 +1,5 @@
 import useEmblaCarousel from 'embla-carousel-react';
-import { useCallback, useContext, useEffect, useState } from 'react';
-import Autoplay from 'embla-carousel-autoplay';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
@@ -8,7 +7,6 @@ import {
   ArrowSortUp,
   CloseIcon,
   FilterIcon,
-  LocationIcon,
   LocationOutlineIcon,
   SortIcon,
   StarIcon,
@@ -16,14 +14,12 @@ import {
 import { Link } from 'react-router-dom';
 import { Sort } from '../../../shared/types';
 import { SortsContext } from '../context/SortsContext';
-import ButtonPrimary from './Buttons/ButtonPrimary';
-import ButtonSecondary from './Buttons/ButtonSecondary';
 
 export default function ProfileSlider({ className }: { className?: string }) {
-  const [isPaused, setIsPaused] = useState<boolean>(false);
+  const [, setIsPaused] = useState<boolean>(false);
   const [emblaRef, emblaApi] = useEmblaCarousel();
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [scrollSnaps, setScrollSnaps] = useState<number[]>([]);
+  const [, setSelectedIndex] = useState(0);
+  const [, setScrollSnaps] = useState<number[]>([]);
   const [showSort, setShowSort] = useState<boolean>(false);
   const [showFilter, setShowFilter] = useState<boolean>(false);
 
@@ -75,7 +71,6 @@ export default function ProfileSlider({ className }: { className?: string }) {
           ))}
         </div>
       </div>
-
       <div className="absolute top-0 -right-18 hidden lg:block">
         <button
           type="button"
@@ -167,7 +162,7 @@ function SortDesktop({
     setShowSort(false);
   }
   return (
-    <div className="text-secondary absolute top-0 -right-3 hidden w-70 rounded-lg border-2 bg-white pt-3 lg:block 2xl:-right-91">
+    <div className="text-secondary border-secondary absolute top-0 -right-3 hidden w-70 rounded-lg border-2 bg-white pt-3 lg:block 2xl:-right-91">
       <div className="flex items-center justify-between px-3 pb-3">
         <span className="font-medium">Sort by</span>
         <button
@@ -175,7 +170,7 @@ function SortDesktop({
           className="cursor-pointer"
           onClick={handleClickClose}
         >
-          <CloseIcon className="size-3.5" />
+          <CloseIcon className="fill-secondary size-3.5" />
         </button>
       </div>
       <div className="bg-grayDark-100 h-0.5" />
@@ -184,16 +179,11 @@ function SortDesktop({
           <SortCard key={index} sortInfo={sort} />
         ))}
       </div>
-      <div className="bg-grayDark-100 h-0.5" />
-      <div className="flex items-center justify-end gap-2 px-3 py-5 text-sm">
-        <ButtonSecondary type="button" value="Cancel" className="!h-9 w-22" />
-        <ButtonPrimary type="button" value="Apply" className="!h-9 w-22" />
-      </div>
     </div>
   );
 }
 
-function SortCard({ sortInfo }: { sortInfo: Sort }) {
+export function SortCard({ sortInfo }: { sortInfo: Sort }) {
   const { sorts, setSorts } = useContext(SortsContext);
   function handleClickAsc() {
     if (sortInfo.sort === 'desc') {
