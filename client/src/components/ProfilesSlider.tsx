@@ -38,11 +38,11 @@ export default function ProfileSlider({ className }: { className?: string }) {
 
   function handleClickSort() {
     setShowSort(!showSort);
-    // setShowFilter(false);
+    setShowFilter(false);
   }
   function handleClickFilter() {
     setShowFilter(!showFilter);
-    // setShowSort(false);
+    setShowSort(false);
   }
 
   useEffect(() => {

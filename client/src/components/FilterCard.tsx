@@ -5,8 +5,6 @@ import { FiltersContext } from '../context/FiltersContext';
 
 export default function FilterCard({ filterInfo }: { filterInfo: Filter }) {
   const { filters, setFilters } = useContext(FiltersContext);
-  console.log('filters:', filters);
-
   function handleChangeRange(values: number[]) {
     const filtersWithCurrentFilter: Filter[] = filters.map((filter) => {
       if (filter.name === filterInfo.name)
