@@ -3,6 +3,7 @@ import type {
   CreateProfileResponse,
   LoginRequest,
   RegisterRequest,
+  UpdatedUserProfileInfos,
   UserInfo,
   UserInfoBase,
 } from '../shared/types';
@@ -34,9 +35,7 @@ export async function register({
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      ...registeredUser,
-    }),
+    body: JSON.stringify(registeredUser),
   });
 
   if (!response.ok) {
@@ -49,16 +48,12 @@ export async function login({
 }: {
   loggedUserInfo: LoginRequest;
 }): Promise<string> {
-  const { email, password } = loggedUserInfo;
   const response = await fetch(`${HOST}/api/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      email,
-      password,
-    }),
+    body: JSON.stringify(loggedUserInfo),
   });
   if (!response.ok) {
     const error = await response.json();
@@ -101,9 +96,7 @@ export async function updateUserAccount({
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      updatedUserAccountInfo,
-    }),
+    body: JSON.stringify(updatedUserAccountInfo),
   });
   if (!response.ok) {
     const error = await response.json();
@@ -111,6 +104,25 @@ export async function updateUserAccount({
   }
 }
 
+export async function updateUserProfileInfos({
+  updatedUserProfileInfos,
+}: {
+  updatedUserProfileInfos: UpdatedUserProfileInfos & { token: string };
+}) {
+  const response = await fetch(`${HOST}/api/updateProfile`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(updatedUserProfileInfos),
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw error;
+  }
+  const jsonResponse = await response.json();
+  return jsonResponse as UpdatedUserProfileInfos;
+}
 export async function getUserInfo({
   token,
 }: {

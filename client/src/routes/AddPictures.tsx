@@ -1,5 +1,5 @@
 import { Helmet } from 'react-helmet';
-import UploadImage from '../components/UploadImage';
+import { UploadImage } from '../components/UploadImage';
 import ButtonPrimary from '../components/Buttons/ButtonPrimary';
 // import { ToastError } from '../components/ToastError';
 import { useContext, useState } from 'react';

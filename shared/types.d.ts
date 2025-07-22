@@ -46,3 +46,6 @@ export type UserLocation = {
   latitude: number;
   longitude: number;
 };
+export type UpdatedUserProfileInfos = CreateProfileResponse & {
+  id: string;
+};

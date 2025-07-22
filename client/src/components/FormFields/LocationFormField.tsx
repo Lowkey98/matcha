@@ -14,8 +14,8 @@ export default function FormInputField({
   setLoaderLocation,
   className,
 }: {
-  location: UserLocation | null;
-  setLocation: React.Dispatch<React.SetStateAction<UserLocation | null>>;
+  location: UserLocation;
+  setLocation: React.Dispatch<React.SetStateAction<UserLocation>>;
   loaderLocation: boolean;
   setLoaderLocation: React.Dispatch<React.SetStateAction<boolean>>;
   className?: string;
