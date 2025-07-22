@@ -39,10 +39,18 @@ export type CreateProfileResponse = CreateProfileBase & {
   imagesUrls: string[];
 };
 
+export type UpdatedUserProfileInfos = CreateProfileResponse & {
+  id: string;
+};
+
 export type Sort = {
   name: string;
   sort: 'asc' | 'desc';
 };
-export type UpdatedUserProfileInfos = CreateProfileResponse & {
-  id: string;
+
+export type Filter = {
+  name: string;
+  range: number[];
+  min: number;
+  max: number;
 };

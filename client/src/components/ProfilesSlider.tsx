@@ -12,8 +12,10 @@ import {
   StarIcon,
 } from './Icons';
 import { Link } from 'react-router-dom';
-import { Sort } from '../../../shared/types';
+import { Filter, Sort } from '../../../shared/types';
 import { SortsContext } from '../context/SortsContext';
+import FilterCard from './FilterCard';
+import { FiltersContext } from '../context/FiltersContext';
 
 export default function ProfileSlider({ className }: { className?: string }) {
   const [, setIsPaused] = useState<boolean>(false);
@@ -36,6 +38,11 @@ export default function ProfileSlider({ className }: { className?: string }) {
 
   function handleClickSort() {
     setShowSort(!showSort);
+    // setShowFilter(false);
+  }
+  function handleClickFilter() {
+    setShowFilter(!showFilter);
+    // setShowSort(false);
   }
 
   useEffect(() => {
@@ -82,11 +89,13 @@ export default function ProfileSlider({ className }: { className?: string }) {
         <button
           type="button"
           className="border-grayDark-100 mt-4 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full border-2 p-2.5"
+          onClick={handleClickFilter}
         >
           <FilterIcon className="fill-secondary h-6 w-6" />
         </button>
       </div>
       {showSort ? <SortDesktop setShowSort={setShowSort} /> : null}
+      {showFilter ? <FilterDesktop setShowFilter={setShowFilter} /> : null}
 
       {/* Arrows */}
       <button
@@ -233,6 +242,37 @@ export function SortCard({ sortInfo }: { sortInfo: Sort }) {
             className={`size-3 ${sortInfo.sort === 'desc' ? 'fill-white' : 'fill-secondary'}`}
           />
         </button>
+      </div>
+    </div>
+  );
+}
+
+function FilterDesktop({
+  setShowFilter,
+}: {
+  setShowFilter: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
+  const { filters } = useContext(FiltersContext);
+  function handleClickClose() {
+    setShowFilter(false);
+  }
+  return (
+    <div className="text-secondary border-secondary absolute top-16 -right-3 hidden w-80 rounded-lg border-2 bg-white pt-3 lg:block 2xl:-right-101">
+      <div className="flex items-center justify-between px-3 pb-3">
+        <span className="font-medium">Filter by</span>
+        <button
+          type="button"
+          className="cursor-pointer"
+          onClick={handleClickClose}
+        >
+          <CloseIcon className="fill-secondary size-3.5" />
+        </button>
+      </div>
+      <div className="bg-grayDark-100 h-0.5" />
+      <div className="flex flex-col gap-6 px-3 py-3">
+        {filters.map((filter: Filter, index: number) => (
+          <FilterCard key={index} filterInfo={filter} />
+        ))}
       </div>
     </div>
   );
