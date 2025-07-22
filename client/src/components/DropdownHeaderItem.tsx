@@ -20,7 +20,7 @@ export default function DropdownNavItem({
     <div className="relative">
       <button
         type="button"
-        className="border-grayDark-100 flex cursor-pointer items-center justify-between gap-3 rounded-lg border-2 bg-white px-3 py-2 text-left"
+        className="border-grayDark-100 flex cursor-pointer items-center justify-between gap-3 rounded-lg border-2 bg-white px-3 py-1.5 text-left"
         onClick={handleClickDropdownNavItem}
       >
         <div className="flex items-center gap-1">
