@@ -47,27 +47,15 @@ export default function ProfileSlider({ className }: { className?: string }) {
 
   useEffect(() => {
     if (!emblaApi) return;
-
-    setScrollSnaps(emblaApi.scrollSnapList());
-    onSelect();
     emblaApi.on('select', onSelect);
-    emblaApi.on('reInit', () => {
-      setScrollSnaps(emblaApi.scrollSnapList());
-    });
   }, [emblaApi, onSelect]);
 
   return (
-    <div
-      className={`relative h-full rounded-2xl border border-gray-200 shadow-xs ${className}`}
-    >
+    <div className={`relative h-full ${className}`}>
       {/* Embla Carousel */}
       <div
-        className="h-full overflow-hidden rounded-2xl"
+        className="h-full overflow-hidden rounded-2xl border border-gray-200 shadow-xs"
         ref={emblaRef}
-        onMouseMove={() => setIsPaused(true)}
-        onTouchStart={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
-        onTouchEnd={() => setIsPaused(false)}
       >
         <div className="flex h-full">
           {imagesProfilesUrls.map((imageProfileUrl) => (
