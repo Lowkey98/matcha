@@ -1,5 +1,5 @@
 import { createContext } from 'react';
-import { Sort, UserInfo } from '../../../shared/types';
+import { Sort } from '../../../shared/types';
 
 type SortsContextType = {
   sorts: Sort[];

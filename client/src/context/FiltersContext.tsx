@@ -1,5 +1,5 @@
 import { createContext } from 'react';
-import { Filter, Sort, UserInfo } from '../../../shared/types';
+import { Filter } from '../../../shared/types';
 
 type FiltersContextType = {
   filters: Filter[];
