@@ -52,7 +52,11 @@ export default function CreateProfile() {
   const [interests, setInterests] = useState<string[]>([]);
   const [biography, setBiography] = useState<string>('');
   const [formTrail, setFormTrial] = useState<boolean>(false);
-  const [location, setLocation] = useState<UserLocation | null>(null);
+  const [location, setLocation] = useState<UserLocation>({
+    address: '',
+    latitude: 0,
+    longitude: 0,
+  });
   const [loaderLocation, setLoaderLocation] = useState<boolean>(false);
   const { addToast } = useToast();
 
@@ -184,7 +188,6 @@ export default function CreateProfile() {
               className="lg:w-[48%]"
               required
             />
-
             <LocationFormField
               className="lg:w-[48%]"
               loaderLocation={loaderLocation}

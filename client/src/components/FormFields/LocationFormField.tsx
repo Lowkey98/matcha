@@ -5,7 +5,6 @@ import { CloseIcon, LocationIcon, LocationNotExistsIcon } from '../Icons';
 import { Map, Marker } from 'pigeon-maps';
 import { getAddress } from '../../../Api';
 import { useToast } from '../../hooks/useToast';
-import ButtonPrimaryWithIcon from '../Buttons/ButtonPrimaryWithIcon';
 import LoaderDots from '../Loaders';
 export default function FormInputField({
   location,
@@ -20,7 +19,7 @@ export default function FormInputField({
   setLoaderLocation: React.Dispatch<React.SetStateAction<boolean>>;
   className?: string;
 }) {
-  const defaultLocation: [number, number] = location
+  const defaultLocation: [number, number] = location.address.length
     ? [location.latitude, location.longitude]
     : [0, 0];
   const [position, setPosition] = useState<[number, number]>(defaultLocation);
@@ -64,7 +63,7 @@ export default function FormInputField({
           <LocationIcon className="fill-primary h-5 w-5" />
           <LoaderDots dotsClass="bg-primary/50 w-1 h-1" />
         </div>
-      ) : location ? (
+      ) : location.address.length ? (
         <div className="border-grayDark-100 mt-2 flex h-13 items-center justify-between rounded-lg border-2 px-3">
           <div className="flex items-center gap-1">
             <LocationIcon className="fill-primary h-5 w-5" />
@@ -84,7 +83,7 @@ export default function FormInputField({
         </div>
       )}
       {showMap && (
-        <div className="border-secondary relative mt-2 h-96 w-full overflow-hidden rounded-lg border-2">
+        <div className="border-secondary relative mt-2 h-96 w-full overflow-hidden rounded-lg border-2 lg:mb-21">
           <button
             type="button"
             className="border-secondary absolute top-1 right-1 z-[1] cursor-pointer rounded-full border-2 bg-white p-2"

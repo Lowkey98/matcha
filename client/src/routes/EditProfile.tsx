@@ -84,15 +84,26 @@ export default function EditProfile() {
         location,
       };
       const userProfileInfosChanged =
-        JSON.stringify(defaultValues, Object.keys(defaultValues).sort()) !==
+        JSON.stringify(
+          {
+            ...defaultValues,
+            location: JSON.stringify(defaultValues.location),
+          },
+          Object.keys({
+            ...defaultValues,
+            location: JSON.stringify(defaultValues.location),
+          }).sort(),
+        ) !==
         JSON.stringify(
           {
             ...updatedUserProfileInfos,
             imagesUrls: updatedImagesUrlsWithoutHostName,
+            location: JSON.stringify(updatedUserProfileInfos.location),
           },
           Object.keys({
             ...updatedUserProfileInfos,
             imagesUrls: updatedImagesUrlsWithoutHostName,
+            location: JSON.stringify(updatedUserProfileInfos.location),
           }).sort(),
         );
       if (userProfileInfosChanged) {
@@ -137,11 +148,14 @@ export default function EditProfile() {
         );
         setImagesUrls(imageUrlsWithHostName);
       }
+      if (user.location) setLocation(user.location);
     }
   }
 
   useEffect(() => {
     if (user) {
+      console.log(user);
+      
       setAge(String(user.age));
       setGender(user.gender || '');
       setSexualPreference(user.sexualPreference || '');
@@ -153,6 +167,7 @@ export default function EditProfile() {
         );
         setImagesUrls(imageUrlsWithHostName);
       }
+      if (user.location) setLocation(user.location);
     }
   }, [user]);
   return (

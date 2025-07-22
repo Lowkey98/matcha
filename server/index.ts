@@ -116,7 +116,6 @@ app.post(
         location = ?,
         images_urls = ?
         WHERE id = ?
-
       `,
         [
           age,
@@ -134,6 +133,7 @@ app.post(
         gender,
         sexualPreference,
         interests,
+        location,
         biography,
         imagesUrls,
       );
@@ -144,6 +144,7 @@ app.post(
           gender,
           sexualPreference,
           interests,
+          location,
           biography,
           imagesUrls,
         },
@@ -409,6 +410,7 @@ app.put(
         gender,
         sexualPreference,
         biography,
+        location,
         interests,
         imagesUrls,
         token,
@@ -418,12 +420,13 @@ app.put(
         !gender ||
         !sexualPreference ||
         !biography ||
+        !location ||
         !interests ||
         !imagesUrls
       ) {
         res.status(400).json({
           error:
-            'Age, gender, sexualPreference, interests, imagesUrls are required',
+            'Age, gender, sexualPreference, interests, location, imagesUrls are required',
         });
         return;
       }
@@ -470,13 +473,14 @@ app.put(
 
       // Update user profile info into DB
       await db.execute(
-        `UPDATE usersInfo SET age = ?, gender = ?, sexual_preference = ?, biography = ?, interests = ?, images_urls = ?  WHERE id = ?`,
+        `UPDATE usersInfo SET age = ?, gender = ?, sexual_preference = ?, biography = ?, interests = ?, location= ?, images_urls = ?  WHERE id = ?`,
         [
           age,
           gender,
           sexualPreference,
           biography,
           interests,
+          location,
           imagesUrlsToDb,
           id,
         ],
@@ -488,6 +492,7 @@ app.put(
         sexualPreference,
         biography,
         interests,
+        location,
         imagesUrls: imagesUrlsToDb,
       });
       return;

@@ -24,11 +24,9 @@ export default function AddPictures() {
   function handleClickDone() {
     const errorCheckUploadedPictures: string | null =
       isValidAddedProfilePicture(uploadedBuffersPictures);
-
     if (!errorCheckUploadedPictures) {
       const { age, gender, sexualPreference, interests, biography, location } =
         locationRoutes.state || {};
-
       const token = localStorage.getItem('token');
       if (!token) return;
       const userProfileInfo: CreateProfileRequest = {
@@ -38,7 +36,9 @@ export default function AddPictures() {
         interests,
         biography,
         uploadedBuffersPictures,
-        location,
+        location: location.address.length
+          ? location
+          : { address: 'Agdal, Rabat', latitude: 34.0059, longitude: -6.8463 },
         token,
       };
 
