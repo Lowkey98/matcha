@@ -16,6 +16,7 @@ import Profile from './routes/Profile';
 import Notifications from './routes/Notifications';
 import Settings from './routes/Settings';
 import EditProfile from './routes/EditProfile';
+import ProfileUser from './routes/ProfileUser';
 const routeConfig = [
   {
     path: '/',
@@ -77,6 +78,10 @@ const routeConfig = [
       {
         path: '/profile',
         element: <Profile />,
+      },
+      {
+        path: '/profileUser/:userId',
+        element: <ProfileUser />,
       },
       {
         path: '/notifications',

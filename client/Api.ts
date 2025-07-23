@@ -125,3 +125,23 @@ export async function getUserInfo({
     throw error;
   }
 }
+
+export async function getUserInfoWithId({
+  userId,
+  token,
+}: {
+  userId: string;
+  token: string;
+}): Promise<UserInfo> {
+  try {
+    const response = await fetch(`${HOST}/api/user/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const jsonResponse = await response.json();
+    return jsonResponse as UserInfo;
+  } catch (error) {
+    throw error;
+  }
+}

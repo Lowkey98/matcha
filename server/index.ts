@@ -343,6 +343,48 @@ app.get('/api/me', async (req, res) => {
   return;
 });
 
+app.get('/api/user/:userId', async (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  const userId = req.params.userId;
+  if (!token) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
+  } catch (err) {
+    console.error('JWT verification error:', err);
+    res.status(401).json({ error: 'Invalid token' });
+    return;
+  }
+  const [row] = await db.execute('SELECT * FROM usersInfo WHERE id = ?', [
+    userId,
+  ]);
+  const user = row[0] as UserInfo;
+
+  if (!user) {
+    console.error('User not found for token:', token);
+    res.status(404).json({ error: 'User not found' });
+    return;
+  }
+  const userInfo: UserInfo = {
+    id: user.id,
+    email: user.email,
+    username: user.username,
+    firstName: user['first_name'],
+    lastName: user['last_name'],
+    age: user['age'],
+    gender: user['gender'],
+    sexualPreference: user['sexual_preference'],
+    interests: user['interests'],
+    biography: user['biography'],
+    imagesUrls: user['images_urls'],
+  };
+  res.json(userInfo);
+  return;
+});
+
 app.put(
   '/api/updateAccount',
   async (req: Request<{}, {}, UserInfoBase>, res) => {
