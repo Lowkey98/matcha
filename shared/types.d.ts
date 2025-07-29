@@ -23,6 +23,7 @@ export type UserInfo = UserInfoBase & {
 
 export type UserInfoWithRelation = UserInfo & {
   isLike: boolean;
+  isViewProfile: boolean;
   isBlock: boolean;
 };
 

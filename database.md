@@ -33,6 +33,7 @@ id INT AUTO_INCREMENT PRIMARY KEY,
 actor_user_id INT NOT NULL,
 target_user_id INT NOT NULL,
 is_like BOOLEAN DEFAULT FALSE,
+is_view_profile BOOLEAN DEFAULT FALSE,
 is_block BOOLEAN DEFAULT FALSE
 );
 

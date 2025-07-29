@@ -11,7 +11,7 @@ import {
 import { useContext, useEffect, useState } from 'react';
 import { UserContext } from '../context/UserContext';
 import { useParams } from 'react-router-dom';
-import { getUserInfoWithRelation, like, unlike } from '../../Api';
+import { getUserInfoWithRelation, like, unlike, veiwProfile } from '../../Api';
 import { UserInfoWithRelation } from '../../../shared/types';
 import { GenderCard } from './Profile';
 import ButtonLike from '../components/Buttons/ButtonLike';
@@ -29,7 +29,6 @@ export default function ProfileUser() {
         .then(() => {
           setTargetUserInfo({
             ...targetUserInfo,
-            isBlock: false,
             isLike: true,
           });
         })
@@ -50,7 +49,6 @@ export default function ProfileUser() {
         .then(() => {
           setTargetUserInfo({
             ...targetUserInfo,
-            isBlock: false,
             isLike: false,
           });
         })
@@ -69,7 +67,21 @@ export default function ProfileUser() {
         targetUserId: Number(targetUserId),
       })
         .then((targetUser: UserInfoWithRelation) => {
-          setTargetUserInfo(targetUser);
+          if (!targetUser.isViewProfile) {
+            veiwProfile({
+              actorUserId: user.id,
+              targetUserId: Number(targetUserId),
+              token,
+            })
+              .then(() => {
+                setTargetUserInfo({ ...targetUser, isViewProfile: true });
+              })
+              .catch((error) => {
+                console.log('error:', error);
+              });
+          } else {
+            setTargetUserInfo(targetUser);
+          }
         })
         .catch((error) => {
           console.log('error', error);

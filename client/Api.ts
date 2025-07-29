@@ -190,3 +190,23 @@ export async function unlike({
     throw error;
   }
 }
+
+export async function veiwProfile({
+  actorUserId,
+  targetUserId,
+  token,
+}: RelationRequest & { token: string }) {
+  try {
+    await fetch(`${HOST}/api/viewProfile`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ actorUserId, targetUserId }),
+    });
+    return;
+  } catch (error) {
+    throw error;
+  }
+}

@@ -281,10 +281,10 @@ app.post('/api/like', async (req: Request<{}, {}, RelationRequest>, res) => {
   const { actorUserId, targetUserId } = req.body;
   try {
     await db.execute(
-      `INSERT INTO relations (actor_user_id, target_user_id, is_like, is_block)
-   VALUES (?, ?, ?, ?)
+      `INSERT INTO relations (actor_user_id, target_user_id, is_like)
+   VALUES (?, ?, ?)
    ON DUPLICATE KEY UPDATE is_like = VALUES(is_like)`,
-      [actorUserId, targetUserId, true, false],
+      [actorUserId, targetUserId, true],
     );
 
     res.status(201).json({
@@ -305,10 +305,10 @@ app.post('/api/unlike', async (req: Request<{}, {}, RelationRequest>, res) => {
   const { actorUserId, targetUserId } = req.body;
   try {
     await db.execute(
-      `INSERT INTO relations (actor_user_id, target_user_id, is_like, is_block)
-   VALUES (?, ?, ?, ?)
+      `INSERT INTO relations (actor_user_id, target_user_id, is_like)
+   VALUES (?, ?, ?)
    ON DUPLICATE KEY UPDATE is_like = VALUES(is_like)`,
-      [actorUserId, targetUserId, false, false],
+      [actorUserId, targetUserId, false],
     );
 
     res.status(201).json({
@@ -320,6 +320,34 @@ app.post('/api/unlike', async (req: Request<{}, {}, RelationRequest>, res) => {
     return;
   }
 });
+
+app.post(
+  '/api/viewProfile',
+  async (req: Request<{}, {}, RelationRequest>, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+    const { actorUserId, targetUserId } = req.body;
+    try {
+      await db.execute(
+        `INSERT INTO relations (actor_user_id, target_user_id, is_view_profile)
+   VALUES (?, ?, ?)
+   ON DUPLICATE KEY UPDATE is_view_profile = VALUES(is_view_profile)`,
+        [actorUserId, targetUserId, true],
+      );
+
+      res.status(201).json({
+        message: 'view profile applied successfully.',
+      });
+      return;
+    } catch (err) {
+      res.status(500).json({ error: 'Internal server error.' });
+      return;
+    }
+  },
+);
 
 app.get('/api/verify', async (req, res) => {
   try {
@@ -434,6 +462,7 @@ app.get(
       biography: targetUser['biography'],
       imagesUrls: targetUser['images_urls'],
       isLike: false,
+      isViewProfile: false,
       isBlock: false,
     };
     const [rowRelation] = await db.execute(
@@ -446,6 +475,7 @@ app.get(
     if (relation) {
       userInfo.isLike = relation['is_like'];
       userInfo.isBlock = relation['is_block'];
+      userInfo.isViewProfile = relation['is_view_profile'];
     }
     res.json(userInfo);
     return;
