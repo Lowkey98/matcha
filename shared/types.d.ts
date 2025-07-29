@@ -1,5 +1,5 @@
 export type UserInfoBase = {
-  id: string;
+  id: number;
   email: string;
   username: string;
   firstName: string;
@@ -21,6 +21,11 @@ export type UserInfo = UserInfoBase & {
   imagesUrls?: string[];
 };
 
+export type UserInfoWithRelation = UserInfo & {
+  isLike: boolean;
+  isBlock: boolean;
+};
+
 export type LoginRequest = {
   email: string;
   password: string;
@@ -40,5 +45,9 @@ export type CreateProfileResponse = CreateProfileBase & {
 };
 
 export type UpdatedUserProfileInfos = CreateProfileResponse & {
-  id: string;
+  id: number;
+};
+export type RelationRequest = {
+  actorUserId: number;
+  targetUserId: number;
 };

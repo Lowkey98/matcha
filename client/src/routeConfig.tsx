@@ -80,7 +80,7 @@ const routeConfig = [
         element: <Profile />,
       },
       {
-        path: '/profileUser/:userId',
+        path: '/profileUser/:targetUserId',
         element: <ProfileUser />,
       },
       {

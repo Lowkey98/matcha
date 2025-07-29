@@ -13,9 +13,11 @@ import type {
   CreateProfileRequest,
   LoginRequest,
   RegisterRequest,
+  RelationRequest,
   UpdatedUserProfileInfos,
   UserInfo,
   UserInfoBase,
+  UserInfoWithRelation,
 } from '../shared/types.ts';
 import {
   isValidAge,
@@ -270,6 +272,54 @@ app.post('/api/login', async (req: Request<{}, {}, LoginRequest>, res) => {
     res.status(500).json({ error: 'Internal server error.' });
   }
 });
+app.post('/api/like', async (req: Request<{}, {}, RelationRequest>, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  const { actorUserId, targetUserId } = req.body;
+  try {
+    await db.execute(
+      `INSERT INTO relations (actor_user_id, target_user_id, is_like, is_block)
+   VALUES (?, ?, ?, ?)
+   ON DUPLICATE KEY UPDATE is_like = VALUES(is_like)`,
+      [actorUserId, targetUserId, true, false],
+    );
+
+    res.status(201).json({
+      message: 'unlike applied successfully.',
+    });
+    return;
+  } catch (err) {
+    res.status(500).json({ error: 'Internal server error.' });
+    return;
+  }
+});
+app.post('/api/unlike', async (req: Request<{}, {}, RelationRequest>, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  const { actorUserId, targetUserId } = req.body;
+  try {
+    await db.execute(
+      `INSERT INTO relations (actor_user_id, target_user_id, is_like, is_block)
+   VALUES (?, ?, ?, ?)
+   ON DUPLICATE KEY UPDATE is_like = VALUES(is_like)`,
+      [actorUserId, targetUserId, false, false],
+    );
+
+    res.status(201).json({
+      message: 'Like applied successfully.',
+    });
+    return;
+  } catch (err) {
+    res.status(500).json({ error: 'Internal server error.' });
+    return;
+  }
+});
 
 app.get('/api/verify', async (req, res) => {
   try {
@@ -343,47 +393,64 @@ app.get('/api/me', async (req, res) => {
   return;
 });
 
-app.get('/api/user/:userId', async (req, res) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  const userId = req.params.userId;
-  if (!token) {
-    res.status(401).json({ error: 'Unauthorized' });
-    return;
-  }
-  let decoded;
-  try {
-    decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
-  } catch (err) {
-    console.error('JWT verification error:', err);
-    res.status(401).json({ error: 'Invalid token' });
-    return;
-  }
-  const [row] = await db.execute('SELECT * FROM usersInfo WHERE id = ?', [
-    userId,
-  ]);
-  const user = row[0] as UserInfo;
+app.get(
+  '/api/userWithRelation/:actorUserId/:targetUserId',
+  async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    const actorUserId = req.params.actorUserId;
+    const targetUserId = req.params.targetUserId;
+    if (!token) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
+    } catch (err) {
+      console.error('JWT verification error:', err);
+      res.status(401).json({ error: 'Invalid token' });
+      return;
+    }
+    const [row] = await db.execute('SELECT * FROM usersInfo WHERE id = ?', [
+      targetUserId,
+    ]);
+    const targetUser = row[0] as UserInfo;
 
-  if (!user) {
-    console.error('User not found for token:', token);
-    res.status(404).json({ error: 'User not found' });
+    if (!targetUser) {
+      console.error('User not found for token:', token);
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+    const userInfo: UserInfoWithRelation = {
+      id: targetUser.id,
+      email: targetUser.email,
+      username: targetUser.username,
+      firstName: targetUser['first_name'],
+      lastName: targetUser['last_name'],
+      age: targetUser['age'],
+      gender: targetUser['gender'],
+      sexualPreference: targetUser['sexual_preference'],
+      interests: targetUser['interests'],
+      biography: targetUser['biography'],
+      imagesUrls: targetUser['images_urls'],
+      isLike: false,
+      isBlock: false,
+    };
+    const [rowRelation] = await db.execute(
+      'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ?',
+      [Number(actorUserId), Number(targetUserId)],
+    );
+
+    const relation = rowRelation[0];
+
+    if (relation) {
+      userInfo.isLike = relation['is_like'];
+      userInfo.isBlock = relation['is_block'];
+    }
+    res.json(userInfo);
     return;
-  }
-  const userInfo: UserInfo = {
-    id: user.id,
-    email: user.email,
-    username: user.username,
-    firstName: user['first_name'],
-    lastName: user['last_name'],
-    age: user['age'],
-    gender: user['gender'],
-    sexualPreference: user['sexual_preference'],
-    interests: user['interests'],
-    biography: user['biography'],
-    imagesUrls: user['images_urls'],
-  };
-  res.json(userInfo);
-  return;
-});
+  },
+);
 
 app.put(
   '/api/updateAccount',
