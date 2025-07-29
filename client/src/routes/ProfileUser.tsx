@@ -2,6 +2,7 @@ import { Helmet } from 'react-helmet';
 import ImagesCarousel from '../components/ImagesCarousel';
 import {
   AgendaIcon,
+  BlockIcon,
   GenderIcon,
   HearthIcon,
   LocationOutlineIcon,
@@ -10,8 +11,14 @@ import {
 } from '../components/Icons';
 import { useContext, useEffect, useState } from 'react';
 import { UserContext } from '../context/UserContext';
-import { useParams } from 'react-router-dom';
-import { getUserInfoWithRelation, like, unlike, veiwProfile } from '../../Api';
+import { useNavigate, useParams } from 'react-router-dom';
+import {
+  block,
+  getUserInfoWithRelation,
+  like,
+  unlike,
+  veiwProfile,
+} from '../../Api';
 import { UserInfoWithRelation } from '../../../shared/types';
 import { GenderCard } from './Profile';
 import ButtonLike from '../components/Buttons/ButtonLike';
@@ -19,8 +26,10 @@ import ButtonUnlike from '../components/Buttons/ButtonUnlike';
 export default function ProfileUser() {
   const { user } = useContext(UserContext);
   const { targetUserId } = useParams<{ targetUserId: string }>();
+  const naviagte = useNavigate();
   const [targetUserInfo, setTargetUserInfo] =
     useState<UserInfoWithRelation | null>(null);
+  const [showBlockButton, setShowBlockButton] = useState<boolean>(false);
 
   function handleClickLike() {
     const token = localStorage.getItem('token');
@@ -58,6 +67,21 @@ export default function ProfileUser() {
     }
   }
 
+  function handleClikThreeDots() {
+    setShowBlockButton(!showBlockButton);
+  }
+  function handleCLickBlock() {
+    const token = localStorage.getItem('token');
+    if (targetUserInfo && user && targetUserId && token) {
+      block({ actorUserId: user.id, targetUserId: Number(targetUserId), token })
+        .then(() => {
+          naviagte('/explore');
+        })
+        .catch((error) => {
+          console.log('error:', error);
+        });
+    }
+  }
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token && user && targetUserId) {
@@ -67,6 +91,10 @@ export default function ProfileUser() {
         targetUserId: Number(targetUserId),
       })
         .then((targetUser: UserInfoWithRelation) => {
+          if (targetUser.isBlock) {
+            naviagte('/explore');
+            return;
+          }
           if (!targetUser.isViewProfile) {
             veiwProfile({
               actorUserId: user.id,
@@ -88,6 +116,8 @@ export default function ProfileUser() {
         });
     }
   }, [user]);
+
+  if (targetUserInfo?.isBlock) return null;
 
   if (targetUserInfo)
     return (
@@ -122,12 +152,27 @@ export default function ProfileUser() {
                   onClick={handleClickUnlike}
                 />
               )}
-              <button
-                type="button"
-                className="border-grayDark-100 flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-full border-2"
-              >
-                <ThreeDotsIcon className="fill-secondary size-5" />
-              </button>
+              <div className="relative">
+                <button
+                  type="button"
+                  className="border-grayDark-100 flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-full border-2"
+                  onClick={handleClikThreeDots}
+                >
+                  <ThreeDotsIcon className="fill-secondary size-5" />
+                </button>
+                {showBlockButton ? (
+                  <div className="text-secondary border-secondary absolute right-0 -bottom-17 flex w-45 items-center overflow-hidden rounded-lg border-2 bg-white xl:top-0 xl:-right-48 xl:bottom-auto">
+                    <button
+                      type="button"
+                      className="flex w-full cursor-pointer items-center gap-2 p-3 text-left hover:bg-gray-50"
+                      onClick={handleCLickBlock}
+                    >
+                      <BlockIcon className="size-5 fill-red-700" />
+                      Block
+                    </button>
+                  </div>
+                ) : null}
+              </div>
             </div>
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-3">

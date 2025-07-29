@@ -348,6 +348,30 @@ app.post(
     }
   },
 );
+app.post('/api/block', async (req: Request<{}, {}, RelationRequest>, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  const { actorUserId, targetUserId } = req.body;
+  try {
+    await db.execute(
+      `INSERT INTO relations (actor_user_id, target_user_id, is_block)
+   VALUES (?, ?, ?)
+   ON DUPLICATE KEY UPDATE is_block = VALUES(is_block)`,
+      [actorUserId, targetUserId, true],
+    );
+
+    res.status(201).json({
+      message: 'block applied successfully.',
+    });
+    return;
+  } catch (err) {
+    res.status(500).json({ error: 'Internal server error.' });
+    return;
+  }
+});
 
 app.get('/api/verify', async (req, res) => {
   try {
