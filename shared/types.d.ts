@@ -52,3 +52,10 @@ export type RelationRequest = {
   actorUserId: number;
   targetUserId: number;
 };
+
+export type NotificationResponse = {
+  actorUserId: number;
+  actorUserImageUrl: string;
+  actorUsername: string;
+  message: string;
+};

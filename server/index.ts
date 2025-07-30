@@ -6,12 +6,14 @@ import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import nodemailer from 'nodemailer';
 import { randomUUID } from 'crypto';
+import http from 'http';
 import jwt from 'jsonwebtoken';
 
 import dotenv from 'dotenv';
 import type {
   CreateProfileRequest,
   LoginRequest,
+  NotificationResponse,
   RegisterRequest,
   RelationRequest,
   UpdatedUserProfileInfos,
@@ -40,6 +42,7 @@ type UserInfoFromDB = {
 };
 dotenv.config();
 const app = express();
+const server = http.createServer(app);
 app.use(express.json({ limit: '11mb' }));
 app.use(cors());
 app.use(express.urlencoded({ extended: true, limit: '12mb' }));
@@ -49,11 +52,19 @@ app.get('/api/ping', (_req, res) => {
 });
 
 import { fileURLToPath } from 'url';
+import { Server } from 'socket.io';
 
 export const BACKEND_STATIC_FOLDER = 'http://localhost:3000/';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+const io = new Server(server, {
+  cors: {
+    origin: 'http://localhost:5173',
+  },
+});
+
+const onlineUsers = new Map();
 
 app.post(
   '/api/create-profile',
@@ -286,7 +297,22 @@ app.post('/api/like', async (req: Request<{}, {}, RelationRequest>, res) => {
    ON DUPLICATE KEY UPDATE is_like = VALUES(is_like)`,
       [actorUserId, targetUserId, true],
     );
+    const [row] = await db.execute('SELECT * FROM usersInfo WHERE id = ?', [
+      actorUserId,
+    ]);
 
+    const actorUserInfo = row[0];
+    const actorNotification: NotificationResponse = {
+      actorUserId: actorUserId,
+      actorUsername: actorUserInfo.username,
+      actorUserImageUrl: actorUserInfo['images_urls'][0],
+      message: 'liked your profile.',
+    };
+
+    const targetSocketId = onlineUsers.get(targetUserId);
+    if (targetSocketId) {
+      io.to(targetSocketId).emit('receiveNotification', actorNotification);
+    }
     res.status(201).json({
       message: 'unlike applied successfully.',
     });
@@ -338,6 +364,23 @@ app.post(
         [actorUserId, targetUserId, true],
       );
 
+      const [row] = await db.execute('SELECT * FROM usersInfo WHERE id = ?', [
+        actorUserId,
+      ]);
+
+      const actorUserInfo = row[0];
+      const actorNotification: NotificationResponse = {
+        actorUserId: actorUserId,
+        actorUsername: actorUserInfo.username,
+        actorUserImageUrl: actorUserInfo['images_urls'][0],
+        message: 'viewed your profile.',
+      };
+
+      const targetSocketId = onlineUsers.get(targetUserId);
+      if (targetSocketId) {
+        io.to(targetSocketId).emit('receiveNotification', actorNotification);
+      }
+
       res.status(201).json({
         message: 'view profile applied successfully.',
       });
@@ -357,10 +400,10 @@ app.post('/api/block', async (req: Request<{}, {}, RelationRequest>, res) => {
   const { actorUserId, targetUserId } = req.body;
   try {
     await db.execute(
-      `INSERT INTO relations (actor_user_id, target_user_id, is_block)
-   VALUES (?, ?, ?)
-   ON DUPLICATE KEY UPDATE is_block = VALUES(is_block)`,
-      [actorUserId, targetUserId, true],
+      `INSERT INTO relations (actor_user_id, target_user_id, is_like, is_view_profile, is_block)
+   VALUES (?, ?, ?, ?, ?)
+   ON DUPLICATE KEY UPDATE is_like = VALUES(is_like), is_view_profile = VALUES(is_view_profile), is_block = VALUES(is_block)`,
+      [actorUserId, targetUserId, false, false, true],
     );
 
     res.status(201).json({
@@ -656,10 +699,6 @@ app.put(
   },
 );
 
-app.listen(3000, () => {
-  console.log('🚀 Server running at http://localhost:3000');
-});
-
 export async function sendVerificationEmail({
   to,
   token,
@@ -698,8 +737,22 @@ export async function sendVerificationEmail({
   console.log('Email sent:', info.messageId);
 }
 
+io.on('connection', (socket) => {
+  socket.on('register', (userId) => {
+    onlineUsers.set(userId, socket.id);
+  });
+  socket.on('disconnect', () => {
+    for (const [userId, id] of onlineUsers.entries()) {
+      if (id === socket.id) {
+        onlineUsers.delete(userId);
+        break;
+      }
+    }
+  });
+});
+
 async function startServer() {
-  app.listen(3000, () => {
+  server.listen(3000, () => {
     console.log('🚀 Server running at http://localhost:3000');
   });
 }

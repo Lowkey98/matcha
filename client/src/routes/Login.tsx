@@ -1,4 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
+import io from 'socket.io-client';
 import { useContext, useState } from 'react';
 import InputFormField from '../components/FormFields/InputFormField';
 import PasswordFormField from '../components/FormFields/PasswordFormField';
@@ -11,9 +12,12 @@ import { Helmet } from 'react-helmet';
 import { useToast } from '../hooks/useToast';
 import type { LoginRequest, UserInfo } from '../../../shared/types';
 import { UserContext } from '../context/UserContext';
+import { BACKEND_STATIC_FOLDER } from '../components/ImagesCarousel';
+import { SocketContext } from '../context/SocketContext';
 
 export default function Login() {
   const { setUser, setLoading } = useContext(UserContext);
+  const { setSocket } = useContext(SocketContext);
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [errorPassword, setErrorPassword] = useState<string | null>(null);
@@ -50,13 +54,18 @@ export default function Login() {
                 console.log('User data fetched:', userInfo);
                 setUser(userInfo);
                 setLoading(false);
-                userInfo.age
-                  ? navigate('/explore')
-                  : navigate('/createProfile');
+                if (userInfo.age) {
+                  const socketClient = io(BACKEND_STATIC_FOLDER);
+                  setSocket(socketClient);
+                  socketClient.emit('register', userInfo.id);
+                  navigate('/explore');
+                } else {
+                  navigate('/createProfile');
+                }
               })
               .catch((error) => {
                 console.error('Error fetching user data:', error.message);
-                setUser(null); // Reset user if there's an error
+                setUser(null);
                 setLoading(false);
               });
           }
