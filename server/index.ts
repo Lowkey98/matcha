@@ -69,6 +69,7 @@ app.post(
         interests,
         biography,
         uploadedBuffersPictures,
+        location,
       } = req.body;
       if (
         !!isValidAge(age) ||
@@ -112,9 +113,9 @@ app.post(
         sexual_preference = ?,
         interests = ?,
         biography = ?,
+        location = ?,
         images_urls = ?
         WHERE id = ?
-
       `,
         [
           age,
@@ -122,6 +123,7 @@ app.post(
           sexualPreference,
           interests,
           biography,
+          location,
           imagesUrls,
           decoded.userId,
         ],
@@ -131,6 +133,7 @@ app.post(
         gender,
         sexualPreference,
         interests,
+        location,
         biography,
         imagesUrls,
       );
@@ -141,6 +144,7 @@ app.post(
           gender,
           sexualPreference,
           interests,
+          location,
           biography,
           imagesUrls,
         },
@@ -326,6 +330,7 @@ app.get('/api/me', async (req, res) => {
     res.status(404).json({ error: 'User not found' });
     return;
   }
+
   const userInfo: UserInfo = {
     id: user.id,
     email: user.email,
@@ -338,6 +343,8 @@ app.get('/api/me', async (req, res) => {
     interests: user['interests'],
     biography: user['biography'],
     imagesUrls: user['images_urls'],
+    location:
+      typeof user['location'] === 'string' && JSON.parse(user['location']),
   };
   res.json(userInfo);
   return;
@@ -403,6 +410,7 @@ app.put(
         gender,
         sexualPreference,
         biography,
+        location,
         interests,
         imagesUrls,
         token,
@@ -412,12 +420,13 @@ app.put(
         !gender ||
         !sexualPreference ||
         !biography ||
+        !location ||
         !interests ||
         !imagesUrls
       ) {
         res.status(400).json({
           error:
-            'Age, gender, sexualPreference, interests, imagesUrls are required',
+            'Age, gender, sexualPreference, interests, location, imagesUrls are required',
         });
         return;
       }
@@ -464,13 +473,14 @@ app.put(
 
       // Update user profile info into DB
       await db.execute(
-        `UPDATE usersInfo SET age = ?, gender = ?, sexual_preference = ?, biography = ?, interests = ?, images_urls = ?  WHERE id = ?`,
+        `UPDATE usersInfo SET age = ?, gender = ?, sexual_preference = ?, biography = ?, interests = ?, location= ?, images_urls = ?  WHERE id = ?`,
         [
           age,
           gender,
           sexualPreference,
           biography,
           interests,
+          location,
           imagesUrlsToDb,
           id,
         ],
@@ -482,6 +492,7 @@ app.put(
         sexualPreference,
         biography,
         interests,
+        location,
         imagesUrls: imagesUrlsToDb,
       });
       return;
