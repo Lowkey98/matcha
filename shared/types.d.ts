@@ -49,3 +49,14 @@ export type UserLocation = {
 export type UpdatedUserProfileInfos = CreateProfileResponse & {
   id: string;
 };
+export type Sort = {
+  name: string;
+  sort: 'asc' | 'desc';
+};
+
+export type Filter = {
+  name: string;
+  range: number[];
+  min: number;
+  max: number;
+};

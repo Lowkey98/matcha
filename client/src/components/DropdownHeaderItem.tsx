@@ -20,14 +20,14 @@ export default function DropdownNavItem({
     <div className="relative">
       <button
         type="button"
-        className="border-grayDark-100 flex cursor-pointer items-center justify-between gap-3 rounded-lg border-2 bg-white px-3 py-2 text-left"
+        className="border-grayDark-100 flex cursor-pointer items-center justify-between gap-3 rounded-lg border-2 bg-white px-3 py-1.5 text-left"
         onClick={handleClickDropdownNavItem}
       >
         <div className="flex items-center gap-1">
           {!user?.age ? (
             <UserIcon className="fill-primary h-5 w-5" />
           ) : (
-            <div className="border-primary mr-1 h-8 w-8 overflow-hidden rounded-full border-2">
+            <div className="border-primary mr-1 size-9 overflow-hidden rounded-full border-2">
               <img
                 src={`${BACKEND_STATIC_FOLDER}${user.imagesUrls?.[0]}`}
                 alt="user"
