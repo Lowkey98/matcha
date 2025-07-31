@@ -118,7 +118,7 @@ export default function ProfileUser() {
   }, [user]);
 
   if (targetUserInfo?.isBlock) return null;
-
+  
   if (targetUserInfo)
     return (
       <>
@@ -136,8 +136,17 @@ export default function ProfileUser() {
                 {targetUserInfo.username}
               </span>
               <div className="mt-.5 flex items-center gap-1">
-                <div className="h-2.5 w-2.5 rounded-full bg-[#71D191]"></div>
-                <span className="text-grayDark font-light">Online</span>
+                {targetUserInfo.isOnline ? (
+                  <>
+                    <div className="h-2.5 w-2.5 rounded-full bg-[#71D191]" />
+                    <span className="text-grayDark font-light">Online</span>
+                  </>
+                ) : (
+                  <>
+                    <div className="bg-redLight h-2.5 w-2.5 rounded-full" />
+                    <span className="text-grayDark font-light">Offline</span>
+                  </>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-2">

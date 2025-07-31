@@ -25,6 +25,7 @@ export type UserInfoWithRelation = UserInfo & {
   isLike: boolean;
   isViewProfile: boolean;
   isBlock: boolean;
+  isOnline: boolean;
 };
 
 export type LoginRequest = {

@@ -531,6 +531,7 @@ app.get(
       isLike: false,
       isViewProfile: false,
       isBlock: false,
+      isOnline: onlineUsers.has(targetUserId),
     };
     const [rowRelation] = await db.execute(
       'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ?',
