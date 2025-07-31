@@ -11,7 +11,7 @@ export default function NotificationsHeaderItem() {
     [],
   );
   const [showHighlightnotification, setShowHighlightnotification] =
-    useState(false);
+    useState<boolean>(false);
 
   const [showItems, setShowItems] = useState<boolean>(false);
   function handleClickNotificationsHeaderItem() {
@@ -66,11 +66,11 @@ export function NotficationCard({
   setShowItems,
 }: {
   notification: NotificationResponse;
-  setShowItems: React.Dispatch<React.SetStateAction<boolean>>;
+  setShowItems?: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const navigate = useNavigate();
   function handleClickUsername() {
-    setShowItems(false);
+    if (setShowItems) setShowItems(false);
     navigate(`/profileUser/${notification.actorUserId}`);
   }
   return (
