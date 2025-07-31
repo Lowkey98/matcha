@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   isValidAge,
   isValidGender,
@@ -11,9 +11,13 @@ import DropdownFormField from '../components/FormFields/DropdownFormField';
 import MultiSelect from '../components/FormFields/MultiSelect';
 import TextAreaFormField from '../components/FormFields/TextAreaFormField';
 import ButtonPrimary from '../components/Buttons/ButtonPrimary';
+import LocationFormField from '../components/FormFields/LocationFormField';
 
 import { Helmet } from 'react-helmet';
 import { useNavigate } from 'react-router-dom';
+import { UserLocation } from '../../../shared/types';
+import { useToast } from '../hooks/useToast';
+import { getAddress } from '../../Api';
 
 export const interestsItems = [
   'Music',
@@ -48,6 +52,14 @@ export default function CreateProfile() {
   const [interests, setInterests] = useState<string[]>([]);
   const [biography, setBiography] = useState<string>('');
   const [formTrail, setFormTrial] = useState<boolean>(false);
+  const [location, setLocation] = useState<UserLocation>({
+    address: '',
+    latitude: 0,
+    longitude: 0,
+  });
+  const [loaderLocation, setLoaderLocation] = useState<boolean>(false);
+  const { addToast } = useToast();
+
   const navigate = useNavigate();
   const errorAge = isValidAge(Number(age));
   const errorGender = isValidGender(gender);
@@ -76,10 +88,37 @@ export default function CreateProfile() {
           sexualPreference,
           interests,
           biography,
+          location,
         },
       });
     }
   }
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition(
+      async (position: GeolocationPosition) => {
+        setLoaderLocation(true);
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+        getAddress({ latitude, longitude })
+          .then((address: string) => {
+            setLoaderLocation(false);
+            const userLocation: UserLocation = {
+              address,
+              latitude,
+              longitude,
+            };
+            setLocation(userLocation);
+          })
+          .catch((error) => {
+            setLoaderLocation(false);
+            addToast({
+              status: 'error',
+              message: error,
+            });
+          });
+      },
+    );
+  }, []);
 
   return (
     <>
@@ -148,6 +187,13 @@ export default function CreateProfile() {
               setSelectedItems={setInterests}
               className="lg:w-[48%]"
               required
+            />
+            <LocationFormField
+              className="lg:w-[48%]"
+              loaderLocation={loaderLocation}
+              setLoaderLocation={setLoaderLocation}
+              location={location}
+              setLocation={setLocation}
             />
           </div>
           <ButtonPrimary

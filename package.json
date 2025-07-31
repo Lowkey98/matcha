@@ -16,6 +16,7 @@
     "embla-carousel-autoplay": "^8.6.0",
     "embla-carousel-react": "^8.6.0",
     "react-range": "^1.10.0",
+    "pigeon-maps": "^0.22.1",
     "react-router-dom": "^7.6.0"
   }
 }

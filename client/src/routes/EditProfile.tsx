@@ -21,19 +21,24 @@ import { ButtonAddImage, EditedUploadImage } from '../components/UploadImage';
 import ButtonPrimary from '../components/Buttons/ButtonPrimary';
 import ButtonSecondary from '../components/Buttons/ButtonSecondary';
 import { UserContext } from '../context/UserContext';
-import { UpdatedUserProfileInfos } from '../../../shared/types';
+import { UpdatedUserProfileInfos, UserLocation } from '../../../shared/types';
 import { useToast } from '../hooks/useToast';
 import { updateUserProfileInfos } from '../../Api';
 import { BACKEND_STATIC_FOLDER } from '../components/ImagesCarousel';
 
-export default function Settings() {
+export default function EditProfile() {
   const { user, setUser } = useContext(UserContext);
   const [age, setAge] = useState<string>('');
   const [gender, setGender] = useState<string>('');
   const [sexualPreference, setSexualPreference] = useState<string>('');
   const [interests, setInterests] = useState<string[]>([]);
   const [biography, setBiography] = useState<string>('');
-  const [location, setLocation] = useState<string>('');
+  const [location, setLocation] = useState<UserLocation>({
+    address: '',
+    latitude: 0,
+    longitude: 0,
+  });
+  const [loaderLocation, setLoaderLocation] = useState<boolean>(false);
   const [imagesUrls, setImagesUrls] = useState<string[]>([]);
   const [formTrail, setFormTrial] = useState<boolean>(false);
   const { addToast } = useToast();
@@ -62,6 +67,7 @@ export default function Settings() {
         biography: user.biography || '',
         interests: user.interests || [],
         imagesUrls: user.imagesUrls || [],
+        location: user.location || { address: '', latitude: 0, longitude: 0 },
       };
       const updatedImagesUrlsWithoutHostName = imagesUrls.map((imageUrl) => {
         if (imageUrl.includes(BACKEND_STATIC_FOLDER))
@@ -75,17 +81,29 @@ export default function Settings() {
         biography,
         interests,
         imagesUrls,
+        location,
       };
       const userProfileInfosChanged =
-        JSON.stringify(defaultValues, Object.keys(defaultValues).sort()) !==
+        JSON.stringify(
+          {
+            ...defaultValues,
+            location: JSON.stringify(defaultValues.location),
+          },
+          Object.keys({
+            ...defaultValues,
+            location: JSON.stringify(defaultValues.location),
+          }).sort(),
+        ) !==
         JSON.stringify(
           {
             ...updatedUserProfileInfos,
             imagesUrls: updatedImagesUrlsWithoutHostName,
+            location: JSON.stringify(updatedUserProfileInfos.location),
           },
           Object.keys({
             ...updatedUserProfileInfos,
             imagesUrls: updatedImagesUrlsWithoutHostName,
+            location: JSON.stringify(updatedUserProfileInfos.location),
           }).sort(),
         );
       if (userProfileInfosChanged) {
@@ -130,11 +148,14 @@ export default function Settings() {
         );
         setImagesUrls(imageUrlsWithHostName);
       }
+      if (user.location) setLocation(user.location);
     }
   }
 
   useEffect(() => {
     if (user) {
+      console.log(user);
+      
       setAge(String(user.age));
       setGender(user.gender || '');
       setSexualPreference(user.sexualPreference || '');
@@ -146,6 +167,7 @@ export default function Settings() {
         );
         setImagesUrls(imageUrlsWithHostName);
       }
+      if (user.location) setLocation(user.location);
     }
   }, [user]);
   return (
@@ -218,10 +240,15 @@ export default function Settings() {
                   className="xl:w-[48%]"
                   required
                 />
-                <LocationFormField
-                  className="xl:w-[48%]"
-                  setLocationValue={setLocation}
-                />
+                {location.address.length ? (
+                  <LocationFormField
+                    className="xl:w-[48%]"
+                    location={location}
+                    setLocation={setLocation}
+                    loaderLocation={loaderLocation}
+                    setLoaderLocation={setLoaderLocation}
+                  />
+                ) : null}
               </div>
             </div>
             <div className="border-grayDark-100 border-t lg:border-t-0 lg:border-r"></div>

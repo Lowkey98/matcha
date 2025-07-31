@@ -11,6 +11,7 @@ export type CreateProfileBase = {
   sexualPreference: string;
   biography: string;
   interests: string[];
+  location: UserLocation;
 };
 export type UserInfo = UserInfoBase & {
   age?: number;
@@ -19,6 +20,7 @@ export type UserInfo = UserInfoBase & {
   biography?: string;
   interests?: string[];
   imagesUrls?: string[];
+  location?: UserLocation;
 };
 
 export type LoginRequest = {
@@ -39,10 +41,14 @@ export type CreateProfileResponse = CreateProfileBase & {
   imagesUrls: string[];
 };
 
+export type UserLocation = {
+  address: string;
+  latitude: number;
+  longitude: number;
+};
 export type UpdatedUserProfileInfos = CreateProfileResponse & {
   id: string;
 };
-
 export type Sort = {
   name: string;
   sort: 'asc' | 'desc';

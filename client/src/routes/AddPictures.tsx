@@ -18,16 +18,15 @@ export default function AddPictures() {
   const uploadedBuffersPictures: string[] = Array(5).fill(undefined);
   // get data from navigate state
   const navigate = useNavigate();
-  const location = useLocation();
+  const locationRoutes = useLocation();
   const { addToast } = useToast();
 
   function handleClickDone() {
     const errorCheckUploadedPictures: string | null =
       isValidAddedProfilePicture(uploadedBuffersPictures);
-
     if (!errorCheckUploadedPictures) {
-      const { age, gender, sexualPreference, interests, biography } =
-        location.state || {};
+      const { age, gender, sexualPreference, interests, biography, location } =
+        locationRoutes.state || {};
       const token = localStorage.getItem('token');
       if (!token) return;
       const userProfileInfo: CreateProfileRequest = {
@@ -37,6 +36,9 @@ export default function AddPictures() {
         interests,
         biography,
         uploadedBuffersPictures,
+        location: location.address.length
+          ? location
+          : { address: 'Agdal, Rabat', latitude: 34.0059, longitude: -6.8463 },
         token,
       };
 

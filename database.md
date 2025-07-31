@@ -16,7 +16,9 @@ age INT,
 gender VARCHAR(255),
 sexual_preference VARCHAR(255),
 interests JSON,
-biography VARCHAR(255)
+biography VARCHAR(255),
+images_urls JSON,
+location TEXT
 );
 
 ALTER TABLE usersInfo
