@@ -113,7 +113,7 @@ export function GenderCard({
       </div>
       <div className="flex flex-col">
         <span className="text-grayDark text-sm font-light">{title}</span>
-        <span className="text-secondary">{gender}</span>
+        <span className="text-secondary font-medium">{gender}</span>
       </div>
     </div>
   );

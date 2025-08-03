@@ -4,12 +4,14 @@ import React, { useContext, useState } from 'react';
 import { HeaderNavigationItem } from './Headers/Header';
 import { BACKEND_STATIC_FOLDER } from './ImagesCarousel';
 import { UserContext } from '../context/UserContext';
+import { SocketContext } from '../context/SocketContext';
 export default function DropdownNavItem({
   headerNavigationItems,
 }: {
   headerNavigationItems: HeaderNavigationItem[];
 }) {
   const { user, setUser } = useContext(UserContext);
+  const { socket } = useContext(SocketContext);
   const [showItems, setShowItems] = useState<boolean>(false);
   const navigate = useNavigate();
   function handleClickDropdownNavItem() {
@@ -53,8 +55,12 @@ export default function DropdownNavItem({
               type="button"
               className="text-secondary flex cursor-pointer items-center gap-2 p-3 text-left text-sm hover:bg-gray-50"
               onClick={() => {
-                if (headerNavigationItem.name.toLocaleLowerCase() === 'logout')
+                if (
+                  headerNavigationItem.name.toLocaleLowerCase() === 'logout'
+                ) {
+                  socket?.disconnect();
                   handleClickLogout({ navigate, setUser });
+                }
                 setShowItems(false);
                 navigate(headerNavigationItem.route);
               }}

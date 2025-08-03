@@ -6,16 +6,20 @@ import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import nodemailer from 'nodemailer';
 import { randomUUID } from 'crypto';
+import http from 'http';
 import jwt from 'jsonwebtoken';
 
 import dotenv from 'dotenv';
 import type {
   CreateProfileRequest,
   LoginRequest,
+  NotificationResponse,
   RegisterRequest,
+  RelationRequest,
   UpdatedUserProfileInfos,
   UserInfo,
   UserInfoBase,
+  UserInfoWithRelation,
 } from '../shared/types.ts';
 import {
   isValidAge,
@@ -38,6 +42,7 @@ type UserInfoFromDB = {
 };
 dotenv.config();
 const app = express();
+const server = http.createServer(app);
 app.use(express.json({ limit: '11mb' }));
 app.use(cors());
 app.use(express.urlencoded({ extended: true, limit: '12mb' }));
@@ -47,11 +52,19 @@ app.get('/api/ping', (_req, res) => {
 });
 
 import { fileURLToPath } from 'url';
+import { Server } from 'socket.io';
 
 export const BACKEND_STATIC_FOLDER = 'http://localhost:3000/';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+const io = new Server(server, {
+  cors: {
+    origin: 'http://localhost:5173',
+  },
+});
+
+const onlineUsers = new Map();
 
 app.post(
   '/api/create-profile',
@@ -274,6 +287,138 @@ app.post('/api/login', async (req: Request<{}, {}, LoginRequest>, res) => {
     res.status(500).json({ error: 'Internal server error.' });
   }
 });
+app.post('/api/like', async (req: Request<{}, {}, RelationRequest>, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  const { actorUserId, targetUserId } = req.body;
+  try {
+    await db.execute(
+      `INSERT INTO relations (actor_user_id, target_user_id, is_like)
+   VALUES (?, ?, ?)
+   ON DUPLICATE KEY UPDATE is_like = VALUES(is_like)`,
+      [actorUserId, targetUserId, true],
+    );
+    const [row] = await db.execute('SELECT * FROM usersInfo WHERE id = ?', [
+      actorUserId,
+    ]);
+
+    const actorUserInfo = row[0];
+    const actorNotification: NotificationResponse = {
+      actorUserId: actorUserId,
+      actorUsername: actorUserInfo.username,
+      actorUserImageUrl: actorUserInfo['images_urls'][0],
+      message: 'liked your profile.',
+    };
+
+    const targetSocketId = onlineUsers.get(targetUserId);
+    if (targetSocketId) {
+      io.to(targetSocketId).emit('receiveNotification', actorNotification);
+    }
+    res.status(201).json({
+      message: 'unlike applied successfully.',
+    });
+    return;
+  } catch (err) {
+    res.status(500).json({ error: 'Internal server error.' });
+    return;
+  }
+});
+app.post('/api/unlike', async (req: Request<{}, {}, RelationRequest>, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  const { actorUserId, targetUserId } = req.body;
+  try {
+    await db.execute(
+      `INSERT INTO relations (actor_user_id, target_user_id, is_like)
+   VALUES (?, ?, ?)
+   ON DUPLICATE KEY UPDATE is_like = VALUES(is_like)`,
+      [actorUserId, targetUserId, false],
+    );
+
+    res.status(201).json({
+      message: 'Like applied successfully.',
+    });
+    return;
+  } catch (err) {
+    res.status(500).json({ error: 'Internal server error.' });
+    return;
+  }
+});
+
+app.post(
+  '/api/viewProfile',
+  async (req: Request<{}, {}, RelationRequest>, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+    const { actorUserId, targetUserId } = req.body;
+    try {
+      await db.execute(
+        `INSERT INTO relations (actor_user_id, target_user_id, is_view_profile)
+   VALUES (?, ?, ?)
+   ON DUPLICATE KEY UPDATE is_view_profile = VALUES(is_view_profile)`,
+        [actorUserId, targetUserId, true],
+      );
+
+      const [row] = await db.execute('SELECT * FROM usersInfo WHERE id = ?', [
+        actorUserId,
+      ]);
+
+      const actorUserInfo = row[0];
+      const actorNotification: NotificationResponse = {
+        actorUserId: actorUserId,
+        actorUsername: actorUserInfo.username,
+        actorUserImageUrl: actorUserInfo['images_urls'][0],
+        message: 'viewed your profile.',
+      };
+
+      const targetSocketId = onlineUsers.get(targetUserId);
+      if (targetSocketId) {
+        io.to(targetSocketId).emit('receiveNotification', actorNotification);
+      }
+
+      res.status(201).json({
+        message: 'view profile applied successfully.',
+      });
+      return;
+    } catch (err) {
+      res.status(500).json({ error: 'Internal server error.' });
+      return;
+    }
+  },
+);
+app.post('/api/block', async (req: Request<{}, {}, RelationRequest>, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  const { actorUserId, targetUserId } = req.body;
+  try {
+    await db.execute(
+      `INSERT INTO relations (actor_user_id, target_user_id, is_like, is_view_profile, is_block)
+   VALUES (?, ?, ?, ?, ?)
+   ON DUPLICATE KEY UPDATE is_like = VALUES(is_like), is_view_profile = VALUES(is_view_profile), is_block = VALUES(is_block)`,
+      [actorUserId, targetUserId, false, false, true],
+    );
+
+    res.status(201).json({
+      message: 'block applied successfully.',
+    });
+    return;
+  } catch (err) {
+    res.status(500).json({ error: 'Internal server error.' });
+    return;
+  }
+});
 
 app.get('/api/verify', async (req, res) => {
   try {
@@ -349,6 +494,68 @@ app.get('/api/me', async (req, res) => {
   res.json(userInfo);
   return;
 });
+
+app.get(
+  '/api/userWithRelation/:actorUserId/:targetUserId',
+  async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    const actorUserId = req.params.actorUserId;
+    const targetUserId = req.params.targetUserId;
+    if (!token) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
+    } catch (err) {
+      console.error('JWT verification error:', err);
+      res.status(401).json({ error: 'Invalid token' });
+      return;
+    }
+    const [row] = await db.execute('SELECT * FROM usersInfo WHERE id = ?', [
+      targetUserId,
+    ]);
+    const targetUser = row[0] as UserInfo;
+
+    if (!targetUser) {
+      console.error('User not found for token:', token);
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+    const userInfo: UserInfoWithRelation = {
+      id: targetUser.id,
+      email: targetUser.email,
+      username: targetUser.username,
+      firstName: targetUser['first_name'],
+      lastName: targetUser['last_name'],
+      age: targetUser['age'],
+      gender: targetUser['gender'],
+      sexualPreference: targetUser['sexual_preference'],
+      interests: targetUser['interests'],
+      biography: targetUser['biography'],
+      imagesUrls: targetUser['images_urls'],
+      isLike: false,
+      isViewProfile: false,
+      isBlock: false,
+      isOnline: onlineUsers.has(targetUserId),
+    };
+    const [rowRelation] = await db.execute(
+      'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ?',
+      [Number(actorUserId), Number(targetUserId)],
+    );
+
+    const relation = rowRelation[0];
+
+    if (relation) {
+      userInfo.isLike = relation['is_like'];
+      userInfo.isBlock = relation['is_block'];
+      userInfo.isViewProfile = relation['is_view_profile'];
+    }
+    res.json(userInfo);
+    return;
+  },
+);
 
 app.put(
   '/api/updateAccount',
@@ -504,10 +711,6 @@ app.put(
   },
 );
 
-app.listen(3000, () => {
-  console.log('🚀 Server running at http://localhost:3000');
-});
-
 export async function sendVerificationEmail({
   to,
   token,
@@ -546,8 +749,22 @@ export async function sendVerificationEmail({
   console.log('Email sent:', info.messageId);
 }
 
+io.on('connection', (socket) => {
+  socket.on('register', (userId) => {
+    onlineUsers.set(userId, socket.id);
+  });
+  socket.on('disconnect', () => {
+    for (const [userId, id] of onlineUsers.entries()) {
+      if (id === socket.id) {
+        onlineUsers.delete(userId);
+        break;
+      }
+    }
+  });
+});
+
 async function startServer() {
-  app.listen(3000, () => {
+  server.listen(3000, () => {
     console.log('🚀 Server running at http://localhost:3000');
   });
 }

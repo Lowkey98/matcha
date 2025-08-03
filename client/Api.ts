@@ -3,9 +3,11 @@ import type {
   CreateProfileResponse,
   LoginRequest,
   RegisterRequest,
+  RelationRequest,
   UpdatedUserProfileInfos,
   UserInfo,
   UserInfoBase,
+  UserInfoWithRelation,
 } from '../shared/types';
 
 const HOST: string = 'http://localhost:3000';
@@ -136,6 +138,109 @@ export async function getUserInfo({
     });
     const jsonResponse = await response.json();
     return jsonResponse as UserInfo;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function getUserInfoWithRelation({
+  actorUserId,
+  targetUserId,
+  token,
+}: RelationRequest & {
+  token: string;
+}): Promise<UserInfoWithRelation> {
+  try {
+    const response = await fetch(
+      `${HOST}/api/userWithRelation/${actorUserId}/${targetUserId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+    const jsonResponse = await response.json();
+    return jsonResponse as UserInfoWithRelation;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function like({
+  actorUserId,
+  targetUserId,
+  token,
+}: RelationRequest & { token: string }) {
+  try {
+    await fetch(`${HOST}/api/like`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ actorUserId, targetUserId }),
+    });
+    return;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function unlike({
+  actorUserId,
+  targetUserId,
+  token,
+}: RelationRequest & { token: string }) {
+  try {
+    await fetch(`${HOST}/api/unlike`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ actorUserId, targetUserId }),
+    });
+    return;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function veiwProfile({
+  actorUserId,
+  targetUserId,
+  token,
+}: RelationRequest & { token: string }) {
+  try {
+    await fetch(`${HOST}/api/viewProfile`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ actorUserId, targetUserId }),
+    });
+    return;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function block({
+  actorUserId,
+  targetUserId,
+  token,
+}: RelationRequest & { token: string }) {
+  try {
+    await fetch(`${HOST}/api/block`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ actorUserId, targetUserId }),
+    });
+    return;
   } catch (error) {
     throw error;
   }
