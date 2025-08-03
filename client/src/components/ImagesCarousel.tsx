@@ -50,10 +50,11 @@ export default function ImagesCarousel({
         onTouchEnd={() => setIsPaused(false)}
       >
         <div className="flex h-full">
-          {imgsUrls.map((relativeUrl) => {
+          {imgsUrls.map((relativeUrl, index) => {
             const url = `${BACKEND_STATIC_FOLDER}${relativeUrl}`;
             return (
               <img
+                key={index}
                 src={url}
                 alt="slide"
                 className="flex-none basis-full object-cover select-none"

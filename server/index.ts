@@ -4,14 +4,20 @@ import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import nodemailer from 'nodemailer';
 import { randomUUID } from 'crypto';
+import http from 'http';
 import jwt from 'jsonwebtoken';
 
 import dotenv from 'dotenv';
 import type {
   CreateProfileRequest,
   LoginRequest,
+  NotificationResponse,
   RegisterRequest,
+  RelationRequest,
+  UpdatedUserProfileInfos,
   UserInfo,
+  UserInfoBase,
+  UserInfoWithRelation,
 } from '../shared/types.ts';
 import {
   isValidAge,
@@ -34,6 +40,7 @@ type UserInfoFromDB = {
 };
 dotenv.config();
 const app = express();
+const server = http.createServer(app);
 app.use(express.json({ limit: '11mb' }));
 app.use(cors());
 app.use(express.urlencoded({ extended: true, limit: '12mb' }));
@@ -43,10 +50,19 @@ app.get('/api/ping', (_req, res) => {
 });
 
 import { fileURLToPath } from 'url';
+import { Server } from 'socket.io';
 
+export const BACKEND_STATIC_FOLDER = 'http://localhost:3000/';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+const io = new Server(server, {
+  cors: {
+    origin: 'http://localhost:5173',
+  },
+});
+
+const onlineUsers = new Map();
 
 app.post(
   '/api/create-profile',
@@ -64,6 +80,7 @@ app.post(
         interests,
         biography,
         uploadedBuffersPictures,
+        location,
       } = req.body;
       if (
         !!isValidAge(age) ||
@@ -107,9 +124,9 @@ app.post(
         sexual_preference = ?,
         interests = ?,
         biography = ?,
+        location = ?,
         images_urls = ?
         WHERE id = ?
-
       `,
         [
           age,
@@ -117,6 +134,7 @@ app.post(
           sexualPreference,
           interests,
           biography,
+          location,
           imagesUrls,
           decoded.userId,
         ],
@@ -126,6 +144,7 @@ app.post(
         gender,
         sexualPreference,
         interests,
+        location,
         biography,
         imagesUrls,
       );
@@ -136,6 +155,7 @@ app.post(
           gender,
           sexualPreference,
           interests,
+          location,
           biography,
           imagesUrls,
         },
@@ -265,6 +285,138 @@ app.post('/api/login', async (req: Request<{}, {}, LoginRequest>, res) => {
     res.status(500).json({ error: 'Internal server error.' });
   }
 });
+app.post('/api/like', async (req: Request<{}, {}, RelationRequest>, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  const { actorUserId, targetUserId } = req.body;
+  try {
+    await db.execute(
+      `INSERT INTO relations (actor_user_id, target_user_id, is_like)
+   VALUES (?, ?, ?)
+   ON DUPLICATE KEY UPDATE is_like = VALUES(is_like)`,
+      [actorUserId, targetUserId, true],
+    );
+    const [row] = await db.execute('SELECT * FROM usersInfo WHERE id = ?', [
+      actorUserId,
+    ]);
+
+    const actorUserInfo = row[0];
+    const actorNotification: NotificationResponse = {
+      actorUserId: actorUserId,
+      actorUsername: actorUserInfo.username,
+      actorUserImageUrl: actorUserInfo['images_urls'][0],
+      message: 'liked your profile.',
+    };
+
+    const targetSocketId = onlineUsers.get(targetUserId);
+    if (targetSocketId) {
+      io.to(targetSocketId).emit('receiveNotification', actorNotification);
+    }
+    res.status(201).json({
+      message: 'unlike applied successfully.',
+    });
+    return;
+  } catch (err) {
+    res.status(500).json({ error: 'Internal server error.' });
+    return;
+  }
+});
+app.post('/api/unlike', async (req: Request<{}, {}, RelationRequest>, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  const { actorUserId, targetUserId } = req.body;
+  try {
+    await db.execute(
+      `INSERT INTO relations (actor_user_id, target_user_id, is_like)
+   VALUES (?, ?, ?)
+   ON DUPLICATE KEY UPDATE is_like = VALUES(is_like)`,
+      [actorUserId, targetUserId, false],
+    );
+
+    res.status(201).json({
+      message: 'Like applied successfully.',
+    });
+    return;
+  } catch (err) {
+    res.status(500).json({ error: 'Internal server error.' });
+    return;
+  }
+});
+
+app.post(
+  '/api/viewProfile',
+  async (req: Request<{}, {}, RelationRequest>, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+    const { actorUserId, targetUserId } = req.body;
+    try {
+      await db.execute(
+        `INSERT INTO relations (actor_user_id, target_user_id, is_view_profile)
+   VALUES (?, ?, ?)
+   ON DUPLICATE KEY UPDATE is_view_profile = VALUES(is_view_profile)`,
+        [actorUserId, targetUserId, true],
+      );
+
+      const [row] = await db.execute('SELECT * FROM usersInfo WHERE id = ?', [
+        actorUserId,
+      ]);
+
+      const actorUserInfo = row[0];
+      const actorNotification: NotificationResponse = {
+        actorUserId: actorUserId,
+        actorUsername: actorUserInfo.username,
+        actorUserImageUrl: actorUserInfo['images_urls'][0],
+        message: 'viewed your profile.',
+      };
+
+      const targetSocketId = onlineUsers.get(targetUserId);
+      if (targetSocketId) {
+        io.to(targetSocketId).emit('receiveNotification', actorNotification);
+      }
+
+      res.status(201).json({
+        message: 'view profile applied successfully.',
+      });
+      return;
+    } catch (err) {
+      res.status(500).json({ error: 'Internal server error.' });
+      return;
+    }
+  },
+);
+app.post('/api/block', async (req: Request<{}, {}, RelationRequest>, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  const { actorUserId, targetUserId } = req.body;
+  try {
+    await db.execute(
+      `INSERT INTO relations (actor_user_id, target_user_id, is_like, is_view_profile, is_block)
+   VALUES (?, ?, ?, ?, ?)
+   ON DUPLICATE KEY UPDATE is_like = VALUES(is_like), is_view_profile = VALUES(is_view_profile), is_block = VALUES(is_block)`,
+      [actorUserId, targetUserId, false, false, true],
+    );
+
+    res.status(201).json({
+      message: 'block applied successfully.',
+    });
+    return;
+  } catch (err) {
+    res.status(500).json({ error: 'Internal server error.' });
+    return;
+  }
+});
 
 app.get('/api/verify', async (req, res) => {
   try {
@@ -323,6 +475,7 @@ app.get('/api/me', async (req, res) => {
     res.status(404).json({ error: 'User not found' });
     return;
   }
+
   const userInfo: UserInfo = {
     id: user.id,
     email: user.email,
@@ -335,55 +488,64 @@ app.get('/api/me', async (req, res) => {
     interests: user['interests'],
     biography: user['biography'],
     imagesUrls: user['images_urls'],
+    location:
+      typeof user['location'] === 'string' && JSON.parse(user['location']),
   };
   res.json(userInfo);
   return;
 });
 
-app.put('/api/updateAccount', async (req, res) => {
-  try {
-    const { id, username, email, firstName, lastName } =
-      req.body.updatedUserAccountInfo;
-    if (!email || !username || !firstName || !lastName) {
-      res.status(400).json({
-        error: 'Email, username, firstName, lastName are required',
-      });
+app.get(
+  '/api/userWithRelation/:actorUserId/:targetUserId',
+  async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    const actorUserId = req.params.actorUserId;
+    const targetUserId = req.params.targetUserId;
+    if (!token) {
+      res.status(401).json({ error: 'Unauthorized' });
       return;
     }
-
-    // Check if email or username exists
-    const [rows] = await db.execute(
-      'SELECT username FROM usersInfo WHERE (username = ?) AND id != ?',
-      [username, id],
-    );
-
-    const userRows = rows as UserInfoFromDB[];
-    const usernameExists = userRows.some(
-      (row: UserInfoFromDB) => row.username === username,
-    );
-
-    if (usernameExists) {
-      res.status(409).json({
-        usernameAlreadyExists: usernameExists,
-      });
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
+    } catch (err) {
+      console.error('JWT verification error:', err);
+      res.status(401).json({ error: 'Invalid token' });
       return;
     }
-    // Update user into DB
-    await db.execute(
-      `UPDATE usersInfo SET email = ?, username = ?, first_name = ?, last_name = ? WHERE id = ?`,
-      [email, username, firstName, lastName, id],
+    const [row] = await db.execute('SELECT * FROM usersInfo WHERE id = ?', [
+      targetUserId,
+    ]);
+    const targetUser = row[0] as UserInfo;
+
+    if (!targetUser) {
+      console.error('User not found for token:', token);
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+    const userInfo: UserInfoWithRelation = {
+      id: targetUser.id,
+      email: targetUser.email,
+      username: targetUser.username,
+      firstName: targetUser['first_name'],
+      lastName: targetUser['last_name'],
+      age: targetUser['age'],
+      gender: targetUser['gender'],
+      sexualPreference: targetUser['sexual_preference'],
+      interests: targetUser['interests'],
+      biography: targetUser['biography'],
+      imagesUrls: targetUser['images_urls'],
+      isLike: false,
+      isViewProfile: false,
+      isBlock: false,
+      isOnline: onlineUsers.has(targetUserId),
+    };
+    const [rowRelation] = await db.execute(
+      'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ?',
+      [Number(actorUserId), Number(targetUserId)],
     );
 
-    res.status(201).json({
-      message: 'Your account information has been updated successfully',
-    });
-    return;
-  } catch (err) {
-    console.error('Update error:', err);
-    res.status(500).json({ error: 'Internal server error.' });
-    return;
-  }
-});
+    const relation = rowRelation[0];
 
 // async (req: Request<{}, {}, CreateProfileRequest>, res: Response<CreateProfileResponse>) => {
 
@@ -434,6 +596,169 @@ app.post('/api/saveNewPassword', async (req: Request<{}, {}, { password: string,
 app.listen(3000, () => {
   console.log('🚀 Server running at http://localhost:3000');
 });
+    if (relation) {
+      userInfo.isLike = relation['is_like'];
+      userInfo.isBlock = relation['is_block'];
+      userInfo.isViewProfile = relation['is_view_profile'];
+    }
+    res.json(userInfo);
+    return;
+  },
+);
+
+app.put(
+  '/api/updateAccount',
+  async (req: Request<{}, {}, UserInfoBase>, res) => {
+    try {
+      const { id, username, email, firstName, lastName } = req.body;
+      if (!email || !username || !firstName || !lastName) {
+        res.status(400).json({
+          error: 'Email, username, firstName, lastName are required',
+        });
+        return;
+      }
+
+      // Check if email or username exists
+      const [rows] = await db.execute(
+        'SELECT username FROM usersInfo WHERE (username = ?) AND id != ?',
+        [username, id],
+      );
+
+      const userRows = rows as UserInfoFromDB[];
+      const usernameExists = userRows.some(
+        (row: UserInfoFromDB) => row.username === username,
+      );
+
+      if (usernameExists) {
+        res.status(409).json({
+          usernameAlreadyExists: usernameExists,
+        });
+        return;
+      }
+      // Update user into DB
+      await db.execute(
+        `UPDATE usersInfo SET email = ?, username = ?, first_name = ?, last_name = ? WHERE id = ?`,
+        [email, username, firstName, lastName, id],
+      );
+
+      res.status(201).json({
+        message: 'Your account information has been updated successfully',
+      });
+      return;
+    } catch (err) {
+      console.error('Update error:', err);
+      res.status(500).json({ error: 'Internal server error.' });
+      return;
+    }
+  },
+);
+
+app.put(
+  '/api/updateProfile',
+  async (
+    req: Request<{}, {}, UpdatedUserProfileInfos & { token: string }>,
+    res,
+  ) => {
+    try {
+      const {
+        id,
+        age,
+        gender,
+        sexualPreference,
+        biography,
+        location,
+        interests,
+        imagesUrls,
+        token,
+      } = req.body;
+      if (
+        !age ||
+        !gender ||
+        !sexualPreference ||
+        !biography ||
+        !location ||
+        !interests ||
+        !imagesUrls
+      ) {
+        res.status(400).json({
+          error:
+            'Age, gender, sexualPreference, interests, location, imagesUrls are required',
+        });
+        return;
+      }
+      const decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET || 'default_secret',
+      ) as { userId: string };
+      const [row] = await db.execute(
+        'SELECT images_urls FROM usersInfo WHERE id = ?',
+        [id],
+      );
+      const imagesUrlsFromDb = row[0]['images_urls'] as string[];
+
+      imagesUrlsFromDb.forEach((imageUrlFromDb) => {
+        const imageUrlExistsInImagesUrls = imagesUrls.find((imageUrl) => {
+          return (
+            imageUrl.includes(BACKEND_STATIC_FOLDER) &&
+            imageUrl.replace(BACKEND_STATIC_FOLDER, '') === imageUrlFromDb
+          );
+        });
+        if (!imageUrlExistsInImagesUrls) {
+          if (fs.existsSync(imageUrlFromDb)) fs.unlinkSync(imageUrlFromDb);
+        }
+      });
+      let imagesUrlsToDb = [];
+      imagesUrls.map((buffer, index) => {
+        let filepath: string | null = null;
+        if (!buffer.includes(BACKEND_STATIC_FOLDER)) {
+          const parts = buffer.split(',');
+          const header = parts[0];
+          const base64Data = parts[1];
+          const ext = header.split('/')[1].split(';')[0];
+
+          const filename = `picture-${Date.now()}-${index}.${ext}`;
+          filepath = path.join(`./uploads/${decoded.userId}`, filename);
+
+          fs.writeFileSync(filepath, Buffer.from(base64Data, 'base64'));
+          imagesUrlsToDb.push(filepath);
+        } else {
+          filepath = buffer;
+          imagesUrlsToDb.push(filepath.replace(BACKEND_STATIC_FOLDER, ''));
+        }
+      });
+
+      // Update user profile info into DB
+      await db.execute(
+        `UPDATE usersInfo SET age = ?, gender = ?, sexual_preference = ?, biography = ?, interests = ?, location= ?, images_urls = ?  WHERE id = ?`,
+        [
+          age,
+          gender,
+          sexualPreference,
+          biography,
+          interests,
+          location,
+          imagesUrlsToDb,
+          id,
+        ],
+      );
+
+      res.status(201).json({
+        age,
+        gender,
+        sexualPreference,
+        biography,
+        interests,
+        location,
+        imagesUrls: imagesUrlsToDb,
+      });
+      return;
+    } catch (err) {
+      console.error('Update error:', err);
+      res.status(500).json({ error: 'Internal server error.' });
+      return;
+    }
+  },
+);
 
 
 export async function sendVerificationEmail({
@@ -520,8 +845,22 @@ export async function sendForgotPasswordMail({
 
   console.log('Email sent:', info.messageId);
 }
+io.on('connection', (socket) => {
+  socket.on('register', (userId) => {
+    onlineUsers.set(userId, socket.id);
+  });
+  socket.on('disconnect', () => {
+    for (const [userId, id] of onlineUsers.entries()) {
+      if (id === socket.id) {
+        onlineUsers.delete(userId);
+        break;
+      }
+    }
+  });
+});
+
 async function startServer() {
-  app.listen(3000, () => {
+  server.listen(3000, () => {
     console.log('🚀 Server running at http://localhost:3000');
   });
 }

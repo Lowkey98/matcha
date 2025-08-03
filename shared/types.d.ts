@@ -1,5 +1,5 @@
 export type UserInfoBase = {
-  id: string;
+  id: number;
   email: string;
   username: string;
   firstName: string;
@@ -11,6 +11,7 @@ export type CreateProfileBase = {
   sexualPreference: string;
   biography: string;
   interests: string[];
+  location: UserLocation;
 };
 export type UserInfo = UserInfoBase & {
   age?: number;
@@ -19,6 +20,14 @@ export type UserInfo = UserInfoBase & {
   biography?: string;
   interests?: string[];
   imagesUrls?: string[];
+  location?: UserLocation;
+};
+
+export type UserInfoWithRelation = UserInfo & {
+  isLike: boolean;
+  isViewProfile: boolean;
+  isBlock: boolean;
+  isOnline: boolean;
 };
 
 export type LoginRequest = {
@@ -37,4 +46,34 @@ export type CreateProfileRequest = CreateProfileBase & {
 
 export type CreateProfileResponse = CreateProfileBase & {
   imagesUrls: string[];
+};
+
+export type UserLocation = {
+  address: string;
+  latitude: number;
+  longitude: number;
+};
+export type UpdatedUserProfileInfos = CreateProfileResponse & {
+  id: number;
+};
+export type RelationRequest = {
+  actorUserId: number;
+  targetUserId: number;
+};
+
+export type NotificationResponse = {
+  actorUserId: number;
+  actorUserImageUrl: string;
+  actorUsername: string;
+  message: string;};
+export type Sort = {
+  name: string;
+  sort: 'asc' | 'desc';
+};
+
+export type Filter = {
+  name: string;
+  range: number[];
+  min: number;
+  max: number;
 };

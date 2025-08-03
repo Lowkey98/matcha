@@ -18,6 +18,7 @@ import Settings from './routes/Settings';
 import EditProfile from './routes/EditProfile';
 import VerifyEmail from './components/VerifyEmail';
 import { ChangePassword } from './components/ChangePassword';
+import ProfileUser from './routes/ProfileUser';
 const routeConfig = [
   {
     path: '/',
@@ -79,6 +80,10 @@ const routeConfig = [
       {
         path: '/profile',
         element: <Profile />,
+      },
+      {
+        path: '/profileUser/:targetUserId',
+        element: <ProfileUser />,
       },
       {
         path: '/notifications',

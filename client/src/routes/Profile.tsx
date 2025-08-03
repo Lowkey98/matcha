@@ -27,7 +27,9 @@ export default function Profile() {
           />
           <div className="flex flex-col gap-8 lg:w-full xl:w-127">
             <div>
-              <span className="text-secondary text-xl font-bold">Username</span>
+              <span className="text-secondary text-xl font-bold">
+                {user.username}
+              </span>
               <div className="mt-.5 flex items-center gap-1">
                 <div className="h-2.5 w-2.5 rounded-full bg-[#71D191]"></div>
                 <span className="text-grayDark font-light">Online</span>
@@ -83,10 +85,7 @@ export default function Profile() {
                   ))}
               </div>
               <hr className="text-grayDark-100" />
-              <p className="text-secondary">
-                Lorem Ipsum is simply dummy text of the printing and typesetting
-                industry. Lorem Ipsum has been the industry's 😊
-              </p>
+              <p className="text-secondary">{user.biography}</p>
             </div>
           </div>
         </main>
@@ -114,7 +113,7 @@ export function GenderCard({
       </div>
       <div className="flex flex-col">
         <span className="text-grayDark text-sm font-light">{title}</span>
-        <span className="text-secondary">{gender}</span>
+        <span className="text-secondary font-medium">{gender}</span>
       </div>
     </div>
   );

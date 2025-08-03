@@ -16,7 +16,9 @@ age INT,
 gender VARCHAR(255),
 sexual_preference VARCHAR(255),
 interests JSON,
-biography VARCHAR(255)
+biography VARCHAR(255),
+images_urls JSON,
+location TEXT
 );
 
 ALTER TABLE usersInfo
@@ -26,4 +28,18 @@ ADD COLUMN sexual_preference VARCHAR(255) DEFAULT NULL,
 ADD COLUMN interests JSON DEFAULT NULL,
 ADD COLUMN images_urls JSON DEFAULT NULL,
 ADD COLUMN biography VARCHAR(255) DEFAULT NULL;
+
+DROP TABLE relations;
+CREATE TABLE relations (
+id INT AUTO_INCREMENT PRIMARY KEY,
+actor_user_id INT NOT NULL,
+target_user_id INT NOT NULL,
+is_like BOOLEAN DEFAULT FALSE,
+is_view_profile BOOLEAN DEFAULT FALSE,
+is_block BOOLEAN DEFAULT FALSE
+);
+
+ALTER TABLE relations
+ADD CONSTRAINT unique_actor_target UNIQUE (actor_user_id, target_user_id);
+
 SELECT \* FROM usersInfo;
