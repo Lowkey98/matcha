@@ -16,6 +16,8 @@ import Profile from './routes/Profile';
 import Notifications from './routes/Notifications';
 import Settings from './routes/Settings';
 import EditProfile from './routes/EditProfile';
+import VerifyEmail from './components/VerifyEmail';
+import { ChangePassword } from './components/ChangePassword';
 const routeConfig = [
   {
     path: '/',
@@ -90,6 +92,14 @@ const routeConfig = [
         path: '/editProfile',
         element: <EditProfile />,
       },
+      {
+        path: '/verifyEmail',
+        element: <VerifyEmail />,
+      },
+      {
+        path:'/changePassword',
+        element: <ChangePassword/>
+      }
     ],
   },
 ];

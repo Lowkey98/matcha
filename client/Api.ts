@@ -137,3 +137,28 @@ export async function sendForgotPasswordMail({
     throw error
   }
 }
+
+export function saveNewPassword({
+  password,
+  token
+} : {
+  password: string,
+  token: string
+}){
+
+  return fetch(`${HOST}/api/saveNewPassword`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      password,
+      token
+    })
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Failed to save new password');
+    }
+  });
+}

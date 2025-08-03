@@ -290,7 +290,9 @@ app.get('/api/verify', async (req, res) => {
       [true, user.id],
     );
 
-    res.send('<h1>Email verified successfully!</h1>');
+    // res.send('<h1>Email verified successfully!</h1>');
+    console.log("REDIRECTION TO VERIFY EMAIL")
+    res.redirect("http://localhost:5173/verifyemail?status=success")
   } catch (err) {
     console.error('Verification error:', err);
     res.status(500).send('Internal server error.');
@@ -403,6 +405,32 @@ app.post('/api/sendForgotPasswordMail', async (req: Request<{}, {}, { email: str
 
 })
 
+app.post('/api/saveNewPassword', async (req: Request<{}, {}, { password: string, token: string }>, res: Response) => {
+  const { password, token } = req.body;
+  if (!password || !token) {
+    res.status(400).json({ error: 'Password and token are required' });
+    return;
+  }
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process
+      .env
+      .JWT_SECRET ||
+      'default_secret');
+  } catch (err) {
+    console.error('JWT verification error:', err);
+    res.status(401).json({ error: 'Invalid token' });
+    return;
+  }
+  const hashedPassword = await bcrypt.hash(password, 10);
+  await db.execute(
+    'UPDATE usersInfo SET password = ?, verification_token = NULL WHERE id = ?',
+    [hashedPassword, decoded.userId],
+  );
+  res.status(200).json({ message: 'Password updated successfully' });
+  return;
+}); 
+
 app.listen(3000, () => {
   console.log('🚀 Server running at http://localhost:3000');
 });
@@ -473,7 +501,7 @@ export async function sendForgotPasswordMail({
       </p>
       <div style="text-align: center; margin: 30px 0;">
         <a 
-          href="http://localhost:3000/api/changePassword?token=${token}" 
+          href="http://localhost:5173/changePassword?token=${token}" 
           style="display: inline-block; padding: 12px 24px; background-color: #ff4081; color: #fff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;"
         >
           Reset Password

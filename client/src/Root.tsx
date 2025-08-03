@@ -14,6 +14,15 @@ export default function Root() {
   const navigate = useNavigate();
   useEffect(() => {
     const token = localStorage.getItem('token');
+    if (
+      location.pathname === '/verifyemail' ||
+      location.pathname === '/changePassword'
+    ) {
+      console.log('here');
+
+      setLoading(false);
+      return;
+    }
     if (token) {
       getUserInfo({ token })
         .then((userInfo: UserInfo) => {
@@ -28,11 +37,13 @@ export default function Root() {
           navigate('/login');
         });
     } else {
+      console.log('NO TOKEN');
       setUser(null);
       setLoading(false);
       navigate('/login');
     }
   }, []);
+
   return (
     <UserContext.Provider value={{ user, setUser, loading, setLoading }}>
       <ToastProvider>
