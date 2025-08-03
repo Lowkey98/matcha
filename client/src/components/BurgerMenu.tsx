@@ -2,19 +2,27 @@ import React, { useContext, useState } from 'react';
 import { BurgerIcon, CloseIcon, UserIcon } from './Icons';
 import FameRate from './FameRate';
 import { HeaderNavigationItem } from './Headers/Header';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { handleClickLogout } from './DropdownHeaderItem';
 import { BACKEND_STATIC_FOLDER } from './ImagesCarousel';
 import { UserContext } from '../context/UserContext';
+import { SortCard } from './ProfilesSlider';
+import { SortsContext } from '../context/SortsContext';
+import { Filter, Sort } from '../../../shared/types';
+import { FiltersContext } from '../context/FiltersContext';
+import FilterCard from './FilterCard';
 
 export default function HeaderBurger({
   headerNavigationItems,
 }: {
   headerNavigationItems: HeaderNavigationItem[];
 }) {
+  const { sorts } = useContext(SortsContext);
+  const { filters } = useContext(FiltersContext);
   const [showMobileNav, setShowMobileNav] = useState<boolean>(false);
   const navigate = useNavigate();
   const { user, setUser } = useContext(UserContext);
+  const location = useLocation();
 
   function handleClickOpenMobileNav() {
     setShowMobileNav(true);
@@ -32,21 +40,21 @@ export default function HeaderBurger({
         <BurgerIcon className="fill-secondary h-6 w-6" />
       </button>
       {showMobileNav ? (
-        <div className="fixed inset-0 z-20 bg-white py-5">
+        <div className="fixed inset-0 z-20 overflow-auto bg-white pt-5 pb-2">
           <div className="flex justify-end pr-5">
             <button
               type="button"
-              className="border-grayDark-100 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full border-2 p-2.5"
+              className="border-grayDark-100 flex cursor-pointer items-center justify-center rounded-full border-2 p-2.5"
               onClick={handleClickCloseMobileNav}
             >
-              <CloseIcon className="fill-secondary h-4 w-4" />
+              <CloseIcon className="fill-secondary size-3.5" />
             </button>
           </div>
-          <div className="mt-12">
+          <div>
             <div className="flex items-center gap-5">
               <div className="flex items-center gap-1 pl-5">
                 {user?.age ? (
-                  <div className="border-primary mr-1 h-8 w-8 overflow-hidden rounded-full border-2">
+                  <div className="border-primary mr-1 size-10 overflow-hidden rounded-full border-2">
                     <img
                       src={`${BACKEND_STATIC_FOLDER}${user.imagesUrls?.[0]}`}
                       alt="user"
@@ -66,7 +74,31 @@ export default function HeaderBurger({
                 </>
               )}
             </div>
-            <div className="mt-10 flex flex-col gap-2">
+            {location.pathname === '/explore' ? (
+              <div className="mt-5">
+                <div className="text-secondary">
+                  <span className="inline-block px-5 font-medium">Sort by</span>
+                  <div className="mt-5 flex flex-col gap-6 px-5 pb-5 text-sm">
+                    {sorts.map((sort: Sort, index: number) => (
+                      <SortCard key={index} sortInfo={sort} />
+                    ))}
+                  </div>
+                </div>
+                <div className="bg-grayDark-100 h-0.5" />
+                <div className="text-secondary mt-5">
+                  <span className="inline-block px-5 font-medium">
+                    Filter by
+                  </span>
+                  <div className="mt-5 flex flex-col gap-6 px-5 pb-5 text-sm">
+                    {filters.map((filter: Filter, index: number) => (
+                      <FilterCard key={index} filterInfo={filter} />
+                    ))}
+                  </div>
+                </div>
+                <div className="bg-grayDark-100 h-0.5" />
+              </div>
+            ) : null}
+            <div className="mt-2 flex flex-col gap-2">
               {headerNavigationItems.map(
                 (headerNavigationItem: HeaderNavigationItem) => {
                   return (
