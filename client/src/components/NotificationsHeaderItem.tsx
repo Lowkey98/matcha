@@ -43,7 +43,7 @@ export default function NotificationsHeaderItem() {
         <NotificationsIcon className="fill-secondary h-6 w-6" />
       </button>
       {showItems ? (
-        <div className="border-grayDark-100 text-secondary absolute top-15 right-0 flex w-72 flex-col rounded-lg border-2 bg-white text-sm">
+        <div className="border-grayDark-100 z-12 text-secondary absolute top-15 right-0 flex w-72 flex-col rounded-lg border-2 bg-white text-sm">
           {notifications.length ? (
             notifications.map((notifcation, index) => (
               <NotficationCard

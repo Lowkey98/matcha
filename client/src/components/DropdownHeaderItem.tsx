@@ -48,7 +48,7 @@ export default function DropdownNavItem({
         )}
       </button>
       {showItems ? (
-        <div className="border-grayDark-100 absolute mt-2 flex w-full flex-col rounded-lg border-2 bg-white">
+        <div className="border-grayDark-100 absolute z-10 mt-2 flex w-full flex-col rounded-lg border-2 bg-white">
           {headerNavigationItems.map((headerNavigationItem) => (
             <button
               key={headerNavigationItem.name}

@@ -102,12 +102,14 @@ export default function ProfileUser() {
               token,
             })
               .then(() => {
+                
                 setTargetUserInfo({ ...targetUser, isViewProfile: true });
               })
               .catch((error) => {
                 console.log('error:', error);
               });
-          } else {
+            } else {
+            console.log(targetUser);
             setTargetUserInfo(targetUser);
           }
         })

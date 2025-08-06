@@ -535,6 +535,7 @@ app.get(
       interests: targetUser['interests'],
       biography: targetUser['biography'],
       imagesUrls: targetUser['images_urls'],
+      location:targetUser['location'],
       isLike: false,
       isViewProfile: false,
       isBlock: false,

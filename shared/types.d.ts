@@ -66,7 +66,6 @@ export type NotificationResponse = {
   actorUserImageUrl: string;
   actorUsername: string;
   message: string;
-  id: string;
 };
 export type Sort = {
   name: string;
