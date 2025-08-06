@@ -23,7 +23,7 @@ export default function Root() {
     const token = localStorage.getItem('token');
     if (
       location.pathname === '/verifyemail' ||
-      location.pathname === '/changePassword'
+      location.pathname === '/resetPassword'
     ) {
       console.log('here');
 

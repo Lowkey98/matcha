@@ -547,22 +547,44 @@ app.get(
 
     const relation = rowRelation[0];
 
-// async (req: Request<{}, {}, CreateProfileRequest>, res: Response<CreateProfileResponse>) => {
-
+    if (relation) {
+      userInfo.isLike = relation['is_like'];
+      userInfo.isBlock = relation['is_block'];
+      userInfo.isViewProfile = relation['is_view_profile'];
+    }
+    res.json(userInfo);
+    return;
+  },
+);
 app.post('/api/sendForgotPasswordMail', async (req: Request<{}, {}, { email: string }>, res: Response<any>) => {
   const { email } = req.body
+  console.log('email', email);
   // const jwtToken =
   const [row] = await db.execute('SELECT * FROM usersInfo WHERE email = ?', [
     email,
   ]);
   const user = row[0] as UserInfo;
 
+  if (!user) {
+    console.error('User not found for email:', email);
+    res.status(404).json({ error: 'User not found' });
+    return;
+  }
   const token = jwt.sign(
     { userId: user.id },
     process.env.JWT_SECRET || 'default_secret',
     { expiresIn: '7d' },
   );
+  console.log('token', token);
   sendForgotPasswordMail({ to: email, token })
+    .then(() => {
+      res.status(200).json({ message: 'Email sent successfully' });
+    })
+    .catch((error) => {
+      console.error('Error sending email:', error);
+      res.status(500).json({ error: 'Failed to send email' });
+    });
+  return
   // console.log("email", email)
 
 })
@@ -589,23 +611,10 @@ app.post('/api/saveNewPassword', async (req: Request<{}, {}, { password: string,
     'UPDATE usersInfo SET password = ?, verification_token = NULL WHERE id = ?',
     [hashedPassword, decoded.userId],
   );
+  console.log('Password updated successfully for user ID:', decoded.userId);
   res.status(200).json({ message: 'Password updated successfully' });
   return;
-}); 
-
-app.listen(3000, () => {
-  console.log('🚀 Server running at http://localhost:3000');
 });
-    if (relation) {
-      userInfo.isLike = relation['is_like'];
-      userInfo.isBlock = relation['is_block'];
-      userInfo.isViewProfile = relation['is_view_profile'];
-    }
-    res.json(userInfo);
-    return;
-  },
-);
-
 app.put(
   '/api/updateAccount',
   async (req: Request<{}, {}, UserInfoBase>, res) => {
@@ -826,7 +835,7 @@ export async function sendForgotPasswordMail({
       </p>
       <div style="text-align: center; margin: 30px 0;">
         <a 
-          href="http://localhost:5173/changePassword?token=${token}" 
+          href="http://localhost:5173/resetPassword?token=${token}" 
           style="display: inline-block; padding: 12px 24px; background-color: #ff4081; color: #fff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;"
         >
           Reset Password
