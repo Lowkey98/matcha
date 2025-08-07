@@ -520,7 +520,7 @@ app.get(
 
     if (!targetUser) {
       console.error('User not found for token:', token);
-      res.status(404).json({ error: 'User not found' });
+      res.status(404).json({ message: 'User not found' });
       return;
     }
     const userInfo: UserInfoWithRelation = {
@@ -535,7 +535,9 @@ app.get(
       interests: targetUser['interests'],
       biography: targetUser['biography'],
       imagesUrls: targetUser['images_urls'],
-      location:targetUser['location'],
+      location:
+        typeof targetUser['location'] === 'string' &&
+        JSON.parse(targetUser['location']),
       isLike: false,
       isViewProfile: false,
       isBlock: false,
@@ -557,6 +559,66 @@ app.get(
     return;
   },
 );
+
+app.get('/api/likes/:actorUserId', async (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  const actorUserId = req.params.actorUserId;
+  if (!token) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
+  } catch (err) {
+    console.error('JWT verification error:', err);
+    res.status(401).json({ error: 'Invalid token' });
+    return;
+  }
+  const [rowsLikes] = await db.execute<[]>(
+    'SELECT * FROM relations WHERE actor_user_id = ? AND is_like = ?',
+    [actorUserId, true],
+  );
+
+  if (!rowsLikes.length) {
+    res.status(404).json({ message: 'likes not found' });
+    return;
+  }
+
+  const likedUsers: UserInfo[] = [];
+
+  for (let index = 0; index < rowsLikes.length; index++) {
+    const likedUser = rowsLikes[index];
+    const [targetUserRow] = await db.execute(
+      'SELECT * FROM usersInfo WHERE id = ?',
+      [likedUser['target_user_id']],
+    );
+    const targetUser = targetUserRow[0] as UserInfo;
+    if (!targetUser) {
+      res.status(404).json({ message: 'user not found' });
+      return;
+    }
+    const userInfo: UserInfo = {
+      id: targetUser.id,
+      email: targetUser.email,
+      username: targetUser.username,
+      firstName: targetUser['first_name'],
+      lastName: targetUser['last_name'],
+      age: targetUser['age'],
+      gender: targetUser['gender'],
+      sexualPreference: targetUser['sexual_preference'],
+      interests: targetUser['interests'],
+      biography: targetUser['biography'],
+      imagesUrls: targetUser['images_urls'],
+      location:
+        typeof targetUser['location'] === 'string' &&
+        JSON.parse(targetUser['location']),
+    };
+    likedUsers.push(userInfo);
+  }
+  res.json(likedUsers);
+  return;
+});
 
 app.put(
   '/api/updateAccount',

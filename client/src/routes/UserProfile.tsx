@@ -12,6 +12,8 @@ import {
 import { useContext, useEffect, useState } from 'react';
 import { UserContext } from '../context/UserContext';
 import { useNavigate, useParams } from 'react-router-dom';
+import { getDistance } from 'geolib';
+
 import {
   block,
   getUserInfoWithRelation,
@@ -19,11 +21,11 @@ import {
   unlike,
   veiwProfile,
 } from '../../Api';
-import { UserInfoWithRelation } from '../../../shared/types';
+import { UserInfo, UserInfoWithRelation } from '../../../shared/types';
 import { GenderCard } from './Profile';
 import ButtonLike from '../components/Buttons/ButtonLike';
 import ButtonUnlike from '../components/Buttons/ButtonUnlike';
-export default function ProfileUser() {
+export default function UserProfile() {
   const { user } = useContext(UserContext);
   const { targetUserId } = useParams<{ targetUserId: string }>();
   const naviagte = useNavigate();
@@ -82,6 +84,11 @@ export default function ProfileUser() {
         });
     }
   }
+  const distanceInKilometers: number | undefined = getDistanceInKilometers({
+    actorUserInfo: user,
+    targetUserInfo,
+  });
+
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token && user && targetUserId) {
@@ -102,25 +109,20 @@ export default function ProfileUser() {
               token,
             })
               .then(() => {
-                
                 setTargetUserInfo({ ...targetUser, isViewProfile: true });
               })
               .catch((error) => {
                 console.log('error:', error);
               });
-            } else {
-            console.log(targetUser);
-            setTargetUserInfo(targetUser);
-          }
+          } else setTargetUserInfo(targetUser);
         })
-        .catch((error) => {
-          console.log('error', error);
+        .catch(() => {
+          naviagte('/explore');
         });
     }
   }, [user]);
 
   if (targetUserInfo?.isBlock) return null;
-  
   if (targetUserInfo)
     return (
       <>
@@ -194,7 +196,9 @@ export default function ProfileUser() {
               </div>
               <div className="flex items-center gap-3">
                 <LocationOutlineIcon className="fill-primary h-6 w-6" />
-                <span className="text-secondary">Rue 02 zarktouni</span>
+                <span className="text-secondary">
+                  {distanceInKilometers} km
+                </span>
               </div>
               <div className="flex items-center gap-3">
                 <AgendaIcon className="fill-primary h-6 w-6" />
@@ -237,4 +241,30 @@ export default function ProfileUser() {
         </main>
       </>
     );
+}
+
+export function getDistanceInKilometers({
+  actorUserInfo,
+  targetUserInfo,
+}: {
+  actorUserInfo: UserInfo | null;
+  targetUserInfo: UserInfoWithRelation | UserInfo | null;
+}) {
+  const distanceInMeters =
+    targetUserInfo?.location && actorUserInfo?.location
+      ? getDistance(
+          {
+            latitude: actorUserInfo.location.latitude,
+            longitude: actorUserInfo.location.longitude,
+          },
+          {
+            latitude: targetUserInfo.location.latitude,
+            longitude: targetUserInfo.location.longitude,
+          },
+        )
+      : undefined;
+  const distanceInKilometers = distanceInMeters
+    ? Math.round(distanceInMeters / 1000)
+    : undefined;
+  return distanceInKilometers;
 }

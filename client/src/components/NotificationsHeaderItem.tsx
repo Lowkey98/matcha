@@ -43,7 +43,7 @@ export default function NotificationsHeaderItem() {
         <NotificationsIcon className="fill-secondary h-6 w-6" />
       </button>
       {showItems ? (
-        <div className="border-grayDark-100 z-12 text-secondary absolute top-15 right-0 flex w-72 flex-col rounded-lg border-2 bg-white text-sm">
+        <div className="border-grayDark-100 text-secondary absolute top-15 right-0 z-12 flex w-72 flex-col rounded-lg border-2 bg-white text-sm">
           {notifications.length ? (
             notifications.map((notifcation, index) => (
               <NotficationCard
@@ -71,7 +71,7 @@ export function NotficationCard({
   const navigate = useNavigate();
   function handleClickUsername() {
     if (setShowItems) setShowItems(false);
-    navigate(`/profileUser/${notification.actorUserId}`);
+    navigate(`/userProfile/${notification.actorUserId}`);
   }
   return (
     <div className="text-secondary border-grayDark-100 flex items-center gap-2 border-t p-3 first:border-t-0">
