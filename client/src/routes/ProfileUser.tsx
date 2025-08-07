@@ -118,7 +118,6 @@ export default function ProfileUser() {
   }, [user]);
 
   if (targetUserInfo?.isBlock) return null;
-    console.log("targetUserInfo", targetUserInfo?.imagesUrls);
   if (targetUserInfo)
     return (
       <>
