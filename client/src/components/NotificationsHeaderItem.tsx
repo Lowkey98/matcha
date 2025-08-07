@@ -19,10 +19,13 @@ export default function NotificationsHeaderItem() {
     setShowItems(!showItems);
   }
   useEffect(() => {
+    console.log('NotificationsHeaderItem mounted');
     if (socket) {
+      console.log('socket connected');
       socket.on(
         'receiveNotification',
         (actorNotification: NotificationResponse) => {
+          console.log('receiveNotification:', actorNotification);
           setNotifications((prev) => [actorNotification, ...prev]);
           setShowHighlightnotification(true);
         },
