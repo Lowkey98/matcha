@@ -854,6 +854,7 @@ export async function sendForgotPasswordMail({
 
   console.log('Email sent:', info.messageId);
 }
+
 io.on('connection', (socket) => {
   socket.on('register', (userId) => {
     onlineUsers.set(userId, socket.id);

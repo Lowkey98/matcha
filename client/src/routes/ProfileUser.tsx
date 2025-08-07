@@ -84,6 +84,7 @@ export default function ProfileUser() {
   }
   useEffect(() => {
     const token = localStorage.getItem('token');
+    console.log('token', token);
     if (token && user && targetUserId) {
       getUserInfoWithRelation({
         token,
@@ -118,7 +119,7 @@ export default function ProfileUser() {
   }, [user]);
 
   if (targetUserInfo?.isBlock) return null;
-  
+    console.log("targetUserInfo", targetUserInfo?.imagesUrls);
   if (targetUserInfo)
     return (
       <>
