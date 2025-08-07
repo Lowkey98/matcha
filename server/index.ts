@@ -305,6 +305,11 @@ app.post('/api/like', async (req: Request<{}, {}, RelationRequest>, res) => {
       actorUserId,
     ]);
 
+    const [targetUserRow] = await db.execute(
+      'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ? AND is_like = ?',
+      [targetUserId, actorUserId, true],
+    );
+
     const actorUserInfo = row[0];
     const actorNotification: NotificationResponse = {
       actorUserId: actorUserId,
@@ -313,6 +318,7 @@ app.post('/api/like', async (req: Request<{}, {}, RelationRequest>, res) => {
       message: 'liked your profile.',
     };
 
+    if (targetUserRow[0]) actorNotification.message = 'matched with you.';
     const targetSocketId = onlineUsers.get(targetUserId);
     if (targetSocketId) {
       io.to(targetSocketId).emit('receiveNotification', actorNotification);
@@ -679,6 +685,71 @@ app.get('/api/viewers/:targetUserId', async (req, res) => {
     viewedUsers.push(userInfo);
   }
   res.json(viewedUsers);
+  return;
+});
+app.get('/api/matches/:actorUserId', async (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  const actorUserId = req.params.actorUserId;
+  if (!token) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
+  } catch (err) {
+    console.error('JWT verification error:', err);
+    res.status(401).json({ error: 'Invalid token' });
+    return;
+  }
+  const [rowsLikes] = await db.execute<[]>(
+    'SELECT * FROM relations WHERE actor_user_id = ? AND is_like = ?',
+    [actorUserId, true],
+  );
+
+  if (!rowsLikes.length) {
+    res.status(404).json({ message: 'likes not found' });
+    return;
+  }
+
+  const matchedUsers: UserInfo[] = [];
+
+  for (let index = 0; index < rowsLikes.length; index++) {
+    const matchedUser = rowsLikes[index];
+    const [matchedUserRow] = await db.execute(
+      'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ? AND is_like = ?',
+      [matchedUser['target_user_id'], actorUserId, true],
+    );
+    if (matchedUserRow[0]) {
+      const [targetUserRow] = await db.execute(
+        'SELECT * FROM usersInfo WHERE id = ?',
+        [matchedUser['target_user_id']],
+      );
+      const targetUser = targetUserRow[0] as UserInfo;
+      if (!targetUser) {
+        res.status(404).json({ message: 'user not found' });
+        return;
+      }
+      const userInfo: UserInfo = {
+        id: targetUser.id,
+        email: targetUser.email,
+        username: targetUser.username,
+        firstName: targetUser['first_name'],
+        lastName: targetUser['last_name'],
+        age: targetUser['age'],
+        gender: targetUser['gender'],
+        sexualPreference: targetUser['sexual_preference'],
+        interests: targetUser['interests'],
+        biography: targetUser['biography'],
+        imagesUrls: targetUser['images_urls'],
+        location:
+          typeof targetUser['location'] === 'string' &&
+          JSON.parse(targetUser['location']),
+      };
+      matchedUsers.push(userInfo);
+    }
+  }
+  res.json(matchedUsers);
   return;
 });
 

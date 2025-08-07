@@ -208,6 +208,27 @@ export async function getViewers({
   }
 }
 
+export async function getMatches({
+  actorUserId,
+  token,
+}: {
+  actorUserId: number;
+  token: string;
+}): Promise<UserInfo[]> {
+  try {
+    const response = await fetch(`${HOST}/api/matches/${actorUserId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) throw await response.json();
+    const jsonResponse = await response.json();
+    return jsonResponse as UserInfo[];
+  } catch (error) {
+    throw error;
+  }
+}
+
 export async function like({
   actorUserId,
   targetUserId,

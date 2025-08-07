@@ -38,7 +38,7 @@ export default function Likes() {
       </Helmet>
 
       {!loader ? (
-        likedUsers ? (
+        likedUsers?.length ? (
           <main className="mt-12 mb-29 flex flex-col items-center gap-9 sm:flex-row sm:flex-wrap sm:justify-between sm:gap-y-9 md:justify-start md:gap-[2.1vw] lg:mb-12 lg:ml-57 lg:gap-[1.4%] lg:gap-y-4 xl:gap-[2.5%] xl:gap-y-6 2xl:gap-[2%] 2xl:gap-y-7">
             {likedUsers.map((likedUser: UserInfo) => (
               <UserProfileCard key={likedUser.id} userInfo={likedUser} />
