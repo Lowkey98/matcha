@@ -187,6 +187,26 @@ export async function getLikes({
     throw error;
   }
 }
+export async function getViewers({
+  tagertUserId,
+  token,
+}: {
+  tagertUserId: number;
+  token: string;
+}): Promise<UserInfo[]> {
+  try {
+    const response = await fetch(`${HOST}/api/viewers/${tagertUserId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) throw await response.json();
+    const jsonResponse = await response.json();
+    return jsonResponse as UserInfo[];
+  } catch (error) {
+    throw error;
+  }
+}
 
 export async function like({
   actorUserId,

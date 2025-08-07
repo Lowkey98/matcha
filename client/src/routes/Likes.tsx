@@ -45,9 +45,9 @@ export default function Likes() {
             ))}
           </main>
         ) : (
-          <main className="text-secondary ml-57 flex flex-1 items-center justify-center gap-1 [:has(&)]:flex [:has(&)]:h-full [:has(&)]:w-full [:has(&)]:flex-1 [:has(&)]:flex-col">
+          <main className="text-secondary flex flex-1 items-center justify-center gap-1 lg:ml-57 [:has(&)]:flex [:has(&)]:h-full [:has(&)]:w-full [:has(&)]:flex-1 [:has(&)]:flex-col">
             <ExclamationBorderIcon className="fill-secondary size-6" />
-            You don't like anyone
+            You don't like anyone.
           </main>
         )
       ) : null}

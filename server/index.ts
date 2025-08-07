@@ -620,6 +620,68 @@ app.get('/api/likes/:actorUserId', async (req, res) => {
   return;
 });
 
+app.get('/api/viewers/:targetUserId', async (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  const targetUserId = req.params.targetUserId;
+  if (!token) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
+  } catch (err) {
+    console.error('JWT verification error:', err);
+    res.status(401).json({ error: 'Invalid token' });
+    return;
+  }
+  const [rowsViewers] = await db.execute<[]>(
+    'SELECT * FROM relations WHERE target_user_id = ? AND is_view_profile = ?',
+    [targetUserId, true],
+  );
+
+  if (!rowsViewers.length) {
+    res.status(404).json({ message: 'viewers not found' });
+    return;
+  }
+
+  const viewedUsers: UserInfo[] = [];
+
+  for (let index = 0; index < rowsViewers.length; index++) {
+    const viewedUser = rowsViewers[index];
+    const [actorUserRow] = await db.execute(
+      'SELECT * FROM usersInfo WHERE id = ?',
+      [viewedUser['actor_user_id']],
+    );
+    const actorUserInfo = actorUserRow[0] as UserInfo;
+    if (!actorUserInfo) {
+      res.status(404).json({ message: 'user not found' });
+      return;
+    }
+
+    const userInfo: UserInfo = {
+      id: actorUserInfo.id,
+      email: actorUserInfo.email,
+      username: actorUserInfo.username,
+      firstName: actorUserInfo['first_name'],
+      lastName: actorUserInfo['last_name'],
+      age: actorUserInfo['age'],
+      gender: actorUserInfo['gender'],
+      sexualPreference: actorUserInfo['sexual_preference'],
+      interests: actorUserInfo['interests'],
+      biography: actorUserInfo['biography'],
+      imagesUrls: actorUserInfo['images_urls'],
+      location:
+        typeof actorUserInfo['location'] === 'string' &&
+        JSON.parse(actorUserInfo['location']),
+    };
+
+    viewedUsers.push(userInfo);
+  }
+  res.json(viewedUsers);
+  return;
+});
+
 app.put(
   '/api/updateAccount',
   async (req: Request<{}, {}, UserInfoBase>, res) => {
