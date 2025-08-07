@@ -52,7 +52,6 @@ export default function ImagesCarousel({
         <div className="flex h-full">
           {imgsUrls.map((relativeUrl, index) => {
             const url = `${BACKEND_STATIC_FOLDER}${relativeUrl}`;
-            console.log('Image URL:', url);
             return (
               <img
                 key={index}

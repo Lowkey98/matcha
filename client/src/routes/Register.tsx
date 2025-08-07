@@ -195,7 +195,10 @@ export default function Register() {
             </div>
           </div>
         ) : (
-          <EmailSent />
+          <EmailSent
+            message="We've sent a confirmation link to your email. Please verify it to
+          activate your account."
+          />
         )}
       </main>
     </>

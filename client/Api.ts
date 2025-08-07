@@ -148,7 +148,6 @@ export async function sendForgotPasswordMail({
 }: {
   email: string
 }) {
-  console.log('sendForgotPasswordMail called with email:', email);
   const response = await fetch(`${HOST}/api/sendForgotPasswordMail`, {
     method: 'POST',
     headers: {
@@ -158,10 +157,6 @@ export async function sendForgotPasswordMail({
       email: email
     })
   });
-  console.log('sendForgotPasswordMail response:', response);
-
-  
-
   if (!response.ok) {
     const error = await response.json();
     throw error
@@ -175,7 +170,6 @@ export async function saveNewPassword({
   password: string,
   token: string
 }){
-  console.log('saveNewPassword called with password:', password, 'and token:', token);
   return fetch(`${HOST}/api/saveNewPassword`, {
     method: 'POST',
     headers: {

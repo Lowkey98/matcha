@@ -52,7 +52,6 @@ export default function ResetPassword() {
       errorForm = false;
     }
     if (!errorForm) {
-      console.log(password);
       saveNewPassword({ password, token })
         .then(() => {
           console.log('Password reset successfully');
@@ -68,7 +67,6 @@ export default function ResetPassword() {
     }
   }
   function handleClickGotoLogin() {
-    console.log('Navigating to login');
     navigate('/login');
   }
   return (

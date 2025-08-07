@@ -1,4 +1,5 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
+import type { Request, Response } from 'express';
 import db from './db.ts';
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
@@ -441,10 +442,7 @@ app.get('/api/verify', async (req, res) => {
       'UPDATE usersInfo SET is_verified = ?, verification_token = NULL WHERE id = ?',
       [true, user.id],
     );
-
-    // res.send('<h1>Email verified successfully!</h1>');
-    console.log("REDIRECTION TO VERIFY EMAIL")
-    res.redirect("http://localhost:5173/verifyemail?status=success")
+    res.redirect('http://localhost:5173/verifyemail?status=success');
   } catch (err) {
     console.error('Verification error:', err);
     res.status(500).send('Internal server error.');
@@ -556,65 +554,66 @@ app.get(
     return;
   },
 );
-app.post('/api/sendForgotPasswordMail', async (req: Request<{}, {}, { email: string }>, res: Response<any>) => {
-  const { email } = req.body
-  console.log('email', email);
-  // const jwtToken =
-  const [row] = await db.execute('SELECT * FROM usersInfo WHERE email = ?', [
-    email,
-  ]);
-  const user = row[0] as UserInfo;
+app.post(
+  '/api/sendForgotPasswordMail',
+  async (req: Request<{}, {}, { email: string }>, res: Response<any>) => {
+    const { email } = req.body;
+    const [row] = await db.execute('SELECT * FROM usersInfo WHERE email = ?', [
+      email,
+    ]);
+    const user = row[0] as UserInfo;
 
-  if (!user) {
-    console.error('User not found for email:', email);
-    res.status(404).json({ error: 'User not found' });
+    if (!user) {
+      console.error('User not found for email:', email);
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+    const token = jwt.sign(
+      { userId: user.id },
+      process.env.JWT_SECRET || 'default_secret',
+      { expiresIn: '7d' },
+    );
+    sendForgotPasswordMail({ to: email, token })
+      .then(() => {
+        res.status(200).json({ message: 'Email sent successfully' });
+      })
+      .catch((error) => {
+        console.error('Error sending email:', error);
+        res.status(500).json({ error: 'Failed to send email' });
+      });
     return;
-  }
-  const token = jwt.sign(
-    { userId: user.id },
-    process.env.JWT_SECRET || 'default_secret',
-    { expiresIn: '7d' },
-  );
-  console.log('token', token);
-  sendForgotPasswordMail({ to: email, token })
-    .then(() => {
-      res.status(200).json({ message: 'Email sent successfully' });
-    })
-    .catch((error) => {
-      console.error('Error sending email:', error);
-      res.status(500).json({ error: 'Failed to send email' });
-    });
-  return
-  // console.log("email", email)
+  },
+);
 
-})
-
-app.post('/api/saveNewPassword', async (req: Request<{}, {}, { password: string, token: string }>, res: Response) => {
-  const { password, token } = req.body;
-  if (!password || !token) {
-    res.status(400).json({ error: 'Password and token are required' });
+app.post(
+  '/api/saveNewPassword',
+  async (
+    req: Request<{}, {}, { password: string; token: string }>,
+    res: Response,
+  ) => {
+    const { password, token } = req.body;
+    if (!password || !token) {
+      res.status(400).json({ error: 'Password and token are required' });
+      return;
+    }
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
+    } catch (err) {
+      console.error('JWT verification error:', err);
+      res.status(401).json({ error: 'Invalid token' });
+      return;
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await db.execute(
+      'UPDATE usersInfo SET password = ?, verification_token = NULL WHERE id = ?',
+      [hashedPassword, decoded.userId],
+    );
+    console.log('Password updated successfully for user ID:', decoded.userId);
+    res.status(200).json({ message: 'Password updated successfully' });
     return;
-  }
-  let decoded;
-  try {
-    decoded = jwt.verify(token, process
-      .env
-      .JWT_SECRET ||
-      'default_secret');
-  } catch (err) {
-    console.error('JWT verification error:', err);
-    res.status(401).json({ error: 'Invalid token' });
-    return;
-  }
-  const hashedPassword = await bcrypt.hash(password, 10);
-  await db.execute(
-    'UPDATE usersInfo SET password = ?, verification_token = NULL WHERE id = ?',
-    [hashedPassword, decoded.userId],
-  );
-  console.log('Password updated successfully for user ID:', decoded.userId);
-  res.status(200).json({ message: 'Password updated successfully' });
-  return;
-});
+  },
+);
 app.put(
   '/api/updateAccount',
   async (req: Request<{}, {}, UserInfoBase>, res) => {
@@ -769,7 +768,6 @@ app.put(
   },
 );
 
-
 export async function sendVerificationEmail({
   to,
   token,
@@ -804,8 +802,6 @@ export async function sendVerificationEmail({
     </div>
   `,
   });
-
-  console.log('Email sent:', info.messageId);
 }
 export async function sendForgotPasswordMail({
   to,
@@ -828,8 +824,7 @@ export async function sendForgotPasswordMail({
     subject: 'Reset Your Password',
     html: `
     <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 8px; background: #fafafa;">
-            <img src="/logo.svg" alt="logo" className="mx-5 w-42" />
-<h2 style="color: #ff4081; text-align: center; margin-bottom: 20px;">Matcha</h2>
+    <h2 style="color: #ff4081; text-align: center; margin-bottom: 20px;">Matcha</h2>
       <p style="font-size: 16px; line-height: 1.5; text-align: center;">
         We received a request to reset your password. Click the button below to change it:
       </p>
@@ -850,9 +845,6 @@ export async function sendForgotPasswordMail({
     </div>
   `,
   });
-
-
-  console.log('Email sent:', info.messageId);
 }
 
 io.on('connection', (socket) => {

@@ -25,8 +25,6 @@ export default function Root() {
       location.pathname === '/verifyemail' ||
       location.pathname === '/resetPassword'
     ) {
-      console.log('here');
-
       setLoading(false);
       return;
     }
@@ -49,7 +47,6 @@ export default function Root() {
           navigate('/login');
         });
     } else {
-      console.log('NO TOKEN');
       setUser(null);
       setLoading(false);
       navigate('/login');

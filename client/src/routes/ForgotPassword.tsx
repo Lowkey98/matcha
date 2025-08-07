@@ -6,6 +6,7 @@ import InputFormField from '../components/FormFields/InputFormField';
 import ButtonPrimary from '../components/Buttons/ButtonPrimary';
 import { Helmet } from 'react-helmet';
 import { sendForgotPasswordMail } from '../../Api';
+import EmailSent from '../components/EmailSent';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState<string>('');
@@ -21,7 +22,6 @@ export default function ForgotPassword() {
       errorForm = true;
     }
     if (!errorForm) {
-      console.log(email);
       sendForgotPasswordMail({
         email,
       })
@@ -43,18 +43,10 @@ export default function ForgotPassword() {
         <title>Matcha - Forgot password</title>
       </Helmet>
       {isEmailSent ? (
-        <div className="bg-grayDark bg-opacity-50 fixed top-0 right-0 bottom-0 left-0 z-50 flex items-center justify-center">
-          <div className="rounded bg-white p-6 text-center shadow-lg">
-            <h2 className="mb-4 text-lg font-bold">Email Sent</h2>
-            <p className="mb-4">Please check your email for the reset link.</p>
-            <ButtonPrimary
-              type="button"
-              value="OK"
-              onClick={handleClickGoToLogin}
-              className="w-full"
-            />
-          </div>
-        </div>
+        <EmailSent
+          message="We've sent a reset password link to your email. Please verify it to
+                 reset your password."
+        />
       ) : (
         <main className="mt-12 flex flex-col items-center lg:mx-auto lg:w-[26rem]">
           <PasswordIcon className="h-26 w-26" />
