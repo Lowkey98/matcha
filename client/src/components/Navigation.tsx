@@ -9,6 +9,8 @@ import {
   UserIcon,
   ViewersIcon,
 } from './Icons';
+import { useLocation } from 'react-router-dom';
+import SidebarChat from './NavigationBars/SideBarChat';
 
 export type NavigationItem = {
   route: string;
@@ -17,6 +19,7 @@ export type NavigationItem = {
 };
 
 export default function Navigation() {
+  const location = useLocation();
   const navigationItems: NavigationItem[] = [
     {
       route: '/explore',
@@ -51,10 +54,17 @@ export default function Navigation() {
   ];
   return (
     <>
-      <SidebarDesktop
-        className="hidden lg:flex"
-        navigationItems={navigationItems}
-      />
+      {location.pathname === '/messages' ? (
+        <SidebarChat
+          className="hidden lg:flex"
+          navigationItems={navigationItems}
+        />
+      ) : (
+        <SidebarDesktop
+          className="hidden lg:flex"
+          navigationItems={navigationItems}
+        />
+      )}
       <NavbarMobile
         className="lg:hidden"
         navigationItems={[
