@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import type { NavigationItem } from '../Navigation';
 
 export default function SidebarDesktop({
@@ -11,9 +11,11 @@ export default function SidebarDesktop({
 }) {
   return (
     <div
-      className={`border-grayDark-100 fixed top-0 flex h-screen flex-col border-r 2xl:border-l pt-5 [:has(&)]:lg:!pl-0 ${className}`}
+      className={`border-grayDark-100 fixed top-0 flex h-screen flex-col border-r pt-5 2xl:border-l [:has(&)]:lg:!pl-0 ${className}`}
     >
-      <img src="/logo.svg" alt="logo" className="mx-5 w-42" />
+      <Link to={'/'}>
+        <img src="/logo.svg" alt="logo" className="mx-5 w-42" />
+      </Link>
       <div className="flex grow flex-col justify-center gap-11">
         {navigationItems.map((navigationItem: NavigationItem) => (
           <NavLink to={navigationItem.route} key={navigationItem.name}>
