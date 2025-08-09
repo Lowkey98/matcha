@@ -143,6 +143,49 @@ export async function getUserInfo({
   }
 }
 
+export async function sendForgotPasswordMail({
+  email
+}: {
+  email: string
+}) {
+  const response = await fetch(`${HOST}/api/sendForgotPasswordMail`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      email: email
+    })
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw error
+  }
+}
+
+export async function saveNewPassword({
+  password,
+  token
+} : {
+  password: string,
+  token: string
+}){
+  return fetch(`${HOST}/api/saveNewPassword`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      password,
+      token
+    })
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Failed to save new password');
+    }
+  });
+}
 export async function getUserInfoWithRelation({
   actorUserId,
   targetUserId,

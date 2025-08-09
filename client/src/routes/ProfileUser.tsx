@@ -118,7 +118,6 @@ export default function ProfileUser() {
   }, [user]);
 
   if (targetUserInfo?.isBlock) return null;
-  
   if (targetUserInfo)
     return (
       <>
