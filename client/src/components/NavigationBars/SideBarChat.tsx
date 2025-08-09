@@ -11,7 +11,7 @@ export default function SidebarChat({
 }) {
   return (
     <div
-      className={`border-grayDark-100 fixed top-0 flex h-screen flex-col items-center border-r px-4 pt-5 2xl:border-l [:has(&)]:lg:!pl-0 ${className}`}
+      className={`border-grayDark-100 fixed top-0 flex h-screen flex-col items-center border-r px-4 pt-5 2xl:border-l ${className}`}
     >
       <Link to={'/'}>
         <img src="/favicon.svg" alt="logo" className="w-12" />
