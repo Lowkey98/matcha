@@ -29,6 +29,10 @@ const routeConfig = [
         element: <Notfound />,
       },
       {
+        path: '/',
+        element: <Explore />,
+      },
+      {
         path: '/register',
         element: <Register />,
       },

@@ -36,7 +36,6 @@ export default function Root() {
             const socketClient = io(BACKEND_STATIC_FOLDER);
             setSocket(socketClient);
             socketClient.emit('register', userInfo.id);
-            navigate('/explore');
           } else {
             navigate('/createProfile');
           }
