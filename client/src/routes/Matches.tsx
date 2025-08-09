@@ -2,6 +2,7 @@ import { Helmet } from 'react-helmet';
 import {
   ExclamationBorderIcon,
   LocationOutlineIcon,
+  SendMessageIcon,
   StarIcon,
 } from '../components/Icons';
 import { Link } from 'react-router-dom';
@@ -22,7 +23,6 @@ export default function Matches() {
       if (token) {
         getMatches({ actorUserId: user.id, token })
           .then((matches: UserInfo[]) => {
-
             setLoader(false);
             setMatchedUsers(matches);
           })
@@ -42,7 +42,10 @@ export default function Matches() {
         matchedUsers?.length ? (
           <main className="mt-12 mb-29 flex flex-col items-center gap-9 sm:flex-row sm:flex-wrap sm:justify-between sm:gap-y-9 md:justify-start md:gap-[2.1vw] lg:mb-12 lg:ml-57 lg:gap-[1.4%] lg:gap-y-4 xl:gap-[2.5%] xl:gap-y-6 2xl:gap-[2%] 2xl:gap-y-7">
             {matchedUsers.map((matchedUser: UserInfo) => (
-              <UserProfileCard key={matchedUser.id} userInfo={matchedUser} />
+              <MatchedUserProfileCard
+                key={matchedUser.id}
+                userInfo={matchedUser}
+              />
             ))}
           </main>
         ) : (
@@ -56,7 +59,7 @@ export default function Matches() {
   );
 }
 
-function UserProfileCard({ userInfo }: { userInfo: UserInfo }) {
+function MatchedUserProfileCard({ userInfo }: { userInfo: UserInfo }) {
   const { user } = useContext(UserContext);
   const distanceInKilometers = getDistanceInKilometers({
     actorUserInfo: user,
@@ -89,10 +92,10 @@ function UserProfileCard({ userInfo }: { userInfo: UserInfo }) {
           </div>
         </div>
         <Link
-          to={`/userProfile/${userInfo.id}`}
-          className="w-25 rounded-md border border-white bg-white/10 py-2.5 text-center"
+          to={`/messages`}
+          className="bg-primary flex items-center justify-center rounded-full p-2.5"
         >
-          View profile
+          <SendMessageIcon className="size-5 fill-white" />
         </Link>
       </div>
       <div className="pointer-events-none absolute bottom-0 left-0 h-30 w-full bg-gradient-to-t from-black/70 to-transparent" />
