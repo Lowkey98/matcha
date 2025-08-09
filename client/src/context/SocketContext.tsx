@@ -3,7 +3,7 @@ import { Socket } from 'socket.io-client';
 
 type SocketContextType = {
   socket: Socket | null;
-  setSocket: ch<React.SetStateAction<Socket | null>>;
+  setSocket: React.Dispatch<React.SetStateAction<Socket | null>>;
 };
 
 export const SocketContext = React.createContext<SocketContextType>({

@@ -3,7 +3,7 @@ import Notfound from './routes/Notfound';
 import ErrorBoundary from './ErrorBoundary';
 import Register from './routes/Register';
 import Login from './routes/Login';
-import ForgetPassword from './routes/ForgetPassword';
+import ForgotPassword from './routes/ForgotPassword';
 import ResetPassword from './routes/ResetPassword';
 import CreateProfile from './routes/CreateProfile';
 import AddPictures from './routes/AddPictures';
@@ -17,6 +17,7 @@ import Notifications from './routes/Notifications';
 import Settings from './routes/Settings';
 import EditProfile from './routes/EditProfile';
 import UserProfile from './routes/UserProfile';
+import VerifyEmail from './components/VerifyEmail';
 const routeConfig = [
   {
     path: '/',
@@ -40,8 +41,8 @@ const routeConfig = [
         element: <Login />,
       },
       {
-        path: '/forgetPassword',
-        element: <ForgetPassword />,
+        path: '/forgotPassword',
+        element: <ForgotPassword />,
       },
       {
         path: '/resetPassword',
@@ -94,6 +95,10 @@ const routeConfig = [
       {
         path: '/editProfile',
         element: <EditProfile />,
+      },
+      {
+        path: '/verifyEmail',
+        element: <VerifyEmail />,
       },
     ],
   },

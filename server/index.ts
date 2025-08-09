@@ -1,6 +1,5 @@
 import express from 'express';
-import type { Request } from 'express';
-
+import type { Request, Response } from 'express';
 import db from './db.ts';
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
@@ -449,8 +448,7 @@ app.get('/api/verify', async (req, res) => {
       'UPDATE usersInfo SET is_verified = ?, verification_token = NULL WHERE id = ?',
       [true, user.id],
     );
-
-    res.send('<h1>Email verified successfully!</h1>');
+    res.redirect('http://localhost:5173/verifyemail?status=success');
   } catch (err) {
     console.error('Verification error:', err);
     res.status(500).send('Internal server error.');
@@ -753,6 +751,66 @@ app.get('/api/matches/:actorUserId', async (req, res) => {
   return;
 });
 
+app.post(
+  '/api/sendForgotPasswordMail',
+  async (req: Request<{}, {}, { email: string }>, res: Response<any>) => {
+    const { email } = req.body;
+    const [row] = await db.execute('SELECT * FROM usersInfo WHERE email = ?', [
+      email,
+    ]);
+    const user = row[0] as UserInfo;
+
+    if (!user) {
+      console.error('User not found for email:', email);
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+    const token = jwt.sign(
+      { userId: user.id },
+      process.env.JWT_SECRET || 'default_secret',
+      { expiresIn: '7d' },
+    );
+    sendForgotPasswordMail({ to: email, token })
+      .then(() => {
+        res.status(200).json({ message: 'Email sent successfully' });
+      })
+      .catch((error) => {
+        console.error('Error sending email:', error);
+        res.status(500).json({ error: 'Failed to send email' });
+      });
+    return;
+  },
+);
+
+app.post(
+  '/api/saveNewPassword',
+  async (
+    req: Request<{}, {}, { password: string; token: string }>,
+    res: Response,
+  ) => {
+    const { password, token } = req.body;
+    if (!password || !token) {
+      res.status(400).json({ error: 'Password and token are required' });
+      return;
+    }
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
+    } catch (err) {
+      console.error('JWT verification error:', err);
+      res.status(401).json({ error: 'Invalid token' });
+      return;
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await db.execute(
+      'UPDATE usersInfo SET password = ?, verification_token = NULL WHERE id = ?',
+      [hashedPassword, decoded.userId],
+    );
+    console.log('Password updated successfully for user ID:', decoded.userId);
+    res.status(200).json({ message: 'Password updated successfully' });
+    return;
+  },
+);
 app.put(
   '/api/updateAccount',
   async (req: Request<{}, {}, UserInfoBase>, res) => {
@@ -941,8 +999,49 @@ export async function sendVerificationEmail({
     </div>
   `,
   });
+}
+export async function sendForgotPasswordMail({
+  to,
+  token,
+}: {
+  to: string;
+  token: string;
+}) {
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
 
-  console.log('Email sent:', info.messageId);
+  const info = await transporter.sendMail({
+    from: `"Matcha Team" <${process.env.EMAIL_USER}>`,
+    to,
+    subject: 'Reset Your Password',
+    html: `
+    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 8px; background: #fafafa;">
+    <h2 style="color: #ff4081; text-align: center; margin-bottom: 20px;">Matcha</h2>
+      <p style="font-size: 16px; line-height: 1.5; text-align: center;">
+        We received a request to reset your password. Click the button below to change it:
+      </p>
+      <div style="text-align: center; margin: 30px 0;">
+        <a 
+          href="http://localhost:5173/resetPassword?token=${token}" 
+          style="display: inline-block; padding: 12px 24px; background-color: #ff4081; color: #fff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;"
+        >
+          Reset Password
+        </a>
+      </div>
+      <p style="font-size: 14px; color: #777; text-align: center;">
+        If you didn’t request this, you can safely ignore this email.
+      </p>
+      <p style="font-size: 14px; color: #777; text-align: center; margin-top: 40px;">
+        — The Matcha Team
+      </p>
+    </div>
+  `,
+  });
 }
 
 io.on('connection', (socket) => {

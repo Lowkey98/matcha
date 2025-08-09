@@ -21,6 +21,13 @@ export default function Root() {
   const navigate = useNavigate();
   useEffect(() => {
     const token = localStorage.getItem('token');
+    if (
+      location.pathname === '/verifyemail' ||
+      location.pathname === '/resetPassword'
+    ) {
+      setLoading(false);
+      return;
+    }
     if (token) {
       getUserInfo({ token })
         .then((userInfo: UserInfo) => {
@@ -45,6 +52,7 @@ export default function Root() {
       navigate('/login');
     }
   }, []);
+
   return (
     <UserContext.Provider value={{ user, setUser, loading, setLoading }}>
       <SortsContext.Provider value={{ sorts, setSorts }}>

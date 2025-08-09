@@ -6,8 +6,6 @@ import { NotificationResponse } from '../../../shared/types';
 export default function Notifications() {
   const location = useLocation();
   const notifications = location.state.notifications as NotificationResponse[];
-  console.log('notifications:', notifications);
-
   return (
     <>
       <Helmet>
