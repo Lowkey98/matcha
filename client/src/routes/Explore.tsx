@@ -6,17 +6,9 @@ import ProfileSlider from '../components/ProfilesSlider';
 import { UserContext } from '../context/UserContext';
 
 export default function Explore() {
-  const { user, loading } = useContext(UserContext);
+  const { loading } = useContext(UserContext);
   if (loading) {
     return null;
-  }
-
-  if (!user) {
-    return <Login />;
-  } else if (false) {
-    return <CreateProfile />;
-  } else {
-    console.log('user', user);
   }
   return (
     <>
