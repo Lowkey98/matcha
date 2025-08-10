@@ -50,7 +50,7 @@ export default function Profile() {
               </div>
               <div className="flex items-center gap-3">
                 <LocationOutlineIcon className="fill-primary h-6 w-6" />
-                <span className="text-secondary">Rue 02 zarktouni</span>
+                <span className="text-secondary">{user.location?.address}</span>
               </div>
               <div className="flex items-center gap-3">
                 <AgendaIcon className="fill-primary h-6 w-6" />

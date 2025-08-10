@@ -65,7 +65,7 @@ export default function HeaderBurger({
                   <UserIcon className="fill-primary h-5 w-5" />
                 )}
 
-                <span className="text-secondary text-sm">Username</span>
+                <span className="text-secondary text-sm">{user?.username}</span>
               </div>
               {user?.age && (
                 <>
@@ -74,7 +74,7 @@ export default function HeaderBurger({
                 </>
               )}
             </div>
-            {location.pathname === '/explore' ? (
+            {user?.age && location.pathname === '/explore' ? (
               <div className="mt-5">
                 <div className="text-secondary">
                   <span className="inline-block px-5 font-medium">Sort by</span>
