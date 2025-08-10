@@ -7,6 +7,7 @@ import type {
   UpdatedUserProfileInfos,
   UserInfo,
   UserInfoBase,
+  UserInfoWithCommonTags,
   UserInfoWithRelation,
 } from '../shared/types';
 
@@ -181,15 +182,22 @@ export async function saveNewPassword({
     }
   });
 }
-export async function getAllUsers({ token }: { token: string }) {
+export async function getAllUsers({
+  token,
+  currentUserId,
+}: {
+  token: string;
+  currentUserId: number;
+}) {
   try {
     const response = await fetch(`${HOST}/api/getAllUsers`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
+      method: 'GET',
     });
     const jsonResponse = await response.json();
-    return jsonResponse as UserInfo[];
+    return jsonResponse as UserInfoWithCommonTags[];
   } catch (error) {
     throw error;
   }

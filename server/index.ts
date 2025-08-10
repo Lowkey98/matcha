@@ -19,6 +19,7 @@ import type {
   UserInfo,
   UserInfoBase,
   UserInfoWithRelation,
+  UserInfoWithCommonTags,
 } from '../shared/types.ts';
 import {
   isValidAge,
@@ -449,8 +450,9 @@ app.get('/api/verify', async (req, res) => {
   }
 });
 
-app.get('/api/getAllUsers/', async (req, res) => {
+app.get('/api/getAllUsers', async (req, res) => {
   const token = req.headers.authorization?.split(' ')[1];
+
   console.log('token', token);
   if (!token) {
     res.status(401).json({ error: 'Unauthorized' });
@@ -467,25 +469,38 @@ app.get('/api/getAllUsers/', async (req, res) => {
   const [row] = await db.execute('SELECT * FROM usersInfo', [decoded.userId]);
   const usersInfoFromDB = row as UserInfo[];
   // console.log("users", usersInfo)
-  const usersInfo = usersInfoFromDB.map((user) => {
-    return {
-      id: user.id,
-      email: user.email,
-      username: user.username,
-      firstName: user['first_name'],
-      lastName: user['last_name'],
-      age: user['age'],
-      gender: user['gender'],
-      sexualPreference: user['sexual_preference'],
-      interests: user['interests'],
-      biography: user['biography'],
-      imagesUrls: user['images_urls'],
-      location:
-        typeof user['location'] === 'string' && JSON.parse(user['location']),
-    };
-  });
+  const [UserRow] = await db.execute('SELECT * FROM usersInfo WHERE id != ?', [
+    decoded.userId,
+  ]);
+  const currentUser = UserRow[0] as UserInfo;
+  const usersInfoWithCommon: UserInfoWithCommonTags[] = usersInfoFromDB.map(
+    (user) => {
+      const commonTagsCount = user.interests
+        ? user.interests.filter((interest) =>
+            currentUser.interests.includes(interest),
+          ).length
+        : 0;
+      console.log(commonTagsCount);
+      return {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        firstName: user['first_name'],
+        lastName: user['last_name'],
+        age: user['age'],
+        gender: user['gender'],
+        sexualPreference: user['sexual_preference'],
+        interests: user['interests'],
+        biography: user['biography'],
+        imagesUrls: user['images_urls'],
+        location:
+          typeof user['location'] === 'string' && JSON.parse(user['location']),
+        commonTagsCount,
+      };
+    },
+  );
 
-  res.json(usersInfo);
+  res.json(usersInfoWithCommon);
   return;
 });
 app.get(`/api/calculateFameRate/:userId`, async (req, res) => {

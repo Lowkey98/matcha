@@ -22,7 +22,9 @@ export type UserInfo = UserInfoBase & {
   imagesUrls?: string[];
   location?: UserLocation;
 };
-
+export type UserInfoWithCommonTags = UserInfo & {
+  commonTagsCount: number;
+};
 export type UserInfoWithRelation = UserInfo & {
   isLike: boolean;
   isViewProfile: boolean;
@@ -65,7 +67,8 @@ export type NotificationResponse = {
   actorUserId: number;
   actorUserImageUrl: string;
   actorUsername: string;
-  message: string;};
+  message: string;
+};
 export type Sort = {
   name: string;
   sort: 'asc' | 'desc';
