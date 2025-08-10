@@ -19,6 +19,7 @@
     "bcrypt": "^6.0.0",
     "embla-carousel-autoplay": "^8.6.0",
     "embla-carousel-react": "^8.6.0",
+    "geolib": "^3.3.4",
     "pigeon-maps": "^0.22.1",
     "react-range": "^1.10.0",
     "react-router-dom": "^7.6.0",

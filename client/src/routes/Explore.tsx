@@ -7,6 +7,7 @@ import { UserContext } from '../context/UserContext';
 import { FiltersContext } from '../context/FiltersContext';
 import { getAllUsers } from '../../Api';
 import { UserInfoWithCommonTags } from '../../../shared/types';
+import { Navigate } from 'react-router-dom';
 
 export default function Explore() {
   const { user, loading } = useContext(UserContext);
@@ -28,9 +29,7 @@ export default function Explore() {
   if (loading) {
     return null;
   }
-  if (!user) {
-    return <Login />;
-  }
+ 
   // lets filter users based on filters one by one multiple filters
 
   const ageFilter = filters.find((f) => f.name === 'Age')!;
@@ -56,22 +55,8 @@ export default function Explore() {
 
   console.log('Filtered users:', filteredUsers);
 
-  // .filter(user =>
-  //   user.location?.distanceKm !== undefined &&
-  //   user.location.distanceKm >= locationFilter.range[0] &&
-  //   user.location.distanceKm <= locationFilter.range[1]
-  // )
-  // .filter(user =>
-  //   user.fameRating !== undefined &&
-  //   user.fameRating >= fameFilter.range[0] &&
-  //   user.fameRating <= fameFilter.range[1]
-  // )
-  // .filter(user =>
-  //   user.interests !== undefined &&
-  //   user.interests.length >= tagsFilter.range[0] &&
-  //   user.interests.length <= tagsFilter.range[1]
-  // );
-
+  if (!user) return <Navigate to={'/login'} replace />;
+  if (!user.age) return <Navigate to={'/createProfile'} replace />;
   return (
     <>
       <Helmet>

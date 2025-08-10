@@ -28,7 +28,6 @@ export default function ProfileSlider({
   const [, setIsPaused] = useState<boolean>(false);
   const [emblaRef, emblaApi] = useEmblaCarousel();
   const [, setSelectedIndex] = useState(0);
-  const [, setScrollSnaps] = useState<number[]>([]);
   const [showSort, setShowSort] = useState<boolean>(false);
   const [showFilter, setShowFilter] = useState<boolean>(false);
 
@@ -150,8 +149,8 @@ function ProfileCard({ user }: { user: UserInfo }) {
           View profile
         </Link>
       </div>
-      <div className="pointer-events-none absolute bottom-0 left-0 h-30 w-full bg-gradient-to-t from-black/70 to-transparent"></div>
-      <div className="pointer-events-none absolute bottom-0 left-0 h-25 w-full bg-gradient-to-t from-black/70 to-transparent"></div>
+      <div className="pointer-events-none absolute bottom-0 left-0 h-30 w-full bg-gradient-to-t from-black/70 to-transparent" />
+      <div className="pointer-events-none absolute bottom-0 left-0 h-25 w-full bg-gradient-to-t from-black/70 to-transparent" />
     </div>
   );
 }

@@ -36,6 +36,8 @@ export default function Root() {
             const socketClient = io(BACKEND_STATIC_FOLDER);
             setSocket(socketClient);
             socketClient.emit('register', userInfo.id);
+          } else {
+            navigate('/createProfile');
           }
           setLoading(false);
         })
@@ -58,15 +60,15 @@ export default function Root() {
       <SortsContext.Provider value={{ sorts, setSorts }}>
         <FiltersContext.Provider value={{ filters, setFilters }}>
           <ToastProvider>
-           <SocketContext.Provider value={{ socket, setSocket }}>
-            {user && (
-              <>
-                <Header />
-                {user.age ? <Navigation /> : null}
-              </>
-            )}
-            {/* TODO handle display of sidebar depends on the authentication */}
-             </SocketContext.Provider>
+            <SocketContext.Provider value={{ socket, setSocket }}>
+              {user && (
+                <>
+                  <Header />
+                  {user.age ? <Navigation /> : null}
+                </>
+              )}
+              {/* TODO handle display of sidebar depends on the authentication */}
+            </SocketContext.Provider>
             <Outlet />
           </ToastProvider>
         </FiltersContext.Provider>

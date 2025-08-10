@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import type { NavigationItem } from '../Navigation';
 
-export default function SidebarDesktop({
+export default function SidebarChat({
   navigationItems,
   className,
 }: {
@@ -12,10 +12,10 @@ export default function SidebarDesktop({
   const location = useLocation();
   return (
     <div
-      className={`border-grayDark-100 fixed top-0 flex h-screen flex-col border-r pt-5 2xl:border-l ${className}`}
+      className={`border-grayDark-100 fixed top-0 flex h-screen flex-col items-center border-r px-4 pt-5 2xl:border-l ${className}`}
     >
       <Link to={'/'}>
-        <img src="/logo.svg" alt="logo" className="mx-5 w-42" />
+        <img src="/favicon.svg" alt="logo" className="w-12" />
       </Link>
       <div className="flex grow flex-col justify-center gap-11">
         {navigationItems.map((navigationItem: NavigationItem) => {
@@ -26,10 +26,10 @@ export default function SidebarDesktop({
             <NavLink to={navigationItem.route} key={navigationItem.name}>
               {({ isActive }) => (
                 <div
-                  className={`text-secondary flex items-center gap-3 border-l-4 px-5 py-3 ${isActive || customActive ? 'border-primary bg-gray-50' : 'border-transparent bg-white'}`}
+                  className={`flex flex-col items-center gap-1 text-sm ${isActive || customActive ? 'fill-primary text-primary' : 'fill-grayDark text-grayDark'}`}
                 >
                   {React.cloneElement(navigationItem.icon, {
-                    className: 'w-7 h-7 fill-primary',
+                    className: 'w-7 h-7',
                   })}
                   {navigationItem.name}
                 </div>
