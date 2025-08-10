@@ -449,6 +449,78 @@ app.get('/api/verify', async (req, res) => {
   }
 });
 
+app.get('/api/getAllUsers/', async (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  console.log('token', token);
+  if (!token) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
+  } catch (err) {
+    console.error('JWT verification error:', err);
+    res.status(401).json({ error: 'Invalid token' });
+    return;
+  }
+  const [row] = await db.execute('SELECT * FROM usersInfo', [decoded.userId]);
+  const usersInfoFromDB = row as UserInfo[];
+  // console.log("users", usersInfo)
+  const usersInfo = usersInfoFromDB.map((user) => {
+    return {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      firstName: user['first_name'],
+      lastName: user['last_name'],
+      age: user['age'],
+      gender: user['gender'],
+      sexualPreference: user['sexual_preference'],
+      interests: user['interests'],
+      biography: user['biography'],
+      imagesUrls: user['images_urls'],
+      location:
+        typeof user['location'] === 'string' && JSON.parse(user['location']),
+    };
+  });
+
+  res.json(usersInfo);
+  return;
+});
+app.get(`/api/calculateFameRate/:userId`, async (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  const userId = req.params.userId;
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
+  } catch (err) {
+    console.error('JWT verification error:', err);
+    res.status(401).json({ error: 'Invalid token' });
+    return;
+  }
+  // get from table relations how many times this userId was viewed
+  const [row] = await db.execute(
+    'SELECT COUNT(*) as viewCount FROM relations WHERE target_user_id = ? AND is_view_profile = true',
+    [userId],
+  );
+  // now get the most viewed userId from the same table
+  const [mostViewedRow] = await db.execute(
+    'SELECT target_user_id, COUNT(*) as viewCount FROM relations WHERE is_view_profile = true GROUP BY target_user_id ORDER BY viewCount DESC LIMIT 1',
+  );
+  const mostViewedUserId = mostViewedRow[0]?.target_user_id;
+  const mostViewedCount = mostViewedRow[0]?.viewCount || 1; // Avoid division by zero
+  const viewCount = row[0]?.viewCount || 0;
+  const fameRate = (viewCount / mostViewedCount) * 100; // Example calculation
+  // send it back as a response
+  console.log('fameRate', fameRate);
+
+  res.json({ fameRate });
+});
 app.get('/api/me', async (req, res) => {
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) {
@@ -466,6 +538,7 @@ app.get('/api/me', async (req, res) => {
   const [row] = await db.execute('SELECT * FROM usersInfo WHERE id = ?', [
     decoded.userId,
   ]);
+  console.log;
   const user = row[0] as UserInfo;
 
   if (!user) {

@@ -1,6 +1,18 @@
+import { useContext, useEffect } from 'react';
 import { StarIcon } from './Icons';
+import { UserContext } from '../context/UserContext';
+import { calculateFameRate } from '../../Api';
 
 export default function FameRate({ className }: { className?: string }) {
+  // use effect calls calculateFameRate which calculates the fame rate based how many times user viewed versus how many times most viewed user was viewed
+  const { user } = useContext(UserContext);
+  useEffect(() => {
+    if (!user) return;
+    calculateFameRate({
+      userId: user.id,
+      token: localStorage.getItem('token') || '',
+    });
+  }, [user]);
   return (
     <div className={`flex items-center gap-3 ${className}`}>
       <div className="lg:border-grayDark-100 flex items-center justify-center lg:h-12 lg:w-12 lg:rounded-full lg:border-2">

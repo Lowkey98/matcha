@@ -143,33 +143,29 @@ export async function getUserInfo({
   }
 }
 
-export async function sendForgotPasswordMail({
-  email
-}: {
-  email: string
-}) {
+export async function sendForgotPasswordMail({ email }: { email: string }) {
   const response = await fetch(`${HOST}/api/sendForgotPasswordMail`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      email: email
-    })
+      email: email,
+    }),
   });
   if (!response.ok) {
     const error = await response.json();
-    throw error
+    throw error;
   }
 }
 
 export async function saveNewPassword({
   password,
-  token
-} : {
-  password: string,
-  token: string
-}){
+  token,
+}: {
+  password: string;
+  token: string;
+}) {
   return fetch(`${HOST}/api/saveNewPassword`, {
     method: 'POST',
     headers: {
@@ -177,15 +173,54 @@ export async function saveNewPassword({
     },
     body: JSON.stringify({
       password,
-      token
-    })
-  })
-  .then(response => {
+      token,
+    }),
+  }).then((response) => {
     if (!response.ok) {
       throw new Error('Failed to save new password');
     }
   });
 }
+export async function getAllUsers({ token }: { token: string }) {
+  try {
+    const response = await fetch(`${HOST}/api/getAllUsers`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const jsonResponse = await response.json();
+    return jsonResponse as UserInfo[];
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function calculateFameRate({
+  userId,
+  token,
+}: {
+  userId: number;
+  token: string;
+}): Promise<number> {
+  try {
+    const response = await fetch(`${HOST}/api/calculateFameRate/${userId}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw error;
+    }
+    const jsonResponse = await response.json();
+    return jsonResponse.fameRate as number;
+  } catch (error) {
+    console.error('Error calculating fame rate:', error);
+    throw error;
+  }
+}
+
 export async function getUserInfoWithRelation({
   actorUserId,
   targetUserId,

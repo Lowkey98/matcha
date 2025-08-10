@@ -12,24 +12,25 @@ import {
   StarIcon,
 } from './Icons';
 import { Link } from 'react-router-dom';
-import { Filter, Sort } from '../../../shared/types';
+import { Filter, Sort, UserInfo } from '../../../shared/types';
 import { SortsContext } from '../context/SortsContext';
 import FilterCard from './FilterCard';
 import { FiltersContext } from '../context/FiltersContext';
+import { BACKEND_STATIC_FOLDER } from './ImagesCarousel';
 
-export default function ProfileSlider({ className }: { className?: string }) {
+export default function ProfileSlider({
+  className,
+  users,
+}: {
+  className?: string;
+  users: UserInfo[];
+}) {
   const [, setIsPaused] = useState<boolean>(false);
   const [emblaRef, emblaApi] = useEmblaCarousel();
   const [, setSelectedIndex] = useState(0);
   const [, setScrollSnaps] = useState<number[]>([]);
   const [showSort, setShowSort] = useState<boolean>(false);
   const [showFilter, setShowFilter] = useState<boolean>(false);
-
-  const imagesProfilesUrls = [
-    '/profile-slides-images/slide-1.jpg',
-    '/profile-slides-images/slide-2.jpg',
-    '/profile-slides-images/slide-3.jpg',
-  ];
 
   const onSelect = useCallback(() => {
     if (!emblaApi) return;
@@ -58,10 +59,10 @@ export default function ProfileSlider({ className }: { className?: string }) {
         ref={emblaRef}
       >
         <div className="flex h-full">
-          {imagesProfilesUrls.map((imageProfileUrl) => (
+          {users.map((user) => (
             <ProfileCard
-              key={imageProfileUrl}
-              imageProfileUrl={imageProfileUrl}
+              key={user.id}
+              user={user}
             />
           ))}
         </div>
@@ -110,11 +111,14 @@ export default function ProfileSlider({ className }: { className?: string }) {
   );
 }
 
-function ProfileCard({ imageProfileUrl }: { imageProfileUrl: string }) {
+function ProfileCard({ user }: { user: UserInfo }) {
+  const imageUrl = user.imagesUrls
+    ? `${BACKEND_STATIC_FOLDER}${user.imagesUrls[0]} `
+    : '';
   return (
     <div className="relative flex-none basis-full">
       <img
-        src={imageProfileUrl}
+        src={imageUrl}
         alt="card"
         className="h-full w-full object-cover select-none"
         draggable={false}
@@ -122,13 +126,16 @@ function ProfileCard({ imageProfileUrl }: { imageProfileUrl: string }) {
       <div className="absolute bottom-0 left-0 z-10 flex w-full items-center justify-between px-4 pb-6 text-white">
         <div className="flex flex-col gap-2">
           <div className="text-xl">
-            <span className="font-bold">Username,</span>
-            <span className="ml-1 font-light">20</span>
+            <span className="font-bold">
+              {`${user.firstName} ${user.lastName}`},
+            </span>
+            <span className="ml-1 font-light">{user.age}</span>
           </div>
           <div className="flex items-center gap-3 font-light">
             <div className="flex items-center gap-1">
               <LocationOutlineIcon className="h-4 w-4 fill-white" />
               <span>10km</span>
+              {/* <span>10km</span> */}
             </div>
             <div className="flex items-center gap-1">
               <StarIcon className="h-4 w-4 fill-white" />
@@ -137,7 +144,7 @@ function ProfileCard({ imageProfileUrl }: { imageProfileUrl: string }) {
           </div>
         </div>
         <Link
-          to="/profile"
+          to={`/profileUser/${user.id}`}
           className="w-[40%] rounded-md border border-white bg-white/10 py-2.5 text-center sm:w-40"
         >
           View profile
