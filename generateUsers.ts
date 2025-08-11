@@ -94,7 +94,7 @@ async function generateUsers(): Promise<void> {
       const sexual_preference = getRandom(SEXUAL_PREFERENCES);
       const interests = JSON.stringify(getRandomInterests());
       const biography = getRandom(BIOGRAPHY_SAMPLES);
-
+      const fameRate = 0;
       const images_urls = JSON.stringify(
         Array.from({ length: 5 }, (_, idx) => `/uploads/${userId}/picture-${userId}-${idx}.webp`)
       );

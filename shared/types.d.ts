@@ -21,6 +21,7 @@ export type UserInfo = UserInfoBase & {
   interests?: string[];
   imagesUrls?: string[];
   location?: UserLocation;
+  fameRate?: number;
 };
 export type UserInfoWithCommonTags = UserInfo & {
   commonTagsCount: number;

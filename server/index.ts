@@ -44,15 +44,15 @@ export function getDistanceInKilometers({
   const distanceInMeters =
     targetUserInfo?.location && actorUserInfo?.location
       ? getDistance(
-          {
-            latitude: JSON.parse(actorUserInfo.location).latitude ,
-            longitude: JSON.parse(actorUserInfo.location).longitude ,
-          },
-          {
-            latitude: JSON.parse(targetUserInfo.location).latitude ,
-            longitude: JSON.parse(targetUserInfo.location).longitude ,
-          },
-        )
+        {
+          latitude: JSON.parse(actorUserInfo.location).latitude,
+          longitude: JSON.parse(actorUserInfo.location).longitude,
+        },
+        {
+          latitude: JSON.parse(targetUserInfo.location).latitude,
+          longitude: JSON.parse(targetUserInfo.location).longitude,
+        },
+      )
       : undefined;
   const distanceInKilometers = distanceInMeters
     ? Math.round(distanceInMeters / 1000)
@@ -396,6 +396,13 @@ app.post(
     }
     const { actorUserId, targetUserId } = req.body;
     try {
+      // add one fameRate to the targetUserId
+      await db.execute(
+        `INSERT INTO usersInfo (id, fame_rate)
+        VALUES (?, 1)
+        ON DUPLICATE KEY UPDATE fame_rate = fame_rate + 1`,
+        [targetUserId],
+      );
       await db.execute(
         `INSERT INTO relations (actor_user_id, target_user_id, is_view_profile)
    VALUES (?, ?, ?)
@@ -513,8 +520,8 @@ app.get('/api/getAllUsers', async (req, res) => {
     (user) => {
       const commonTagsCount = user.interests
         ? user.interests.filter((interest) =>
-            currentUser.interests.includes(interest),
-          ).length
+          currentUser.interests.includes(interest),
+        ).length
         : 0;
       const distanceBetween = getDistanceInKilometers({
         actorUserInfo: user,
