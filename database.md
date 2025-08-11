@@ -18,7 +18,7 @@ sexual_preference VARCHAR(255),
 interests JSON,
 biography VARCHAR(255),
 images_urls JSON,
-location JSON,
+location TEXT,
 fame_rate INT
 );
 

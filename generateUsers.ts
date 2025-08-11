@@ -106,7 +106,7 @@ async function generateUsers(): Promise<void> {
       };
 
       const location = JSON.stringify(locationObj);
-      const userValues = `("${username}", "${email}", "${first_name}", "${last_name}", "${hashedPassword}", ${is_verified}, "${created_at}", ${verification_token ? `"${verification_token}"` : 'NULL'}, ${age}, "${gender}", "${sexual_preference}", '${interests}', "${biography}", '${images_urls}', '${location}')`;
+      const userValues = `("${username}", "${email}", "${first_name}", "${last_name}", "${hashedPassword}", ${is_verified}, "${created_at}", ${verification_token ? `"${verification_token}"` : 'NULL'}, ${age}, "${gender}", "${sexual_preference}", '${interests}', "${biography}", '${images_urls}', '${location}', '${fameRate}')`;
 
       usersValues.push(userValues);
 
@@ -121,7 +121,7 @@ async function generateUsers(): Promise<void> {
 INSERT INTO usersInfo (
   username, email, first_name, last_name, password, is_verified, created_at,
   verification_token, age, gender, sexual_preference, interests,
-  biography, images_urls, location
+  biography, images_urls, location, fame_rate
 ) VALUES
 ${usersValues.join(",\n")};
 `;

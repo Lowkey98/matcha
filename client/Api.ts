@@ -203,32 +203,6 @@ export async function getAllUsers({
   }
 }
 
-export async function calculateFameRate({
-  userId,
-  token,
-}: {
-  userId: number;
-  token: string;
-}): Promise<number> {
-  try {
-    const response = await fetch(`${HOST}/api/calculateFameRate/${userId}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    if (!response.ok) {
-      const error = await response.json();
-      throw error;
-    }
-    const jsonResponse = await response.json();
-    return jsonResponse.fameRate as number;
-  } catch (error) {
-    console.error('Error calculating fame rate:', error);
-    throw error;
-  }
-}
-
 export async function getUserInfoWithRelation({
   actorUserId,
   targetUserId,

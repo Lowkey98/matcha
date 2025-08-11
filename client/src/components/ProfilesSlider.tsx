@@ -143,7 +143,7 @@ function ProfileCard({ user }: { user: UserInfo }) {
           </div>
         </div>
         <Link
-          to={`/profileUser/${user.id}`}
+          to={`/userProfile/${user.id}`}
           className="w-[40%] rounded-md border border-white bg-white/10 py-2.5 text-center sm:w-40"
         >
           View profile
