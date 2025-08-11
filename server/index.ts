@@ -7,6 +7,7 @@ import nodemailer from 'nodemailer';
 import { randomUUID } from 'crypto';
 import http from 'http';
 import jwt from 'jsonwebtoken';
+import { getDistance } from 'geolib';
 
 import dotenv from 'dotenv';
 import type {
@@ -30,6 +31,34 @@ import {
 } from '../shared/Helpers.ts';
 import path from 'path';
 import fs from 'fs';
+
+export function getDistanceInKilometers({
+  actorUserInfo,
+  targetUserInfo,
+}: {
+  actorUserInfo: UserInfo | null;
+  targetUserInfo: UserInfoWithRelation | UserInfo | null;
+}) {
+  // console.log("actorUserInfo", actorUserInfo)
+  // console.log("targetUserInfo", targetUserInfo)
+  const distanceInMeters =
+    targetUserInfo?.location && actorUserInfo?.location
+      ? getDistance(
+          {
+            latitude: JSON.parse(actorUserInfo.location).latitude ,
+            longitude: JSON.parse(actorUserInfo.location).longitude ,
+          },
+          {
+            latitude: JSON.parse(targetUserInfo.location).latitude ,
+            longitude: JSON.parse(targetUserInfo.location).longitude ,
+          },
+        )
+      : undefined;
+  const distanceInKilometers = distanceInMeters
+    ? Math.round(distanceInMeters / 1000)
+    : undefined;
+  return distanceInKilometers;
+}
 
 type UserInfoFromDB = {
   created_at: Date;
@@ -479,6 +508,7 @@ app.get('/api/getAllUsers', async (req, res) => {
     decoded.userId,
   ]);
   const currentUser = UserRow[0] as UserInfo;
+
   const usersInfoWithCommon: UserInfoWithCommonTags[] = usersInfoFromDB.map(
     (user) => {
       const commonTagsCount = user.interests
@@ -486,7 +516,11 @@ app.get('/api/getAllUsers', async (req, res) => {
             currentUser.interests.includes(interest),
           ).length
         : 0;
-      console.log(commonTagsCount);
+      const distanceBetween = getDistanceInKilometers({
+        actorUserInfo: user,
+        targetUserInfo: currentUser,
+      });
+      console.log(distanceBetween);
       return {
         id: user.id,
         email: user.email,
@@ -502,6 +536,7 @@ app.get('/api/getAllUsers', async (req, res) => {
         location:
           typeof user['location'] === 'string' && JSON.parse(user['location']),
         commonTagsCount,
+        distanceBetween,
       };
     },
   );

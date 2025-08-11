@@ -24,6 +24,7 @@ export type UserInfo = UserInfoBase & {
 };
 export type UserInfoWithCommonTags = UserInfo & {
   commonTagsCount: number;
+  distanceBetween: number;
 };
 export type UserInfoWithRelation = UserInfo & {
   isLike: boolean;

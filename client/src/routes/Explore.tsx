@@ -29,7 +29,7 @@ export default function Explore() {
   if (loading) {
     return null;
   }
- 
+
   // lets filter users based on filters one by one multiple filters
 
   const ageFilter = filters.find((f) => f.name === 'Age')!;
@@ -50,6 +50,14 @@ export default function Explore() {
         user.commonTagsCount !== undefined &&
         user.commonTagsCount >= tagsFilter.min &&
         user.commonTagsCount <= tagsFilter.max
+      );
+    })
+    .filter((user) => {
+      console.log(" user.distanceBetween", user.distanceBetween)
+      return (
+        user.distanceBetween !== undefined &&
+        user.distanceBetween >= locationFilter.min &&
+        user.distanceBetween <= locationFilter.max
       );
     });
 
