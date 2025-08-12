@@ -78,3 +78,10 @@ export type Filter = {
   min: number;
   max: number;
 };
+
+export type ConversationUserInfo = {
+  id: number;
+  imageUrl: string;
+  username: string;
+  isOnline: boolean;
+};

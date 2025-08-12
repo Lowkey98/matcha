@@ -10,6 +10,7 @@ import jwt from 'jsonwebtoken';
 
 import dotenv from 'dotenv';
 import type {
+  ConversationUserInfo,
   CreateProfileRequest,
   LoginRequest,
   NotificationResponse,
@@ -563,6 +564,42 @@ app.get(
     return;
   },
 );
+
+app.get('/api/conversationUserInfo/:targetUserId', async (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  const targetUserId = req.params.targetUserId;
+  if (!token) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
+  } catch (err) {
+    console.error('JWT verification error:', err);
+    res.status(401).json({ error: 'Invalid token' });
+    return;
+  }
+  const [row] = await db.execute('SELECT * FROM usersInfo WHERE id = ?', [
+    targetUserId,
+  ]);
+  const targetUser = row[0] as UserInfo;
+
+  if (!targetUser) {
+    console.error('User not found for token:', token);
+    res.status(404).json({ message: 'User not found' });
+    return;
+  }
+  const userInfo: ConversationUserInfo = {
+    id: targetUser.id,
+    username: targetUser.username,
+    imageUrl: targetUser['images_urls'][0],
+    isOnline: onlineUsers.has(targetUserId),
+  };
+
+  res.json(userInfo);
+  return;
+});
 
 app.get('/api/likes/:actorUserId', async (req, res) => {
   const token = req.headers.authorization?.split(' ')[1];

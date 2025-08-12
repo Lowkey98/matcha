@@ -1,4 +1,5 @@
 import type {
+  ConversationUserInfo,
   CreateProfileRequest,
   CreateProfileResponse,
   LoginRequest,
@@ -143,33 +144,29 @@ export async function getUserInfo({
   }
 }
 
-export async function sendForgotPasswordMail({
-  email
-}: {
-  email: string
-}) {
+export async function sendForgotPasswordMail({ email }: { email: string }) {
   const response = await fetch(`${HOST}/api/sendForgotPasswordMail`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      email: email
-    })
+      email: email,
+    }),
   });
   if (!response.ok) {
     const error = await response.json();
-    throw error
+    throw error;
   }
 }
 
 export async function saveNewPassword({
   password,
-  token
-} : {
-  password: string,
-  token: string
-}){
+  token,
+}: {
+  password: string;
+  token: string;
+}) {
   return fetch(`${HOST}/api/saveNewPassword`, {
     method: 'POST',
     headers: {
@@ -177,10 +174,9 @@ export async function saveNewPassword({
     },
     body: JSON.stringify({
       password,
-      token
-    })
-  })
-  .then(response => {
+      token,
+    }),
+  }).then((response) => {
     if (!response.ok) {
       throw new Error('Failed to save new password');
     }
@@ -205,6 +201,30 @@ export async function getUserInfoWithRelation({
     if (!response.ok) throw await response.json();
     const jsonResponse = await response.json();
     return jsonResponse as UserInfoWithRelation;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function getConversationUserInfo({
+  targetUserId,
+  token,
+}: {
+  targetUserId: number;
+  token: string;
+}): Promise<ConversationUserInfo> {
+  try {
+    const response = await fetch(
+      `${HOST}/api/conversationUserInfo/${targetUserId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+    if (!response.ok) throw await response.json();
+    const jsonResponse = await response.json();
+    return jsonResponse as ConversationUserInfo;
   } catch (error) {
     throw error;
   }

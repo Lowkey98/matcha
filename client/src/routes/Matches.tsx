@@ -92,7 +92,7 @@ function MatchedUserProfileCard({ userInfo }: { userInfo: UserInfo }) {
           </div>
         </div>
         <Link
-          to={`/messages`}
+          to={`/messages/${userInfo.id}`}
           className="bg-primary flex items-center justify-center rounded-full p-2.5"
         >
           <SendMessageIcon className="size-5 fill-white" />

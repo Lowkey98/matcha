@@ -21,7 +21,10 @@ export function HeaderDesktop({
       <div className="flex flex-1 items-center justify-end gap-8">
         {user?.age && (
           <>
-            {locatoin.pathname !== '/messages' ? <FameRate /> : null}
+            {locatoin.pathname !== '/messages' &&
+            !locatoin.pathname.startsWith('/messages/') ? (
+              <FameRate />
+            ) : null}
             <NotificationsHeaderItem />
           </>
         )}

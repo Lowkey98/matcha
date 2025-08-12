@@ -54,7 +54,8 @@ export default function Navigation() {
   ];
   return (
     <>
-      {location.pathname === '/messages' ? (
+      {location.pathname === '/messages' ||
+      location.pathname.startsWith('/messages/') ? (
         <SidebarChat
           className="hidden lg:flex"
           navigationItems={navigationItems}

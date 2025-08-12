@@ -65,6 +65,10 @@ const routeConfig = [
         element: <Messages />,
       },
       {
+        path: '/messages/:targetUserId',
+        element: <Messages />,
+      },
+      {
         path: '/matches',
         element: <Matches />,
       },
