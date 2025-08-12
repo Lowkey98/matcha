@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeftIcon, SendMessageIcon } from '../components/Icons';
@@ -45,43 +45,6 @@ function ChatDesktop({
 }: {
   targetUserInfo: ConversationUserInfo;
 }) {
-  const { user } = useContext(UserContext);
-  const { socket } = useContext(SocketContext);
-  const [currentConversation, setCurrentConversation] = useState<Message[]>([]);
-  const [latestMessage, setLatestMessage] = useState<Message | null>(null);
-  const [message, setMessage] = useState<string>('');
-  function handleClickSendMessage(event: React.MouseEvent<HTMLButtonElement>) {
-    event.preventDefault();
-    if (message.length) {
-      const token = localStorage.getItem('token');
-      if (user && token)
-        sendMessage({
-          targetUserId: targetUserInfo.id,
-          actorUserId: user.id,
-          message: {
-            userId: user.id,
-            description: message,
-            time: getCurrentTime(),
-          },
-          token,
-        }).then(() => {
-          setMessage('');
-        });
-    }
-  }
-  function handleChangeMessage(event: React.ChangeEvent<HTMLInputElement>) {
-    const messageValue = event.target.value;
-    setMessage(messageValue);
-  }
-
-  useEffect(() => {
-    if (socket) {
-      socket.on('receiveMessage', (receivedMessage: Message) => {
-        setLatestMessage(receivedMessage);
-      });
-    }
-  }, [socket]);
-
   return (
     <>
       <div className="absolute top-0 left-31 hidden lg:flex">
@@ -123,40 +86,7 @@ function ChatDesktop({
           </Link>
         </div>
       </div>
-      <div className="z-[2] ml-107 hidden flex-1 flex-col overflow-hidden pb-5 pl-4 lg:flex xl:ml-115 [:has(&)]:flex [:has(&)]:h-full [:has(&)]:w-full [:has(&)]:flex-1 [:has(&)]:flex-col">
-        <div className="mt-5 flex-1 space-y-2 overflow-auto">
-          {currentConversation.map((conversationMessage: Message) => {
-            if (conversationMessage.userId === user?.id)
-              return <ActorBoxMessage message={conversationMessage} />;
-            <TargetBoxMessage message={conversationMessage} />;
-          })}
-          {latestMessage ? (
-            latestMessage.userId === user?.id ? (
-              <ActorBoxMessage message={latestMessage} />
-            ) : (
-              <TargetBoxMessage message={latestMessage} />
-            )
-          ) : null}
-        </div>
-        <div className="pt-5">
-          <form className="bg-grayLight flex items-center gap-4 rounded-lg pr-4">
-            <input
-              type="text"
-              placeholder="Send a message"
-              value={message}
-              className="text-secondary w-full py-4 pl-4 text-sm font-normal outline-0 placeholder:text-sm placeholder:text-[#B1B1B1]"
-              onChange={handleChangeMessage}
-            />
-            <button
-              type="submit"
-              onClick={handleClickSendMessage}
-              className="cursor-pointer"
-            >
-              <SendMessageIcon className="fill-primary size-5" />
-            </button>
-          </form>
-        </div>
-      </div>
+      <ChatBoxDesktop targetUserId={targetUserInfo.id} />
     </>
   );
 }
@@ -318,6 +248,91 @@ function ChatBoxMobile({
             </button>
           </form>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function ChatBoxDesktop({ targetUserId }: { targetUserId: number }) {
+  const { user } = useContext(UserContext);
+  const { socket } = useContext(SocketContext);
+  const conversationRef = useRef<HTMLDivElement>(null);
+  const [currentConversation, setCurrentConversation] = useState<Message[]>([]);
+  const [message, setMessage] = useState<string>('');
+  function handleClickSendMessage(event: React.MouseEvent<HTMLButtonElement>) {
+    event.preventDefault();
+    if (message.length) {
+      const token = localStorage.getItem('token');
+      if (user && token)
+        sendMessage({
+          targetUserId,
+          actorUserId: user.id,
+          message: {
+            userId: user.id,
+            description: message,
+            time: getCurrentTime(),
+          },
+          token,
+        }).then(() => {
+          setMessage('');
+        });
+    }
+  }
+
+  useEffect(() => {
+    if (conversationRef.current) {
+      conversationRef.current.scrollTop = conversationRef.current.scrollHeight;
+    }
+  }, [currentConversation]);
+  function handleChangeMessage(event: React.ChangeEvent<HTMLInputElement>) {
+    const messageValue = event.target.value;
+    setMessage(messageValue);
+  }
+  useEffect(() => {
+    if (socket) {
+      socket.on('receiveMessage', (receivedMessage: Message) => {
+        setCurrentConversation((conversation: Message[]) => [
+          ...conversation,
+          receivedMessage,
+        ]);
+      });
+    }
+  }, [socket]);
+  return (
+    <div className="z-[2] ml-107 hidden flex-1 flex-col overflow-hidden pb-5 pl-4 lg:flex xl:ml-115 [:has(&)]:flex [:has(&)]:h-full [:has(&)]:w-full [:has(&)]:flex-1 [:has(&)]:flex-col">
+      <div
+        ref={conversationRef}
+        className="mt-5 flex-1 space-y-2 overflow-auto"
+      >
+        {currentConversation.map(
+          (conversationMessage: Message, index: number) => {
+            if (conversationMessage.userId === user?.id)
+              return (
+                <ActorBoxMessage key={index} message={conversationMessage} />
+              );
+            return (
+              <TargetBoxMessage key={index} message={conversationMessage} />
+            );
+          },
+        )}
+      </div>
+      <div className="pt-5">
+        <form className="bg-grayLight flex items-center gap-4 rounded-lg pr-4">
+          <input
+            type="text"
+            placeholder="Send a message"
+            value={message}
+            className="text-secondary w-full py-4 pl-4 text-sm font-normal outline-0 placeholder:text-sm placeholder:text-[#B1B1B1]"
+            onChange={handleChangeMessage}
+          />
+          <button
+            type="submit"
+            onClick={handleClickSendMessage}
+            className="cursor-pointer"
+          >
+            <SendMessageIcon className="fill-primary size-5" />
+          </button>
+        </form>
       </div>
     </div>
   );
