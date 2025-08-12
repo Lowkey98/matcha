@@ -3,6 +3,7 @@ import type {
   CreateProfileRequest,
   CreateProfileResponse,
   LoginRequest,
+  MessageRequest,
   RegisterRequest,
   RelationRequest,
   UpdatedUserProfileInfos,
@@ -365,6 +366,27 @@ export async function block({
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ actorUserId, targetUserId }),
+    });
+    return;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function sendMessage({
+  actorUserId,
+  targetUserId,
+  message,
+  token,
+}: MessageRequest & { token: string }) {
+  try {
+    await fetch(`${HOST}/api/sendMessage`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ actorUserId, targetUserId, message }),
     });
     return;
   } catch (error) {

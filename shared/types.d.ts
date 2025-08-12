@@ -85,3 +85,15 @@ export type ConversationUserInfo = {
   username: string;
   isOnline: boolean;
 };
+
+export type Message = {
+  userId: number;
+  description: string;
+  time: string;
+};
+
+export type MessageRequest = {
+  actorUserId: number;
+  targetUserId: number;
+  message: Message;
+};

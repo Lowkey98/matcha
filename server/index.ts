@@ -13,6 +13,7 @@ import type {
   ConversationUserInfo,
   CreateProfileRequest,
   LoginRequest,
+  MessageRequest,
   NotificationResponse,
   RegisterRequest,
   RelationRequest,
@@ -324,7 +325,7 @@ app.post('/api/like', async (req: Request<{}, {}, RelationRequest>, res) => {
       io.to(targetSocketId).emit('receiveNotification', actorNotification);
     }
     res.status(201).json({
-      message: 'unlike applied successfully.',
+      message: 'like applied successfully.',
     });
     return;
   } catch (err) {
@@ -425,6 +426,40 @@ app.post('/api/block', async (req: Request<{}, {}, RelationRequest>, res) => {
     return;
   }
 });
+
+app.post(
+  '/api/sendMessage',
+  async (req: Request<{}, {}, MessageRequest>, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+    const { actorUserId, targetUserId, message } = req.body;
+    console.log('message', message);
+
+    try {
+      await db.execute(
+        `INSERT INTO conversations
+       (actor_user_id, target_user_id, message) 
+       VALUES (?, ?, ?)`,
+        [actorUserId, targetUserId, message],
+      );
+      const targetSocketId = onlineUsers.get(targetUserId);
+      const actorSocketId = onlineUsers.get(actorUserId);
+      if (targetSocketId) io.to(targetSocketId).emit('receiveMessage', message);
+      if (actorSocketId) io.to(actorSocketId).emit('receiveMessage', message);
+
+      res.status(201).json({
+        message: 'message sended successfully.',
+      });
+      return;
+    } catch (err) {
+      res.status(500).json({ error: 'Internal server error.' });
+      return;
+    }
+  },
+);
 
 app.get('/api/verify', async (req, res) => {
   try {

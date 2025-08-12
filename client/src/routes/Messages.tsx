@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeftIcon, SendMessageIcon } from '../components/Icons';
-import { ConversationUserInfo } from '../../../shared/types';
-import { getConversationUserInfo } from '../../Api';
+import { ConversationUserInfo, Message } from '../../../shared/types';
+import { getConversationUserInfo, sendMessage } from '../../Api';
 import { BACKEND_STATIC_FOLDER } from '../components/ImagesCarousel';
+import { UserContext } from '../context/UserContext';
+import { SocketContext } from '../context/SocketContext';
 
 export default function Messages() {
   const { targetUserId } = useParams<{ targetUserId: string }>();
@@ -43,6 +45,43 @@ function ChatDesktop({
 }: {
   targetUserInfo: ConversationUserInfo;
 }) {
+  const { user } = useContext(UserContext);
+  const { socket } = useContext(SocketContext);
+  const [currentConversation, setCurrentConversation] = useState<Message[]>([]);
+  const [latestMessage, setLatestMessage] = useState<Message | null>(null);
+  const [message, setMessage] = useState<string>('');
+  function handleClickSendMessage(event: React.MouseEvent<HTMLButtonElement>) {
+    event.preventDefault();
+    if (message.length) {
+      const token = localStorage.getItem('token');
+      if (user && token)
+        sendMessage({
+          targetUserId: targetUserInfo.id,
+          actorUserId: user.id,
+          message: {
+            userId: user.id,
+            description: message,
+            time: getCurrentTime(),
+          },
+          token,
+        }).then(() => {
+          setMessage('');
+        });
+    }
+  }
+  function handleChangeMessage(event: React.ChangeEvent<HTMLInputElement>) {
+    const messageValue = event.target.value;
+    setMessage(messageValue);
+  }
+
+  useEffect(() => {
+    if (socket) {
+      socket.on('receiveMessage', (receivedMessage: Message) => {
+        setLatestMessage(receivedMessage);
+      });
+    }
+  }, [socket]);
+
   return (
     <>
       <div className="absolute top-0 left-31 hidden lg:flex">
@@ -84,22 +123,38 @@ function ChatDesktop({
           </Link>
         </div>
       </div>
-      <div className="z-10 ml-107 hidden flex-1 flex-col overflow-hidden pb-5 pl-4 lg:flex xl:ml-115 [:has(&)]:flex [:has(&)]:h-full [:has(&)]:w-full [:has(&)]:flex-1 [:has(&)]:flex-col">
+      <div className="z-[2] ml-107 hidden flex-1 flex-col overflow-hidden pb-5 pl-4 lg:flex xl:ml-115 [:has(&)]:flex [:has(&)]:h-full [:has(&)]:w-full [:has(&)]:flex-1 [:has(&)]:flex-col">
         <div className="mt-5 flex-1 space-y-2 overflow-auto">
-          {/* <TargetBoxMessage />
-          <ActorBoxMessage /> */}
+          {currentConversation.map((conversationMessage: Message) => {
+            if (conversationMessage.userId === user?.id)
+              return <ActorBoxMessage message={conversationMessage} />;
+            <TargetBoxMessage message={conversationMessage} />;
+          })}
+          {latestMessage ? (
+            latestMessage.userId === user?.id ? (
+              <ActorBoxMessage message={latestMessage} />
+            ) : (
+              <TargetBoxMessage message={latestMessage} />
+            )
+          ) : null}
         </div>
         <div className="pt-5">
-          <div className="bg-grayLight flex items-center gap-4 rounded-lg pr-4">
+          <form className="bg-grayLight flex items-center gap-4 rounded-lg pr-4">
             <input
               type="text"
               placeholder="Send a message"
+              value={message}
               className="text-secondary w-full py-4 pl-4 text-sm font-normal outline-0 placeholder:text-sm placeholder:text-[#B1B1B1]"
+              onChange={handleChangeMessage}
             />
-            <button type="button">
+            <button
+              type="submit"
+              onClick={handleClickSendMessage}
+              className="cursor-pointer"
+            >
               <SendMessageIcon className="fill-primary size-5" />
             </button>
-          </div>
+          </form>
         </div>
       </div>
     </>
@@ -250,18 +305,7 @@ function ChatBoxMobile({
         </Link>
       </div>
       <div className="flex flex-1 flex-col overflow-hidden pb-5">
-        <div className="mt-5 flex-1 space-y-2 overflow-auto">
-          <TargetBoxMessage />
-          <ActorBoxMessage />
-          <TargetBoxMessage />
-          <ActorBoxMessage />
-          <TargetBoxMessage />
-          <ActorBoxMessage />
-          <TargetBoxMessage />
-          <ActorBoxMessage />
-          <TargetBoxMessage />
-          <ActorBoxMessage />
-        </div>
+        <div className="mt-5 flex-1 space-y-2 overflow-auto"></div>
         <div className="pt-5">
           <form className="bg-grayLight flex items-center gap-4 rounded-lg pr-4">
             <input
@@ -269,7 +313,7 @@ function ChatBoxMobile({
               placeholder="Send a message"
               className="text-secondary w-full py-4 pl-4 text-sm font-normal outline-0 placeholder:text-sm placeholder:text-[#B1B1B1]"
             />
-            <button type="button">
+            <button type="button" className="cursor-pointer">
               <SendMessageIcon className="fill-primary size-5" />
             </button>
           </form>
@@ -279,31 +323,36 @@ function ChatBoxMobile({
   );
 }
 
-function TargetBoxMessage() {
+function TargetBoxMessage({ message }: { message: Message }) {
   return (
     <div className="flex w-fit max-w-120 flex-col items-start text-sm">
       <div className="bg-primary rounded-tr-2xl rounded-b-2xl p-4 break-all text-white">
-        Lorem Ipsum is simply dummy text of the printing and typesetting
-        industry ☺️
+        {message.description}
       </div>
       <div className="mt-1 flex w-full justify-end">
-        <span className="text-grayDark font-light">00:25</span>
+        <span className="text-grayDark font-light">{message.time}</span>
       </div>
     </div>
   );
 }
-function ActorBoxMessage() {
+function ActorBoxMessage({ message }: { message: Message }) {
   return (
     <div className="flex justify-end">
       <div className="flex w-fit max-w-120 flex-col items-start text-sm">
         <div className="text-secondary border-grayDark-100 rounded-tl-2xl rounded-b-2xl border-2 bg-white p-4 break-all">
-          Lorem Ipsum is simply dummy text of the printing and typesetting
-          industry ☺️
+          {message.description}
         </div>
         <div className="mt-1 flex w-full justify-end">
-          <span className="text-grayDark font-light">00:25</span>
+          <span className="text-grayDark font-light">{message.time}</span>
         </div>
       </div>
     </div>
   );
+}
+
+function getCurrentTime() {
+  const now = new Date();
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
 }

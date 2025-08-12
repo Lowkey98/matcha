@@ -57,10 +57,10 @@ export default function Root() {
 
   return (
     <UserContext.Provider value={{ user, setUser, loading, setLoading }}>
-      <SortsContext.Provider value={{ sorts, setSorts }}>
-        <FiltersContext.Provider value={{ filters, setFilters }}>
-          <ToastProvider>
-            <SocketContext.Provider value={{ socket, setSocket }}>
+      <SocketContext.Provider value={{ socket, setSocket }}>
+        <SortsContext.Provider value={{ sorts, setSorts }}>
+          <FiltersContext.Provider value={{ filters, setFilters }}>
+            <ToastProvider>
               {user && (
                 <>
                   <Header />
@@ -68,11 +68,11 @@ export default function Root() {
                 </>
               )}
               {/* TODO handle display of sidebar depends on the authentication */}
-            </SocketContext.Provider>
-            <Outlet />
-          </ToastProvider>
-        </FiltersContext.Provider>
-      </SortsContext.Provider>
+              <Outlet />
+            </ToastProvider>
+          </FiltersContext.Provider>
+        </SortsContext.Provider>
+      </SocketContext.Provider>
     </UserContext.Provider>
   );
 }

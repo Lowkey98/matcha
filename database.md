@@ -34,4 +34,12 @@ is_block BOOLEAN DEFAULT FALSE
 ALTER TABLE relations
 ADD CONSTRAINT unique_actor_target UNIQUE (actor_user_id, target_user_id);
 
+DROP TABLE conversations;
+CREATE TABLE conversations (
+id INT AUTO_INCREMENT PRIMARY KEY,
+actor_user_id INT NOT NULL,
+target_user_id INT NOT NULL,
+message JSON
+);
+
 SELECT \* FROM usersInfo;
