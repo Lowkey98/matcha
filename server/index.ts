@@ -835,12 +835,12 @@ app.get('/api/userConversationsSummary/:userId', async (req, res) => {
   const sortedConversations: { userId: number; messages: Message[] }[] = [];
   for (let index = 0; index < conversationsFromDb.length; index++) {
     const conversationFromDb = conversationsFromDb[index];
-    const message = conversationFromDb.message;
-    if (
-      message.userId !== userId &&
-      !conversationsIndexs.includes(message.userId)
-    )
-      conversationsIndexs.push(message.userId);
+    const targetConversationId =
+      conversationFromDb['actor_user_id'] === userId
+        ? conversationFromDb['target_user_id']
+        : conversationFromDb['actor_user_id'];
+    if (!conversationsIndexs.includes(targetConversationId))
+      conversationsIndexs.push(targetConversationId);
   }
   for (let index = 0; index < conversationsIndexs.length; index++) {
     const conversationIndex = conversationsIndexs[index];
@@ -870,6 +870,8 @@ app.get('/api/userConversationsSummary/:userId', async (req, res) => {
       isOnline: onlineUsers.has(sortedConversation.userId),
     });
   }
+  console.log(userConversationsSummary);
+
   res.status(201).json(userConversationsSummary);
   return;
 });

@@ -25,8 +25,6 @@ export default function Messages() {
   const [usersConversationsSummary, setUsersConversationsSummary] = useState<
     UserConversationsSummary[]
   >([]);
-  const [targetUserInfo, setTargetUserInfo] =
-    useState<ConversationUserInfo | null>(null);
   const [currentConversation, setCurrentConversation] = useState<Message[]>([]);
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -46,9 +44,9 @@ export default function Messages() {
                   actorUserId: user.id,
                   targetUserId: Number(targetUserId),
                   token,
-                }).then((conversation: Message[]) =>
-                  setCurrentConversation(conversation),
-                );
+                }).then((conversation: Message[]) => {
+                  setCurrentConversation(conversation);
+                });
                 setUsersConversationsSummary(conversationsSummary);
               } else {
                 getConversationUserInfo({
@@ -108,9 +106,11 @@ export default function Messages() {
         <>
           <ChatDesktop
             usersConversationsSummary={usersConversationsSummary}
+            setUsersConversationsSummary={setUsersConversationsSummary}
             currentConversation={currentConversation}
             setCurrentConversation={setCurrentConversation}
             selectedConversationIndex={selectedConversationIndex}
+            setSelectedConversationIndex={setSelectedConversationIndex}
           />
           {/* <ChatMobile targetUserInfo={targetUserInfo} /> */}
         </>
@@ -124,11 +124,17 @@ function ChatDesktop({
   setCurrentConversation,
   usersConversationsSummary,
   selectedConversationIndex,
+  setSelectedConversationIndex,
+  setUsersConversationsSummary,
 }: {
   currentConversation: Message[];
   setCurrentConversation: React.Dispatch<React.SetStateAction<Message[]>>;
   usersConversationsSummary: UserConversationsSummary[];
   selectedConversationIndex: number;
+  setSelectedConversationIndex: React.Dispatch<React.SetStateAction<number>>;
+  setUsersConversationsSummary: React.Dispatch<
+    React.SetStateAction<UserConversationsSummary[]>
+  >;
 }) {
   const selectedUserConversation =
     usersConversationsSummary[selectedConversationIndex];
@@ -143,13 +149,16 @@ function ChatDesktop({
                 targetUserInfo={userConversationSummary}
                 selectedConversationIndex={selectedConversationIndex}
                 currentIndex={index}
+                setSelectedConversationIndex={setSelectedConversationIndex}
+                setCurrentConversation={setCurrentConversation}
               />
             ),
           )}
+          {/* TODO: - update notification - check if user match - if user unmatch remove from conversation table */}
         </div>
         <div className="flex flex-col items-start pt-5 pl-4">
           <Link
-            to={`/userProfile/${selectedUserConversation.id}}`}
+            to={`/userProfile/${selectedUserConversation.id}`}
             className="flex items-center gap-2"
           >
             <img
@@ -186,6 +195,7 @@ function ChatDesktop({
         targetUserId={usersConversationsSummary[selectedConversationIndex].id}
         currentConversation={currentConversation}
         setCurrentConversation={setCurrentConversation}
+        setUsersConversationsSummary={setUsersConversationsSummary}
       />
     </>
   );
@@ -218,16 +228,37 @@ function ChatMobile({
 function UserMessageCardDesktop({
   targetUserInfo,
   selectedConversationIndex,
+  setSelectedConversationIndex,
   currentIndex,
+  setCurrentConversation,
 }: {
   targetUserInfo: UserConversationsSummary;
   selectedConversationIndex: number;
+  setSelectedConversationIndex: React.Dispatch<React.SetStateAction<number>>;
   currentIndex: number;
+  setCurrentConversation: React.Dispatch<React.SetStateAction<Message[]>>;
 }) {
+  const { user } = useContext(UserContext);
+  function handleClickUserMessageCard() {
+    if (selectedConversationIndex !== currentIndex) {
+      const token = localStorage.getItem('token');
+      if (user && token) {
+        getConversationBetweenTwoUsers({
+          actorUserId: user.id,
+          targetUserId: targetUserInfo.id,
+          token,
+        }).then((conversation: Message[]) => {
+          setCurrentConversation(conversation);
+          setSelectedConversationIndex(currentIndex);
+        });
+      }
+    }
+  }
   return (
     <button
       type="button"
       className={`border-grayDark-100 flex cursor-pointer items-center gap-2 border-b p-4 text-left first:rounded-t-lg last:rounded-b-lg last:border-none hover:bg-gray-50 ${selectedConversationIndex === currentIndex ? 'bg-gray-50' : ''}`}
+      onClick={handleClickUserMessageCard}
     >
       <img
         src={`${BACKEND_STATIC_FOLDER}${targetUserInfo.imageUrl}`}
@@ -360,10 +391,14 @@ function ChatBoxDesktop({
   targetUserId,
   currentConversation,
   setCurrentConversation,
+  setUsersConversationsSummary,
 }: {
   targetUserId: number;
   currentConversation: Message[];
   setCurrentConversation: React.Dispatch<React.SetStateAction<Message[]>>;
+  setUsersConversationsSummary: React.Dispatch<
+    React.SetStateAction<UserConversationsSummary[]>
+  >;
 }) {
   const { user } = useContext(UserContext);
   const { socket } = useContext(SocketContext);
@@ -401,13 +436,26 @@ function ChatBoxDesktop({
   useEffect(() => {
     if (socket) {
       socket.on('receiveMessage', (receivedMessage: Message) => {
-        setCurrentConversation((conversation: Message[]) => [
-          ...conversation,
-          receivedMessage,
-        ]);
+        if (
+          receivedMessage.userId === targetUserId ||
+          receivedMessage.userId === user?.id
+        ) {
+          setCurrentConversation((conversation: Message[]) => [
+            ...conversation,
+            receivedMessage,
+          ]);
+        }
+        const token = localStorage.getItem('token');
+        if (user && token) {
+          getUserConversationsSummary({ userId: user.id, token }).then(
+            (conversationsSummary) => {
+              setUsersConversationsSummary(conversationsSummary);
+            },
+          );
+        }
       });
     }
-  }, [socket]);
+  }, [socket, user]);
   return (
     <div className="z-[2] ml-107 hidden flex-1 flex-col overflow-hidden pb-5 pl-4 lg:flex xl:ml-115 [:has(&)]:flex [:has(&)]:h-full [:has(&)]:w-full [:has(&)]:flex-1 [:has(&)]:flex-col">
       <div
