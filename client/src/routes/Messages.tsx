@@ -2,38 +2,117 @@ import { useContext, useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeftIcon, SendMessageIcon } from '../components/Icons';
-import { ConversationUserInfo, Message } from '../../../shared/types';
-import { getConversationUserInfo, sendMessage } from '../../Api';
+import {
+  ConversationUserInfo,
+  Message,
+  UserConversationsSummary,
+} from '../../../shared/types';
+import {
+  getConversationBetweenTwoUsers,
+  getConversationUserInfo,
+  getUserConversationsSummary,
+  sendMessage,
+} from '../../Api';
 import { BACKEND_STATIC_FOLDER } from '../components/ImagesCarousel';
 import { UserContext } from '../context/UserContext';
 import { SocketContext } from '../context/SocketContext';
 
 export default function Messages() {
+  const { user } = useContext(UserContext);
   const { targetUserId } = useParams<{ targetUserId: string }>();
   const [selectedConversationIndex, setSelectedConversationIndex] =
     useState<number>(0);
+  const [usersConversationsSummary, setUsersConversationsSummary] = useState<
+    UserConversationsSummary[]
+  >([]);
   const [targetUserInfo, setTargetUserInfo] =
     useState<ConversationUserInfo | null>(null);
+  const [currentConversation, setCurrentConversation] = useState<Message[]>([]);
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (token && targetUserId) {
-      getConversationUserInfo({
-        token,
-        targetUserId: Number(targetUserId),
-      }).then((userInfo: ConversationUserInfo) => {
-        setTargetUserInfo(userInfo);
-      });
+    if (user && token) {
+      getUserConversationsSummary({ userId: user.id, token }).then(
+        (conversationsSummary: UserConversationsSummary[]) => {
+          if (conversationsSummary.length) {
+            if (targetUserId) {
+              const targetUserIdInConversationsIndex =
+                conversationsSummary.findIndex(
+                  (conversationSummary) =>
+                    conversationSummary.id === Number(targetUserId),
+                );
+              if (targetUserIdInConversationsIndex !== -1) {
+                setSelectedConversationIndex(targetUserIdInConversationsIndex);
+                getConversationBetweenTwoUsers({
+                  actorUserId: user.id,
+                  targetUserId: Number(targetUserId),
+                  token,
+                }).then((conversation: Message[]) =>
+                  setCurrentConversation(conversation),
+                );
+                setUsersConversationsSummary(conversationsSummary);
+              } else {
+                getConversationUserInfo({
+                  token,
+                  targetUserId: Number(targetUserId),
+                }).then((userInfo: ConversationUserInfo) => {
+                  setUsersConversationsSummary([
+                    {
+                      id: userInfo.id,
+                      imageUrl: userInfo.imageUrl,
+                      username: userInfo.username,
+                      isOnline: userInfo.isOnline,
+                    },
+                    ...conversationsSummary,
+                  ]);
+                });
+              }
+            } else {
+              setUsersConversationsSummary(conversationsSummary);
+              getConversationBetweenTwoUsers({
+                actorUserId: user.id,
+                targetUserId: conversationsSummary[0].id,
+                token,
+              }).then((conversation: Message[]) =>
+                setCurrentConversation(conversation),
+              );
+            }
+          } else {
+            if (targetUserId) {
+              getConversationUserInfo({
+                token,
+                targetUserId: Number(targetUserId),
+              }).then((userInfo: ConversationUserInfo) => {
+                setUsersConversationsSummary([
+                  {
+                    id: userInfo.id,
+                    imageUrl: userInfo.imageUrl,
+                    username: userInfo.username,
+                    lastMessage: '',
+                    isOnline: userInfo.isOnline,
+                  },
+                  ...conversationsSummary,
+                ]);
+              });
+            }
+          }
+        },
+      );
     }
-  }, []);
+  }, [user]);
   return (
     <>
       <Helmet>
         <title>Matcha - Messages</title>
       </Helmet>
-      {targetUserInfo ? (
+      {usersConversationsSummary.length ? (
         <>
-          <ChatDesktop targetUserInfo={targetUserInfo} />
-          <ChatMobile targetUserInfo={targetUserInfo} />
+          <ChatDesktop
+            usersConversationsSummary={usersConversationsSummary}
+            currentConversation={currentConversation}
+            setCurrentConversation={setCurrentConversation}
+            selectedConversationIndex={selectedConversationIndex}
+          />
+          {/* <ChatMobile targetUserInfo={targetUserInfo} /> */}
         </>
       ) : null}
     </>
@@ -41,32 +120,49 @@ export default function Messages() {
 }
 
 function ChatDesktop({
-  targetUserInfo,
+  currentConversation,
+  setCurrentConversation,
+  usersConversationsSummary,
+  selectedConversationIndex,
 }: {
-  targetUserInfo: ConversationUserInfo;
+  currentConversation: Message[];
+  setCurrentConversation: React.Dispatch<React.SetStateAction<Message[]>>;
+  usersConversationsSummary: UserConversationsSummary[];
+  selectedConversationIndex: number;
 }) {
+  const selectedUserConversation =
+    usersConversationsSummary[selectedConversationIndex];
   return (
     <>
       <div className="absolute top-0 left-31 hidden lg:flex">
         <div className="border-grayDark-100 h-screen overflow-auto border-r px-4 py-5">
-          <UserMessageCardDesktop targetUserInfo={targetUserInfo} />
+          {usersConversationsSummary.map(
+            (userConversationSummary: UserConversationsSummary, index) => (
+              <UserMessageCardDesktop
+                key={userConversationSummary.id}
+                targetUserInfo={userConversationSummary}
+                selectedConversationIndex={selectedConversationIndex}
+                currentIndex={index}
+              />
+            ),
+          )}
         </div>
         <div className="flex flex-col items-start pt-5 pl-4">
           <Link
-            to={`/userProfile/${targetUserInfo.id}`}
+            to={`/userProfile/${selectedUserConversation.id}}`}
             className="flex items-center gap-2"
           >
             <img
-              src={`${BACKEND_STATIC_FOLDER}${targetUserInfo.imageUrl}`}
+              src={`${BACKEND_STATIC_FOLDER}${selectedUserConversation.imageUrl}`}
               alt="user"
               className="size-13 shrink-0 rounded-full object-cover"
             />
             <div>
               <span className="text-secondary font-bold">
-                {targetUserInfo.username}
+                {selectedUserConversation.username}
               </span>
               <div className="flex items-center gap-1">
-                {targetUserInfo.isOnline ? (
+                {selectedUserConversation.isOnline ? (
                   <>
                     <div className="size-2 rounded-full bg-[#71D191]" />
                     <span className="text-grayDark text-sm font-light">
@@ -86,7 +182,11 @@ function ChatDesktop({
           </Link>
         </div>
       </div>
-      <ChatBoxDesktop targetUserId={targetUserInfo.id} />
+      <ChatBoxDesktop
+        targetUserId={usersConversationsSummary[selectedConversationIndex].id}
+        currentConversation={currentConversation}
+        setCurrentConversation={setCurrentConversation}
+      />
     </>
   );
 }
@@ -117,13 +217,17 @@ function ChatMobile({
 
 function UserMessageCardDesktop({
   targetUserInfo,
+  selectedConversationIndex,
+  currentIndex,
 }: {
-  targetUserInfo: ConversationUserInfo;
+  targetUserInfo: UserConversationsSummary;
+  selectedConversationIndex: number;
+  currentIndex: number;
 }) {
   return (
     <button
       type="button"
-      className="border-grayDark-100 flex cursor-pointer items-center gap-2 border-b bg-gray-50 p-4 text-left first:rounded-t-lg last:rounded-b-lg last:border-none hover:bg-gray-50"
+      className={`border-grayDark-100 flex cursor-pointer items-center gap-2 border-b p-4 text-left first:rounded-t-lg last:rounded-b-lg last:border-none hover:bg-gray-50 ${selectedConversationIndex === currentIndex ? 'bg-gray-50' : ''}`}
     >
       <img
         src={`${BACKEND_STATIC_FOLDER}${targetUserInfo.imageUrl}`}
@@ -134,12 +238,11 @@ function UserMessageCardDesktop({
         <span className="text-secondary text-sm font-semibold">
           {targetUserInfo.username}
         </span>
-        {/* <div className="text-grayDark w-full overflow-hidden text-xs overflow-ellipsis whitespace-nowrap">
-          Lorem ipsum, dolor sit amet consectetur adipisicing elit. Beatae
-          dolorum dicta odit obcaecati amet. Eius quia laudantium error deserunt
-          quam repellendus recusandae dolor. Quas dolore accusantium
-          voluptatibus. A, nisi animi.
-        </div> */}
+        {targetUserInfo.lastMessage ? (
+          <div className="text-grayDark w-full overflow-hidden text-xs overflow-ellipsis whitespace-nowrap">
+            {targetUserInfo.lastMessage}
+          </div>
+        ) : null}
       </div>
     </button>
   );
@@ -253,11 +356,18 @@ function ChatBoxMobile({
   );
 }
 
-function ChatBoxDesktop({ targetUserId }: { targetUserId: number }) {
+function ChatBoxDesktop({
+  targetUserId,
+  currentConversation,
+  setCurrentConversation,
+}: {
+  targetUserId: number;
+  currentConversation: Message[];
+  setCurrentConversation: React.Dispatch<React.SetStateAction<Message[]>>;
+}) {
   const { user } = useContext(UserContext);
   const { socket } = useContext(SocketContext);
   const conversationRef = useRef<HTMLDivElement>(null);
-  const [currentConversation, setCurrentConversation] = useState<Message[]>([]);
   const [message, setMessage] = useState<string>('');
   function handleClickSendMessage(event: React.MouseEvent<HTMLButtonElement>) {
     event.preventDefault();

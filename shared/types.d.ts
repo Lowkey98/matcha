@@ -86,6 +86,14 @@ export type ConversationUserInfo = {
   isOnline: boolean;
 };
 
+export type UserConversationsSummary = {
+  id: number;
+  username;
+  imageUrl: stirng;
+  lastMessage?: string;
+  isOnline: boolean;
+};
+
 export type Message = {
   userId: number;
   description: string;

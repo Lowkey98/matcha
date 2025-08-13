@@ -13,11 +13,13 @@ import type {
   ConversationUserInfo,
   CreateProfileRequest,
   LoginRequest,
+  Message,
   MessageRequest,
   NotificationResponse,
   RegisterRequest,
   RelationRequest,
   UpdatedUserProfileInfos,
+  UserConversationsSummary,
   UserInfo,
   UserInfoBase,
   UserInfoWithRelation,
@@ -436,8 +438,6 @@ app.post(
       return;
     }
     const { actorUserId, targetUserId, message } = req.body;
-    console.log('message', message);
-
     try {
       await db.execute(
         `INSERT INTO conversations
@@ -823,6 +823,76 @@ app.get('/api/matches/:actorUserId', async (req, res) => {
   return;
 });
 
+app.get('/api/userConversationsSummary/:userId', async (req, res) => {
+  const userId = Number(req.params.userId);
+  const [rowsConversations] = await db.execute<[]>(
+    'SELECT * FROM conversations WHERE actor_user_id = ? OR target_user_id = ?',
+    [userId, userId],
+  );
+  const conversationsFromDb: MessageRequest[] =
+    rowsConversations as MessageRequest[];
+  const conversationsIndexs: number[] = [];
+  const sortedConversations: { userId: number; messages: Message[] }[] = [];
+  for (let index = 0; index < conversationsFromDb.length; index++) {
+    const conversationFromDb = conversationsFromDb[index];
+    const message = conversationFromDb.message;
+    if (
+      message.userId !== userId &&
+      !conversationsIndexs.includes(message.userId)
+    )
+      conversationsIndexs.push(message.userId);
+  }
+  for (let index = 0; index < conversationsIndexs.length; index++) {
+    const conversationIndex = conversationsIndexs[index];
+    const conversations: Message[] = getConversationsFromUser({
+      targetUserId: conversationIndex,
+      conversationsFromDb,
+    });
+    sortedConversations.push({
+      userId: conversationIndex,
+      messages: conversations,
+    });
+  }
+  const userConversationsSummary: UserConversationsSummary[] = [];
+  for (let index = 0; index < sortedConversations.length; index++) {
+    const sortedConversation = sortedConversations[index];
+    const [rowUser] = await db.execute('SELECT * FROM usersInfo WHERE id = ?', [
+      sortedConversation.userId,
+    ]);
+    const userInfo = rowUser[0] as UserInfo;
+    userConversationsSummary.push({
+      id: sortedConversation.userId,
+      imageUrl: userInfo['images_urls'][0],
+      username: userInfo.username,
+      lastMessage:
+        sortedConversation.messages[sortedConversation.messages.length - 1]
+          .description,
+      isOnline: onlineUsers.has(sortedConversation.userId),
+    });
+  }
+  res.status(201).json(userConversationsSummary);
+  return;
+});
+
+app.get(
+  '/api/conversationsBetweenTwoUsers/:actorUserId/:targetUserId',
+  async (req, res) => {
+    const { actorUserId, targetUserId } = req.params;
+    const [rowsConversations] = await db.execute<[]>(
+      'SELECT * FROM conversations WHERE actor_user_id = ? OR target_user_id = ?',
+      [actorUserId, actorUserId],
+    );
+    const conversationsFromDb: MessageRequest[] =
+      rowsConversations as MessageRequest[];
+    const conversation: Message[] = getConversationsFromUser({
+      targetUserId: Number(targetUserId),
+      conversationsFromDb,
+    });
+    res.status(201).json(conversation);
+    return;
+  },
+);
+
 app.post(
   '/api/sendForgotPasswordMail',
   async (req: Request<{}, {}, { email: string }>, res: Response<any>) => {
@@ -1134,5 +1204,25 @@ async function startServer() {
   server.listen(3000, () => {
     console.log('🚀 Server running at http://localhost:3000');
   });
+}
+
+function getConversationsFromUser({
+  targetUserId,
+  conversationsFromDb,
+}: {
+  targetUserId: number;
+  conversationsFromDb: MessageRequest[];
+}) {
+  const conversations: Message[] = [];
+  for (let i = 0; i < conversationsFromDb.length; i++) {
+    const conversationFromDb = conversationsFromDb[i];
+    if (
+      conversationFromDb['actor_user_id'] === targetUserId ||
+      conversationFromDb['target_user_id'] === targetUserId
+    ) {
+      conversations.push(conversationFromDb.message);
+    }
+  }
+  return conversations;
 }
 startServer();
