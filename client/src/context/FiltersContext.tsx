@@ -15,9 +15,9 @@ export const defaultFilters: Filter[] = [
   },
   {
     name: 'Location (km)',
-    range: [0, 1000],
+    range: [0, 20000],
     min: 0,
-    max: 1000,
+    max: 20000,
   },
   {
     name: 'Fame rating',

@@ -7,6 +7,7 @@ import nodemailer from 'nodemailer';
 import { randomUUID } from 'crypto';
 import http from 'http';
 import jwt from 'jsonwebtoken';
+import { getDistance } from 'geolib';
 
 import dotenv from 'dotenv';
 import type {
@@ -19,6 +20,7 @@ import type {
   UserInfo,
   UserInfoBase,
   UserInfoWithRelation,
+  UserInfoWithCommonTags,
 } from '../shared/types.ts';
 import {
   isValidAge,
@@ -29,6 +31,34 @@ import {
 } from '../shared/Helpers.ts';
 import path from 'path';
 import fs from 'fs';
+
+export function getDistanceInKilometers({
+  actorUserInfo,
+  targetUserInfo,
+}: {
+  actorUserInfo: UserInfo | null;
+  targetUserInfo: UserInfoWithRelation | UserInfo | null;
+}) {
+  // console.log("actorUserInfo", actorUserInfo)
+  // console.log("targetUserInfo", targetUserInfo)
+  const distanceInMeters =
+    targetUserInfo.location && actorUserInfo.location
+      ? getDistance(
+          {
+            latitude: actorUserInfo.location.latitude || 0, // TODO
+            longitude: actorUserInfo.location.longitude || 0,
+          },
+          {
+            latitude: targetUserInfo.location.latitude || 0,
+            longitude: targetUserInfo.location.longitude || 0,
+          },
+        )
+      : undefined;
+  const distanceInKilometers = distanceInMeters
+    ? Math.round(distanceInMeters / 1000)
+    : undefined;
+  return distanceInKilometers;
+}
 
 type UserInfoFromDB = {
   created_at: Date;
@@ -367,6 +397,12 @@ app.post(
     const { actorUserId, targetUserId } = req.body;
     try {
       await db.execute(
+        `INSERT INTO usersInfo (id, fame_rate)
+        VALUES (?, 1)
+        ON DUPLICATE KEY UPDATE fame_rate = fame_rate + 1`,
+        [targetUserId],
+      );
+      await db.execute(
         `INSERT INTO relations (actor_user_id, target_user_id, is_view_profile)
    VALUES (?, ?, ?)
    ON DUPLICATE KEY UPDATE is_view_profile = VALUES(is_view_profile)`,
@@ -389,7 +425,6 @@ app.post(
       if (targetSocketId) {
         io.to(targetSocketId).emit('receiveNotification', actorNotification);
       }
-
       res.status(201).json({
         message: 'view profile applied successfully.',
       });
@@ -455,6 +490,71 @@ app.get('/api/verify', async (req, res) => {
   }
 });
 
+app.get('/api/getAllUsers', async (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+
+  console.log('token', token);
+  if (!token) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
+  } catch (err) {
+    console.error('JWT verification error:', err);
+    res.status(401).json({ error: 'Invalid token' });
+    return;
+  }
+  const [row] = await db.execute('SELECT * FROM usersInfo WHERE id != ?', [
+    decoded.userId,
+  ]);
+  const usersInfoFromDB = row as UserInfo[];
+  const [UserRow] = await db.execute('SELECT * FROM usersInfo WHERE id = ?', [
+    decoded.userId,
+  ]);
+  const currentUser = UserRow[0] as UserInfo;
+
+  const usersInfoWithCommon: UserInfoWithCommonTags[] = usersInfoFromDB
+    .map((user) => {
+      return {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        firstName: user['first_name'],
+        lastName: user['last_name'],
+        age: user['age'],
+        gender: user['gender'],
+        sexualPreference: user['sexual_preference'],
+        interests: user['interests'],
+        biography: user['biography'],
+        imagesUrls: user['images_urls'],
+        location:
+          typeof user['location'] === 'string' && JSON.parse(user['location']),
+        fameRate: user['fame_rate'],
+      };
+    })
+    .map((user) => {
+      const commonTagsCount = user.interests
+        ? user.interests.filter((interest) =>
+            currentUser.interests.includes(interest),
+          ).length
+        : 0;
+      const distanceBetween = getDistanceInKilometers({
+        actorUserInfo: user,
+        targetUserInfo: currentUser,
+      });
+      return {
+        ...user,
+        commonTagsCount,
+        distanceBetween,
+      };
+    });
+
+  res.json(usersInfoWithCommon);
+  return;
+});
+
 app.get('/api/me', async (req, res) => {
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) {
@@ -472,6 +572,7 @@ app.get('/api/me', async (req, res) => {
   const [row] = await db.execute('SELECT * FROM usersInfo WHERE id = ?', [
     decoded.userId,
   ]);
+  console.log;
   const user = row[0] as UserInfo;
 
   if (!user) {
@@ -494,6 +595,7 @@ app.get('/api/me', async (req, res) => {
     imagesUrls: user['images_urls'],
     location:
       typeof user['location'] === 'string' && JSON.parse(user['location']),
+    fameRate: user['fame_rate'],
   };
   res.json(userInfo);
   return;

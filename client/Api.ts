@@ -7,6 +7,7 @@ import type {
   UpdatedUserProfileInfos,
   UserInfo,
   UserInfoBase,
+  UserInfoWithCommonTags,
   UserInfoWithRelation,
 } from '../shared/types';
 
@@ -143,33 +144,29 @@ export async function getUserInfo({
   }
 }
 
-export async function sendForgotPasswordMail({
-  email
-}: {
-  email: string
-}) {
+export async function sendForgotPasswordMail({ email }: { email: string }) {
   const response = await fetch(`${HOST}/api/sendForgotPasswordMail`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      email: email
-    })
+      email: email,
+    }),
   });
   if (!response.ok) {
     const error = await response.json();
-    throw error
+    throw error;
   }
 }
 
 export async function saveNewPassword({
   password,
-  token
-} : {
-  password: string,
-  token: string
-}){
+  token,
+}: {
+  password: string;
+  token: string;
+}) {
   return fetch(`${HOST}/api/saveNewPassword`, {
     method: 'POST',
     headers: {
@@ -177,15 +174,35 @@ export async function saveNewPassword({
     },
     body: JSON.stringify({
       password,
-      token
-    })
-  })
-  .then(response => {
+      token,
+    }),
+  }).then((response) => {
     if (!response.ok) {
       throw new Error('Failed to save new password');
     }
   });
 }
+export async function getAllUsers({
+  token,
+  currentUserId,
+}: {
+  token: string;
+  currentUserId: number;
+}) {
+  try {
+    const response = await fetch(`${HOST}/api/getAllUsers`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      method: 'GET',
+    });
+    const jsonResponse = await response.json();
+    return jsonResponse as UserInfoWithCommonTags[];
+  } catch (error) {
+    throw error;
+  }
+}
+
 export async function getUserInfoWithRelation({
   actorUserId,
   targetUserId,
