@@ -12,18 +12,23 @@ import {
   StarIcon,
 } from './Icons';
 import { Link } from 'react-router-dom';
-import { Filter, Sort, UserInfo } from '../../../shared/types';
+import {
+  Filter,
+  Sort,
+  UserInfoWithCommonTags,
+} from '../../../shared/types';
 import { SortsContext } from '../context/SortsContext';
 import FilterCard from './FilterCard';
 import { FiltersContext } from '../context/FiltersContext';
 import { BACKEND_STATIC_FOLDER } from './ImagesCarousel';
+import FameRate from './FameRate';
 
 export default function ProfileSlider({
   className,
   users,
 }: {
   className?: string;
-  users: UserInfo[];
+  users: UserInfoWithCommonTags[];
 }) {
   const [, setIsPaused] = useState<boolean>(false);
   const [emblaRef, emblaApi] = useEmblaCarousel();
@@ -59,10 +64,7 @@ export default function ProfileSlider({
       >
         <div className="flex h-full">
           {users.map((user) => (
-            <ProfileCard
-              key={user.id}
-              user={user}
-            />
+            <ProfileCard key={user.id} user={user} />
           ))}
         </div>
       </div>
@@ -110,7 +112,7 @@ export default function ProfileSlider({
   );
 }
 
-function ProfileCard({ user }: { user: UserInfo }) {
+function ProfileCard({ user }: { user: UserInfoWithCommonTags }) {
   const imageUrl = user.imagesUrls
     ? `${BACKEND_STATIC_FOLDER}${user.imagesUrls[0]} `
     : '';
@@ -133,12 +135,12 @@ function ProfileCard({ user }: { user: UserInfo }) {
           <div className="flex items-center gap-3 font-light">
             <div className="flex items-center gap-1">
               <LocationOutlineIcon className="h-4 w-4 fill-white" />
-              <span>10km</span>
-              {/* <span>10km</span> */}
+              <span>{user.distanceBetween}km</span>
+              {/* TODO: what if no distanceBetween */}
             </div>
             <div className="flex items-center gap-1">
               <StarIcon className="h-4 w-4 fill-white" />
-              <span>2.5</span>
+              <span>{user.fameRate}</span>
             </div>
           </div>
         </div>

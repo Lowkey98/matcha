@@ -13,7 +13,6 @@ export default function FameRate({
   useEffect(() => {
     if (!user) return;
   }, [user]);
-  console.log("frameRate", fameRate)
   return (
     <div className={`flex items-center gap-3 ${className}`}>
       <div className="lg:border-grayDark-100 flex items-center justify-center lg:h-12 lg:w-12 lg:rounded-full lg:border-2">
