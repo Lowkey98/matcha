@@ -18,7 +18,8 @@ sexual_preference VARCHAR(255),
 interests JSON,
 biography VARCHAR(255),
 images_urls JSON,
-location TEXT
+location TEXT,
+fame_rate INT
 );
 
 DROP TABLE relations;

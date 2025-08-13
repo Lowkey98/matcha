@@ -28,7 +28,7 @@ import ButtonUnlike from '../components/Buttons/ButtonUnlike';
 export default function UserProfile() {
   const { user } = useContext(UserContext);
   const { targetUserId } = useParams<{ targetUserId: string }>();
-  const naviagte = useNavigate();
+  const navigate = useNavigate();
   const [targetUserInfo, setTargetUserInfo] =
     useState<UserInfoWithRelation | null>(null);
   const [showBlockButton, setShowBlockButton] = useState<boolean>(false);
@@ -77,7 +77,7 @@ export default function UserProfile() {
     if (targetUserInfo && user && targetUserId && token) {
       block({ actorUserId: user.id, targetUserId: Number(targetUserId), token })
         .then(() => {
-          naviagte('/explore');
+          navigate('/explore');
         })
         .catch((error) => {
           console.log('error:', error);
@@ -99,7 +99,7 @@ export default function UserProfile() {
       })
         .then((targetUser: UserInfoWithRelation) => {
           if (targetUser.isBlock) {
-            naviagte('/explore');
+            navigate('/explore');
             return;
           }
           if (!targetUser.isViewProfile) {
@@ -117,7 +117,7 @@ export default function UserProfile() {
           } else setTargetUserInfo(targetUser);
         })
         .catch(() => {
-          naviagte('/explore');
+          navigate('/explore');
         });
     }
   }, [user]);

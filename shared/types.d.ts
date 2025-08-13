@@ -21,8 +21,12 @@ export type UserInfo = UserInfoBase & {
   interests?: string[];
   imagesUrls?: string[];
   location?: UserLocation;
+  fameRate?: number;
 };
-
+export type UserInfoWithCommonTags = UserInfo & {
+  commonTagsCount: number;
+  distanceBetween: number;
+};
 export type UserInfoWithRelation = UserInfo & {
   isLike: boolean;
   isViewProfile: boolean;
@@ -69,7 +73,7 @@ export type NotificationResponse = {
 };
 export type Sort = {
   name: string;
-  sort: 'asc' | 'desc';
+  sort: 'asc' | 'desc' | null;
 };
 
 export type Filter = {

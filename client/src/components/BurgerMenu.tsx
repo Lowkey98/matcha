@@ -70,7 +70,10 @@ export default function HeaderBurger({
               {user?.age && (
                 <>
                   <span className="text-gray-300">|</span>
-                  <FameRate className="border-grayDark" />
+                  <FameRate
+                    className="border-grayDark"
+                    fameRate={user.fameRate || 0}
+                  />
                 </>
               )}
             </div>

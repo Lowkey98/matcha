@@ -23,7 +23,7 @@ export function HeaderDesktop({
           <>
             {locatoin.pathname !== '/messages' &&
             !locatoin.pathname.startsWith('/messages/') ? (
-              <FameRate />
+              <FameRate fameRate={user.fameRate || 0} />
             ) : null}
             <NotificationsHeaderItem />
           </>
