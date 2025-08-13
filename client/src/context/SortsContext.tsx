@@ -13,15 +13,15 @@ export const defaultSorts: Sort[] = [
   },
   {
     name: 'Location',
-    sort: 'asc',
+    sort: null,
   },
   {
     name: 'Fame rating',
-    sort: 'asc',
+    sort: null,
   },
   {
     name: 'Common tags',
-    sort: 'asc',
+    sort: null,
   },
 ];
 

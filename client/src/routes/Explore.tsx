@@ -1,19 +1,18 @@
 import { useContext, useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
-import Login from './Login';
-import CreateProfile from './CreateProfile';
 import ProfileSlider from '../components/ProfilesSlider';
 import { UserContext } from '../context/UserContext';
 import { FiltersContext } from '../context/FiltersContext';
 import { getAllUsers } from '../../Api';
 import { UserInfoWithCommonTags } from '../../../shared/types';
 import { Navigate } from 'react-router-dom';
+import { SortsContext } from '../context/SortsContext';
 
 export default function Explore() {
   const { user, loading } = useContext(UserContext);
   const { filters } = useContext(FiltersContext);
   const [users, setUsers] = useState<UserInfoWithCommonTags[]>([]);
-
+  const { sorts } = useContext(SortsContext);
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token || !user) {
@@ -29,8 +28,6 @@ export default function Explore() {
   if (loading) {
     return null;
   }
-
-  // lets filter users based on filters one by one multiple filters
 
   const ageFilter = filters.find((f) => f.name === 'Age')!;
   const locationFilter = filters.find((f) => f.name === 'Location (km)')!;
@@ -67,8 +64,32 @@ export default function Explore() {
       );
     });
 
-  console.log('Filtered users:', filteredUsers);
-
+  filteredUsers.sort((a, b) => {
+    for (const sort of sorts) {
+      if (sort.sort === 'asc') {
+        if (sort.name === 'Age') {
+          return (a.age ?? 0) - (b.age ?? 0); // TODO
+        } else if (sort.name === 'Location') {
+          return a.distanceBetween - b.distanceBetween;
+        } else if (sort.name === 'Fame rating') {
+          return (a.fameRate ?? 0) - (b.fameRate ?? 0);
+        } else if (sort.name === 'Common tags') {
+          return a.commonTagsCount - b.commonTagsCount;
+        }
+      } else if (sort.sort === 'desc') {
+        if (sort.name === 'Age') {
+          return (b.age ?? 0) - (a.age ?? 0);
+        } else if (sort.name === 'Location') {
+          return b.distanceBetween - a.distanceBetween;
+        } else if (sort.name === 'Fame rating') {
+          return (b.fameRate ?? 0) - (a.fameRate ?? 0);
+        } else if (sort.name === 'Common tags') {
+          return (b.commonTagsCount ?? 0) - (a.commonTagsCount ?? 0);
+        }
+      }
+    }
+    return 0; 
+  });
   if (!user) return <Navigate to={'/login'} replace />;
   if (!user.age) return <Navigate to={'/createProfile'} replace />;
   return (

@@ -73,7 +73,7 @@ export type NotificationResponse = {
 };
 export type Sort = {
   name: string;
-  sort: 'asc' | 'desc';
+  sort: 'asc' | 'desc' | null;
 };
 
 export type Filter = {

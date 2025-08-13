@@ -12,16 +12,11 @@ import {
   StarIcon,
 } from './Icons';
 import { Link } from 'react-router-dom';
-import {
-  Filter,
-  Sort,
-  UserInfoWithCommonTags,
-} from '../../../shared/types';
+import { Filter, Sort, UserInfoWithCommonTags } from '../../../shared/types';
 import { SortsContext } from '../context/SortsContext';
 import FilterCard from './FilterCard';
 import { FiltersContext } from '../context/FiltersContext';
 import { BACKEND_STATIC_FOLDER } from './ImagesCarousel';
-import FameRate from './FameRate';
 
 export default function ProfileSlider({
   className,
@@ -191,30 +186,22 @@ function SortDesktop({
 export function SortCard({ sortInfo }: { sortInfo: Sort }) {
   const { sorts, setSorts } = useContext(SortsContext);
   function handleClickAsc() {
-    if (sortInfo.sort === 'desc') {
       const sortsWithCurrentSortAsc: Sort[] = sorts.map((sort) => {
-        if (sort.name === sortInfo.name)
-          return {
-            name: sort.name,
-            sort: 'asc',
-          };
-        return sort;
+        return {
+          name: sort.name,
+          sort: sort.name === sortInfo.name ? 'asc' : null,
+        };
       });
       setSorts(sortsWithCurrentSortAsc);
-    }
   }
   function handleClickDesc() {
-    if (sortInfo.sort === 'asc') {
       const sortsWithCurrentSortDesc: Sort[] = sorts.map((sort) => {
-        if (sort.name === sortInfo.name)
-          return {
-            name: sort.name,
-            sort: 'desc',
-          };
-        return sort;
+        return {
+          name: sort.name,
+          sort: sort.name === sortInfo.name ? 'desc' : null,
+        };
       });
-      setSorts(sortsWithCurrentSortDesc);
-    }
+      setSorts(sortsWithCurrentSortDesc);    
   }
   return (
     <div className="flex items-center justify-between">
