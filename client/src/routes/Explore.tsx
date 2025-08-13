@@ -53,11 +53,17 @@ export default function Explore() {
       );
     })
     .filter((user) => {
-      console.log(" user.distanceBetween", user.distanceBetween)
       return (
         user.distanceBetween !== undefined &&
         user.distanceBetween >= locationFilter.min &&
         user.distanceBetween <= locationFilter.max
+      );
+    })
+    .filter((user) => {
+      return (
+        user.fameRate !== undefined &&
+        user.fameRate >= fameFilter.min &&
+        user.fameRate <= fameFilter.max
       );
     });
 

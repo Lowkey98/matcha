@@ -42,15 +42,15 @@ export function getDistanceInKilometers({
   // console.log("actorUserInfo", actorUserInfo)
   // console.log("targetUserInfo", targetUserInfo)
   const distanceInMeters =
-    targetUserInfo?.location && actorUserInfo?.location
+    targetUserInfo.location && actorUserInfo.location
       ? getDistance(
           {
-            latitude: JSON.parse(actorUserInfo.location).latitude,
-            longitude: JSON.parse(actorUserInfo.location).longitude,
+            latitude: actorUserInfo.location.latitude || 0, // TODO
+            longitude: actorUserInfo.location.longitude || 0,
           },
           {
-            latitude: JSON.parse(targetUserInfo.location).latitude,
-            longitude: JSON.parse(targetUserInfo.location).longitude,
+            latitude: targetUserInfo.location.latitude || 0,
+            longitude: targetUserInfo.location.longitude || 0,
           },
         )
       : undefined;
@@ -389,15 +389,12 @@ app.post('/api/unlike', async (req: Request<{}, {}, RelationRequest>, res) => {
 app.post(
   '/api/viewProfile',
   async (req: Request<{}, {}, RelationRequest>, res) => {
-    console.log("viewing profile")
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) {
       res.status(401).json({ error: 'Unauthorized' });
       return;
     }
     const { actorUserId, targetUserId } = req.body;
-    console.log("actorUserId", actorUserId)
-    console.log("targetUserId", targetUserId)
     try {
       await db.execute(
         `INSERT INTO usersInfo (id, fame_rate)
@@ -423,13 +420,11 @@ app.post(
         actorUserImageUrl: actorUserInfo['images_urls'][0],
         message: 'viewed your profile.',
       };
-      console.log("actorNotification", actorNotification);
-      
+
       const targetSocketId = onlineUsers.get(targetUserId);
       if (targetSocketId) {
         io.to(targetSocketId).emit('receiveNotification', actorNotification);
       }
-      console.log("tagetSocketId", targetSocketId)
       res.status(201).json({
         message: 'view profile applied successfully.',
       });
@@ -519,18 +514,8 @@ app.get('/api/getAllUsers', async (req, res) => {
   ]);
   const currentUser = UserRow[0] as UserInfo;
 
-  const usersInfoWithCommon: UserInfoWithCommonTags[] = usersInfoFromDB.map(
-    (user) => {
-      const commonTagsCount = user.interests
-        ? user.interests.filter((interest) =>
-            currentUser.interests.includes(interest),
-          ).length
-        : 0;
-      console.log("user['fame_rate']", user['fame_rate']);
-      const distanceBetween = getDistanceInKilometers({
-        actorUserInfo: user,
-        targetUserInfo: currentUser,
-      });
+  const usersInfoWithCommon: UserInfoWithCommonTags[] = usersInfoFromDB
+    .map((user) => {
       return {
         id: user.id,
         email: user.email,
@@ -546,48 +531,29 @@ app.get('/api/getAllUsers', async (req, res) => {
         location:
           typeof user['location'] === 'string' && JSON.parse(user['location']),
         fameRate: user['fame_rate'],
+      };
+    })
+    .map((user) => {
+      const commonTagsCount = user.interests
+        ? user.interests.filter((interest) =>
+            currentUser.interests.includes(interest),
+          ).length
+        : 0;
+      const distanceBetween = getDistanceInKilometers({
+        actorUserInfo: user,
+        targetUserInfo: currentUser,
+      });
+      return {
+        ...user,
         commonTagsCount,
         distanceBetween,
       };
-    },
-  );
+    });
 
   res.json(usersInfoWithCommon);
   return;
 });
-// app.get(`/api/calculateFameRate/:userId`, async (req, res) => {
-//   const token = req.headers.authorization?.split(' ')[1];
-//   if (!token) {
-//     res.status(401).json({ error: 'Unauthorized' });
-//     return;
-//   }
-//   const userId = req.params.userId;
-//   let decoded;
-//   try {
-//     decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
-//   } catch (err) {
-//     console.error('JWT verification error:', err);
-//     res.status(401).json({ error: 'Invalid token' });
-//     return;
-//   }
-//   // get from table relations how many times this userId was viewed
-//   const [row] = await db.execute(
-//     'SELECT COUNT(*) as viewCount FROM relations WHERE target_user_id = ? AND is_view_profile = true',
-//     [userId],
-//   );
-//   // now get the most viewed userId from the same table
-//   const [mostViewedRow] = await db.execute(
-//     'SELECT target_user_id, COUNT(*) as viewCount FROM relations WHERE is_view_profile = true GROUP BY target_user_id ORDER BY viewCount DESC LIMIT 1',
-//   );
-//   const mostViewedUserId = mostViewedRow[0]?.target_user_id;
-//   const mostViewedCount = mostViewedRow[0]?.viewCount || 1; // Avoid division by zero
-//   const viewCount = row[0]?.viewCount || 0;
-//   const fameRate = (viewCount / mostViewedCount) * 100; // Example calculation
-//   // send it back as a response
-//   console.log('fameRate', fameRate);
 
-//   res.json({ fameRate });
-// });
 app.get('/api/me', async (req, res) => {
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) {
@@ -630,7 +596,6 @@ app.get('/api/me', async (req, res) => {
       typeof user['location'] === 'string' && JSON.parse(user['location']),
     fameRate: user['fame_rate'],
   };
-  console.log('fameRate', user['fame_rate']);
   res.json(userInfo);
   return;
 });
