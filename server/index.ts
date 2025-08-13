@@ -506,10 +506,11 @@ app.get('/api/getAllUsers', async (req, res) => {
     res.status(401).json({ error: 'Invalid token' });
     return;
   }
-  const [row] = await db.execute('SELECT * FROM usersInfo', [decoded.userId]);
+  const [row] = await db.execute('SELECT * FROM usersInfo WHERE id != ?', [
+    decoded.userId,
+  ]);
   const usersInfoFromDB = row as UserInfo[];
-  // console.log("users", usersInfo)
-  const [UserRow] = await db.execute('SELECT * FROM usersInfo WHERE id != ?', [
+  const [UserRow] = await db.execute('SELECT * FROM usersInfo WHERE id = ?', [
     decoded.userId,
   ]);
   const currentUser = UserRow[0] as UserInfo;
