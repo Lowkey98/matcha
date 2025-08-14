@@ -19,6 +19,7 @@ import { SocketContext } from '../context/SocketContext';
 
 export default function Messages() {
   const { user } = useContext(UserContext);
+  const { socket } = useContext(SocketContext);
   const { targetUserId } = useParams<{ targetUserId: string }>();
   const [selectedConversationIndex, setSelectedConversationIndex] =
     useState<number>(0);
@@ -97,6 +98,37 @@ export default function Messages() {
       );
     }
   }, [user]);
+
+  const currentTargetUserId =
+    usersConversationsSummary[selectedConversationIndex]?.id;
+
+  useEffect(() => {
+    if (socket) {
+      socket.on('receiveMessage', (receivedMessage: Message) => {
+        if (
+          receivedMessage.userId === currentTargetUserId ||
+          receivedMessage.userId === user?.id ||
+          !usersConversationsSummary.length
+        ) {
+          setCurrentConversation((conversation: Message[]) => [
+            ...conversation,
+            receivedMessage,
+          ]);
+        }
+        const token = localStorage.getItem('token');
+        if (user && token) {
+          getUserConversationsSummary({ userId: user.id, token }).then(
+            (conversationsSummary) => {
+              setUsersConversationsSummary(conversationsSummary);
+            },
+          );
+        }
+      });
+      return () => {
+        socket.off('receiveMessage');
+      };
+    }
+  }, [socket, user, currentTargetUserId]);
   return (
     <>
       <Helmet>
@@ -106,7 +138,6 @@ export default function Messages() {
         <>
           <ChatDesktop
             usersConversationsSummary={usersConversationsSummary}
-            setUsersConversationsSummary={setUsersConversationsSummary}
             currentConversation={currentConversation}
             setCurrentConversation={setCurrentConversation}
             selectedConversationIndex={selectedConversationIndex}
@@ -125,16 +156,12 @@ function ChatDesktop({
   usersConversationsSummary,
   selectedConversationIndex,
   setSelectedConversationIndex,
-  setUsersConversationsSummary,
 }: {
   currentConversation: Message[];
   setCurrentConversation: React.Dispatch<React.SetStateAction<Message[]>>;
   usersConversationsSummary: UserConversationsSummary[];
   selectedConversationIndex: number;
   setSelectedConversationIndex: React.Dispatch<React.SetStateAction<number>>;
-  setUsersConversationsSummary: React.Dispatch<
-    React.SetStateAction<UserConversationsSummary[]>
-  >;
 }) {
   const selectedUserConversation =
     usersConversationsSummary[selectedConversationIndex];
@@ -194,8 +221,6 @@ function ChatDesktop({
       <ChatBoxDesktop
         targetUserId={usersConversationsSummary[selectedConversationIndex].id}
         currentConversation={currentConversation}
-        setCurrentConversation={setCurrentConversation}
-        setUsersConversationsSummary={setUsersConversationsSummary}
       />
     </>
   );
@@ -390,18 +415,11 @@ function ChatBoxMobile({
 function ChatBoxDesktop({
   targetUserId,
   currentConversation,
-  setCurrentConversation,
-  setUsersConversationsSummary,
 }: {
   targetUserId: number;
   currentConversation: Message[];
-  setCurrentConversation: React.Dispatch<React.SetStateAction<Message[]>>;
-  setUsersConversationsSummary: React.Dispatch<
-    React.SetStateAction<UserConversationsSummary[]>
-  >;
 }) {
   const { user } = useContext(UserContext);
-  const { socket } = useContext(SocketContext);
   const conversationRef = useRef<HTMLDivElement>(null);
   const [message, setMessage] = useState<string>('');
   function handleClickSendMessage(event: React.MouseEvent<HTMLButtonElement>) {
@@ -433,29 +451,6 @@ function ChatBoxDesktop({
     const messageValue = event.target.value;
     setMessage(messageValue);
   }
-  useEffect(() => {
-    if (socket) {
-      socket.on('receiveMessage', (receivedMessage: Message) => {
-        if (
-          receivedMessage.userId === targetUserId ||
-          receivedMessage.userId === user?.id
-        ) {
-          setCurrentConversation((conversation: Message[]) => [
-            ...conversation,
-            receivedMessage,
-          ]);
-        }
-        const token = localStorage.getItem('token');
-        if (user && token) {
-          getUserConversationsSummary({ userId: user.id, token }).then(
-            (conversationsSummary) => {
-              setUsersConversationsSummary(conversationsSummary);
-            },
-          );
-        }
-      });
-    }
-  }, [socket, user]);
   return (
     <div className="z-[2] ml-107 hidden flex-1 flex-col overflow-hidden pb-5 pl-4 lg:flex xl:ml-115 [:has(&)]:flex [:has(&)]:h-full [:has(&)]:w-full [:has(&)]:flex-1 [:has(&)]:flex-col">
       <div
