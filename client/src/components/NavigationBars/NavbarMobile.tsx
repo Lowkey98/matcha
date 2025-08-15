@@ -26,12 +26,20 @@ export default function NavbarMobile({
       socket.on(
         'receiveNotification',
         (actorNotification: NotificationResponse) => {
-          setNotifications((prev) => [actorNotification, ...prev]);
-          setShowHighlightnotification(true);
+          if (
+            location.pathname !== '/messages' &&
+            !location.pathname.startsWith('/messages/')
+          ) {
+            setNotifications((prev) => [actorNotification, ...prev]);
+            setShowHighlightnotification(true);
+          }
         },
       );
+      return () => {
+        socket.off('receiveNotification');
+      };
     }
-  }, [socket]);
+  }, [socket, location]);
   return (
     <div
       className={`border-grayDark-100 fixed bottom-0 left-0 z-10 flex w-full items-center justify-between gap-2 border-t bg-white px-5 py-4 ${className}`}

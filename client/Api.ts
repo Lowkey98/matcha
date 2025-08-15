@@ -367,6 +367,32 @@ export async function getConversationBetweenTwoUsers({
   }
 }
 
+export async function checkTwoUsersMatch({
+  actorUserId,
+  targetUserId,
+  token,
+}: {
+  actorUserId: number;
+  targetUserId: number;
+  token: string;
+}): Promise<boolean> {
+  try {
+    const response = await fetch(
+      `${HOST}/api/checkTwoUsersMatch/${actorUserId}/${targetUserId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+    if (!response.ok) throw await response.json();
+    const jsonResponse = await response.json();
+    return jsonResponse as boolean;
+  } catch (error) {
+    throw error;
+  }
+}
+
 export async function like({
   actorUserId,
   targetUserId,

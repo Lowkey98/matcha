@@ -1,6 +1,6 @@
 import { useContext, useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet';
-import { Link, useLocation, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeftIcon, SendMessageIcon } from '../components/Icons';
 import {
   ConversationUserInfo,
@@ -8,6 +8,7 @@ import {
   UserConversationsSummary,
 } from '../../../shared/types';
 import {
+  checkTwoUsersMatch,
   getConversationBetweenTwoUsers,
   getConversationUserInfo,
   getUserConversationsSummary,
@@ -21,15 +22,28 @@ export default function Messages() {
   const { user } = useContext(UserContext);
   const { socket } = useContext(SocketContext);
   const { targetUserId } = useParams<{ targetUserId: string }>();
+  const navigate = useNavigate();
   const [selectedConversationIndex, setSelectedConversationIndex] =
     useState<number>(0);
   const [usersConversationsSummary, setUsersConversationsSummary] = useState<
     UserConversationsSummary[]
   >([]);
   const [currentConversation, setCurrentConversation] = useState<Message[]>([]);
-  useEffect(() => {
+  async function getConversations() {
     const token = localStorage.getItem('token');
     if (user && token) {
+      const isTwoUsersMatch = await checkTwoUsersMatch({
+        actorUserId: user.id,
+        targetUserId: Number(targetUserId),
+        token,
+      }).catch((error) => {
+        console.error(error);
+        throw error;
+      });
+      if (targetUserId && !isTwoUsersMatch) {
+        navigate('/explore');
+        return;
+      }
       getUserConversationsSummary({ userId: user.id, token }).then(
         (conversationsSummary: UserConversationsSummary[]) => {
           if (conversationsSummary.length) {
@@ -110,6 +124,9 @@ export default function Messages() {
         },
       );
     }
+  }
+  useEffect(() => {
+    getConversations();
   }, [user]);
 
   const currentTargetUserId =
@@ -205,7 +222,7 @@ function ChatDesktop({
               />
             ),
           )}
-          {/* TODO: - update notification - check if user match - if user unmatch remove from conversation table */}
+          {/* TODO:  - check if user match - if user unmatch remove from conversation table */}
         </div>
         <div className="flex flex-col items-start pt-5 pl-4">
           <Link
@@ -265,8 +282,8 @@ function ChatMobile({
   setSelectedConversationIndex: React.Dispatch<React.SetStateAction<number>>;
 }) {
   const location = useLocation();
-  const routeWithParameter = location.pathname.startsWith('/messages/');
-  const [showChatBox, setShowChatBox] = useState<boolean>(routeWithParameter);
+  const routeWithParams = location.pathname.startsWith('/messages/');
+  const [showChatBox, setShowChatBox] = useState<boolean>(routeWithParams);
   const selectedUserConversation =
     usersConversationsSummary[selectedConversationIndex];
   return (

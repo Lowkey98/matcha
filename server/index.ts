@@ -480,9 +480,23 @@ app.post(
        VALUES (?, ?, ?)`,
         [actorUserId, targetUserId, message],
       );
+      const [rowActorUserInfo] = await db.execute(
+        'SELECT * FROM usersInfo WHERE id = ?',
+        [actorUserId],
+      );
+      const actorUserInfo = rowActorUserInfo[0];
+      const actorNotification: NotificationResponse = {
+        actorUserId: actorUserId,
+        actorUsername: actorUserInfo.username,
+        actorUserImageUrl: actorUserInfo['images_urls'][0],
+        message: 'send you a message.',
+      };
       const targetSocketId = onlineUsers.get(targetUserId);
       const actorSocketId = onlineUsers.get(actorUserId);
-      if (targetSocketId) io.to(targetSocketId).emit('receiveMessage', message);
+      if (targetSocketId) {
+        io.to(targetSocketId).emit('receiveMessage', message);
+        io.to(targetSocketId).emit('receiveNotification', actorNotification);
+      }
       if (actorSocketId) io.to(actorSocketId).emit('receiveMessage', message);
 
       res.status(201).json({
@@ -994,6 +1008,25 @@ app.get(
       conversationsFromDb,
     });
     res.status(201).json(conversation);
+    return;
+  },
+);
+
+app.get(
+  '/api/checkTwoUsersMatch/:actorUserId/:targetUserId',
+  async (req, res) => {
+    const { actorUserId, targetUserId } = req.params;
+    const [actorRow] = await db.execute(
+      'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ? AND is_like = ?',
+      [actorUserId, targetUserId, true],
+    );
+
+    const [targetRow] = await db.execute(
+      'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ? AND is_like = ?',
+      [targetUserId, actorUserId, true],
+    );
+    const isTwoUsersMatch = actorRow[0] && targetRow ? true : false;
+    res.status(201).send(isTwoUsersMatch);
     return;
   },
 );
