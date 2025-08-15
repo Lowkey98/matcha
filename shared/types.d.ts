@@ -92,10 +92,11 @@ export type ConversationUserInfo = {
 
 export type UserConversationsSummary = {
   id: number;
-  username;
-  imageUrl: stirng;
+  username: string;
+  imageUrl: string;
   lastMessage?: string;
   isOnline: boolean;
+  time: string;
 };
 
 export type Message = {

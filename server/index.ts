@@ -970,9 +970,10 @@ app.get('/api/userConversationsSummary/:userId', async (req, res) => {
         sortedConversation.messages[sortedConversation.messages.length - 1]
           .description,
       isOnline: onlineUsers.has(sortedConversation.userId),
+      time: sortedConversation.messages[sortedConversation.messages.length - 1]
+        .time,
     });
   }
-  console.log(userConversationsSummary);
 
   res.status(201).json(userConversationsSummary);
   return;

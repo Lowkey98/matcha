@@ -48,7 +48,12 @@ export default function Messages() {
                 }).then((conversation: Message[]) => {
                   setCurrentConversation(conversation);
                 });
-                setUsersConversationsSummary(conversationsSummary);
+                const sortedConversationsSummary = conversationsSummary.sort(
+                  (a, b) =>
+                    new Date(b.time).getTime() - new Date(a.time).getTime(),
+                );
+
+                setUsersConversationsSummary(sortedConversationsSummary);
               } else {
                 getConversationUserInfo({
                   token,
@@ -60,12 +65,19 @@ export default function Messages() {
                       imageUrl: userInfo.imageUrl,
                       username: userInfo.username,
                       isOnline: userInfo.isOnline,
+                      time: new Date().toISOString(),
                     },
                     ...conversationsSummary,
                   ]);
                 });
               }
             } else {
+              const sortedConversationsSummary = conversationsSummary.sort(
+                (a, b) =>
+                  new Date(b.time).getTime() - new Date(a.time).getTime(),
+              );
+
+              setUsersConversationsSummary(sortedConversationsSummary);
               setUsersConversationsSummary(conversationsSummary);
               getConversationBetweenTwoUsers({
                 actorUserId: user.id,
@@ -88,6 +100,7 @@ export default function Messages() {
                     username: userInfo.username,
                     lastMessage: '',
                     isOnline: userInfo.isOnline,
+                    time: new Date().toISOString(),
                   },
                   ...conversationsSummary,
                 ]);
@@ -114,12 +127,17 @@ export default function Messages() {
             ...conversation,
             receivedMessage,
           ]);
+          setSelectedConversationIndex(0);
         }
         const token = localStorage.getItem('token');
         if (user && token) {
           getUserConversationsSummary({ userId: user.id, token }).then(
             (conversationsSummary) => {
-              setUsersConversationsSummary(conversationsSummary);
+              const sortedConversationsSummary = conversationsSummary.sort(
+                (a, b) =>
+                  new Date(b.time).getTime() - new Date(a.time).getTime(),
+              );
+              setUsersConversationsSummary(sortedConversationsSummary);
             },
           );
         }
@@ -221,6 +239,7 @@ function ChatDesktop({
       <ChatBoxDesktop
         targetUserId={usersConversationsSummary[selectedConversationIndex].id}
         currentConversation={currentConversation}
+        setSelectedConversationIndex={setSelectedConversationIndex}
       />
     </>
   );
@@ -415,9 +434,11 @@ function ChatBoxMobile({
 function ChatBoxDesktop({
   targetUserId,
   currentConversation,
+  setSelectedConversationIndex,
 }: {
   targetUserId: number;
   currentConversation: Message[];
+  setSelectedConversationIndex: React.Dispatch<React.SetStateAction<number>>;
 }) {
   const { user } = useContext(UserContext);
   const conversationRef = useRef<HTMLDivElement>(null);
@@ -433,10 +454,11 @@ function ChatBoxDesktop({
           message: {
             userId: user.id,
             description: message,
-            time: getCurrentTime(),
+            time: new Date().toISOString(),
           },
           token,
         }).then(() => {
+          setSelectedConversationIndex(0);
           setMessage('');
         });
     }
@@ -492,18 +514,20 @@ function ChatBoxDesktop({
 }
 
 function TargetBoxMessage({ message }: { message: Message }) {
+  const convertedTime = getCurrentTime({ time: message.time });
   return (
     <div className="flex w-fit max-w-120 flex-col items-start text-sm">
       <div className="bg-primary rounded-tr-2xl rounded-b-2xl p-4 break-all text-white">
         {message.description}
       </div>
       <div className="mt-1 flex w-full justify-end">
-        <span className="text-grayDark font-light">{message.time}</span>
+        <span className="text-grayDark font-light">{convertedTime}</span>
       </div>
     </div>
   );
 }
 function ActorBoxMessage({ message }: { message: Message }) {
+  const convertedTime = getCurrentTime({ time: message.time });
   return (
     <div className="flex justify-end">
       <div className="flex w-fit max-w-120 flex-col items-start text-sm">
@@ -511,16 +535,20 @@ function ActorBoxMessage({ message }: { message: Message }) {
           {message.description}
         </div>
         <div className="mt-1 flex w-full justify-end">
-          <span className="text-grayDark font-light">{message.time}</span>
+          <span className="text-grayDark font-light">{convertedTime}</span>
         </div>
       </div>
     </div>
   );
 }
 
-function getCurrentTime() {
-  const now = new Date();
-  const hours = String(now.getHours()).padStart(2, '0');
-  const minutes = String(now.getMinutes()).padStart(2, '0');
-  return `${hours}:${minutes}`;
+function getCurrentTime({ time }: { time: string }) {
+  const date = new Date(time);
+  const convertedTime = date.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+
+  return convertedTime;
 }
