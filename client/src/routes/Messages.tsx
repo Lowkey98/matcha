@@ -1,6 +1,6 @@
 import { useContext, useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { ArrowLeftIcon, SendMessageIcon } from '../components/Icons';
 import {
   ConversationUserInfo,
@@ -161,7 +161,13 @@ export default function Messages() {
             selectedConversationIndex={selectedConversationIndex}
             setSelectedConversationIndex={setSelectedConversationIndex}
           />
-          {/* <ChatMobile targetUserInfo={targetUserInfo} /> */}
+          <ChatMobile
+            usersConversationsSummary={usersConversationsSummary}
+            currentConversation={currentConversation}
+            setCurrentConversation={setCurrentConversation}
+            selectedConversationIndex={selectedConversationIndex}
+            setSelectedConversationIndex={setSelectedConversationIndex}
+          />
         </>
       ) : null}
     </>
@@ -246,23 +252,47 @@ function ChatDesktop({
 }
 
 function ChatMobile({
-  targetUserInfo,
+  currentConversation,
+  setCurrentConversation,
+  usersConversationsSummary,
+  selectedConversationIndex,
+  setSelectedConversationIndex,
 }: {
-  targetUserInfo: ConversationUserInfo;
+  currentConversation: Message[];
+  setCurrentConversation: React.Dispatch<React.SetStateAction<Message[]>>;
+  usersConversationsSummary: UserConversationsSummary[];
+  selectedConversationIndex: number;
+  setSelectedConversationIndex: React.Dispatch<React.SetStateAction<number>>;
 }) {
-  const [showChatBox, setShowChatBox] = useState<boolean>(false);
+  const location = useLocation();
+  const routeWithParameter = location.pathname.startsWith('/messages/');
+  const [showChatBox, setShowChatBox] = useState<boolean>(routeWithParameter);
+  const selectedUserConversation =
+    usersConversationsSummary[selectedConversationIndex];
   return (
     <>
       <main className="mt-8 mb-24 lg:hidden">
-        <UserMessageCardMobile
-          setShowChatBox={setShowChatBox}
-          targetUserInfo={targetUserInfo}
-        />
+        {usersConversationsSummary.map(
+          (userConversationSummary: UserConversationsSummary, index) => (
+            <UserMessageCardMobile
+              setShowChatBox={setShowChatBox}
+              key={userConversationSummary.id}
+              targetUserInfo={userConversationSummary}
+              selectedConversationIndex={selectedConversationIndex}
+              currentIndex={index}
+              setSelectedConversationIndex={setSelectedConversationIndex}
+              setCurrentConversation={setCurrentConversation}
+            />
+          ),
+        )}
       </main>
       {showChatBox ? (
         <ChatBoxMobile
           setShowChatBox={setShowChatBox}
-          targetUserInfo={targetUserInfo}
+          targetUserId={usersConversationsSummary[selectedConversationIndex].id}
+          currentConversation={currentConversation}
+          setSelectedConversationIndex={setSelectedConversationIndex}
+          selectedUserConversation={selectedUserConversation}
         />
       ) : null}
     </>
@@ -326,109 +356,57 @@ function UserMessageCardDesktop({
 function UserMessageCardMobile({
   setShowChatBox,
   targetUserInfo,
+  selectedConversationIndex,
+  setSelectedConversationIndex,
+  currentIndex,
+  setCurrentConversation,
 }: {
   setShowChatBox: React.Dispatch<React.SetStateAction<boolean>>;
-  targetUserInfo: ConversationUserInfo;
+  targetUserInfo: UserConversationsSummary;
+  selectedConversationIndex: number;
+  setSelectedConversationIndex: React.Dispatch<React.SetStateAction<number>>;
+  currentIndex: number;
+  setCurrentConversation: React.Dispatch<React.SetStateAction<Message[]>>;
 }) {
+  const { user } = useContext(UserContext);
   function handleClickMessageCard() {
     setShowChatBox(true);
+    if (selectedConversationIndex !== currentIndex) {
+      const token = localStorage.getItem('token');
+      if (user && token) {
+        getConversationBetweenTwoUsers({
+          actorUserId: user.id,
+          targetUserId: targetUserInfo.id,
+          token,
+        }).then((conversation: Message[]) => {
+          setCurrentConversation(conversation);
+          setSelectedConversationIndex(currentIndex);
+        });
+      }
+    }
   }
-  return (
-    <button
-      type="button"
-      className="border-grayDark-100 flex w-full cursor-pointer items-center gap-2 border-b py-4 text-left last:border-none"
-      onClick={handleClickMessageCard}
-    >
-      <img
-        src={`${BACKEND_STATIC_FOLDER}${targetUserInfo.imageUrl}`}
-        alt="user"
-        className="size-13 shrink-0 rounded-full object-cover"
-      />
-      <div className="flex min-w-0 flex-col">
-        <span className="text-secondary text-sm font-semibold">
-          {targetUserInfo.username}
-        </span>
-        {/* <div className="text-grayDark overflow-hidden text-xs overflow-ellipsis whitespace-nowrap">
-          Lorem ipsum, dolor sit amet consectetur adipisicing elit. Beatae
-          dolorum dicta odit obcaecati amet. Eius quia laudantium error deserunt
-          quam repellendus recusandae dolor. Quas dolore accusantium
-          voluptatibus. A, nisi animi.
-        </div> */}
-      </div>
-    </button>
-  );
-}
-
-function ChatBoxMobile({
-  setShowChatBox,
-  targetUserInfo,
-}: {
-  setShowChatBox: React.Dispatch<React.SetStateAction<boolean>>;
-  targetUserInfo: ConversationUserInfo;
-}) {
-  function handleClickBackButton() {
-    setShowChatBox(false);
-  }
-  return (
-    <div className="fixed inset-0 z-10 flex flex-col bg-white px-5 pt-5 lg:hidden [:has(&)]:overflow-hidden [:has(&)]:lg:overflow-visible">
-      <div className="flex items-center gap-4">
-        <button
-          type="button"
-          className="border-grayDark-100 shrink-0 cursor-pointer rounded-full border-2 bg-white p-2"
-          onClick={handleClickBackButton}
-        >
-          <ArrowLeftIcon className="fill-secondary size-4" />
-        </button>
-        <Link
-          to={`/userProfile/${targetUserInfo.id}`}
-          className="flex items-center gap-2 text-left"
-        >
-          <img
-            src={`${BACKEND_STATIC_FOLDER}${targetUserInfo.imageUrl}`}
-            alt="user"
-            className="size-13 shrink-0 rounded-full object-cover"
-          />
-          <div className="flex min-w-0 flex-col">
-            <span className="text-secondary text-sm font-semibold">
-              {targetUserInfo.username}
-            </span>
-            <div className="flex items-center gap-1">
-              {targetUserInfo.isOnline ? (
-                <>
-                  <div className="size-2 rounded-full bg-[#71D191]"></div>
-                  <span className="text-grayDark text-sm font-light">
-                    Online
-                  </span>
-                </>
-              ) : (
-                <>
-                  <div className="bg-redLight size-2 rounded-full"></div>
-                  <span className="text-grayDark text-sm font-light">
-                    Offline
-                  </span>
-                </>
-              )}
-            </div>
+  if (targetUserInfo.lastMessage)
+    return (
+      <button
+        type="button"
+        className="border-grayDark-100 flex w-full cursor-pointer items-center gap-2 border-b py-4 text-left last:border-none"
+        onClick={handleClickMessageCard}
+      >
+        <img
+          src={`${BACKEND_STATIC_FOLDER}${targetUserInfo.imageUrl}`}
+          alt="user"
+          className="size-13 shrink-0 rounded-full object-cover"
+        />
+        <div className="flex min-w-0 flex-col">
+          <span className="text-secondary text-sm font-semibold">
+            {targetUserInfo.username}
+          </span>
+          <div className="text-grayDark overflow-hidden text-xs overflow-ellipsis whitespace-nowrap">
+            {targetUserInfo.lastMessage}
           </div>
-        </Link>
-      </div>
-      <div className="flex flex-1 flex-col overflow-hidden pb-5">
-        <div className="mt-5 flex-1 space-y-2 overflow-auto"></div>
-        <div className="pt-5">
-          <form className="bg-grayLight flex items-center gap-4 rounded-lg pr-4">
-            <input
-              type="text"
-              placeholder="Send a message"
-              className="text-secondary w-full py-4 pl-4 text-sm font-normal outline-0 placeholder:text-sm placeholder:text-[#B1B1B1]"
-            />
-            <button type="button" className="cursor-pointer">
-              <SendMessageIcon className="fill-primary size-5" />
-            </button>
-          </form>
         </div>
-      </div>
-    </div>
-  );
+      </button>
+    );
 }
 
 function ChatBoxDesktop({
@@ -464,15 +442,17 @@ function ChatBoxDesktop({
     }
   }
 
+  function handleChangeMessage(event: React.ChangeEvent<HTMLInputElement>) {
+    const messageValue = event.target.value;
+    setMessage(messageValue);
+  }
+
   useEffect(() => {
     if (conversationRef.current) {
       conversationRef.current.scrollTop = conversationRef.current.scrollHeight;
     }
   }, [currentConversation]);
-  function handleChangeMessage(event: React.ChangeEvent<HTMLInputElement>) {
-    const messageValue = event.target.value;
-    setMessage(messageValue);
-  }
+
   return (
     <div className="z-[2] ml-107 hidden flex-1 flex-col overflow-hidden pb-5 pl-4 lg:flex xl:ml-115 [:has(&)]:flex [:has(&)]:h-full [:has(&)]:w-full [:has(&)]:flex-1 [:has(&)]:flex-col">
       <div
@@ -508,6 +488,137 @@ function ChatBoxDesktop({
             <SendMessageIcon className="fill-primary size-5" />
           </button>
         </form>
+      </div>
+    </div>
+  );
+}
+
+function ChatBoxMobile({
+  setShowChatBox,
+  targetUserId,
+  currentConversation,
+  setSelectedConversationIndex,
+  selectedUserConversation,
+}: {
+  setShowChatBox: React.Dispatch<React.SetStateAction<boolean>>;
+  targetUserId: number;
+  currentConversation: Message[];
+  setSelectedConversationIndex: React.Dispatch<React.SetStateAction<number>>;
+  selectedUserConversation: UserConversationsSummary;
+}) {
+  const { user } = useContext(UserContext);
+  const conversationRef = useRef<HTMLDivElement>(null);
+  const [message, setMessage] = useState<string>('');
+  function handleClickSendMessage(event: React.MouseEvent<HTMLButtonElement>) {
+    event.preventDefault();
+    if (message.length) {
+      const token = localStorage.getItem('token');
+      if (user && token)
+        sendMessage({
+          targetUserId,
+          actorUserId: user.id,
+          message: {
+            userId: user.id,
+            description: message,
+            time: new Date().toISOString(),
+          },
+          token,
+        }).then(() => {
+          setSelectedConversationIndex(0);
+          setMessage('');
+        });
+    }
+  }
+  function handleClickBackButton() {
+    setShowChatBox(false);
+  }
+  function handleChangeMessage(event: React.ChangeEvent<HTMLInputElement>) {
+    const messageValue = event.target.value;
+    setMessage(messageValue);
+  }
+  useEffect(() => {
+    if (conversationRef.current) {
+      conversationRef.current.scrollTop = conversationRef.current.scrollHeight;
+    }
+  }, [currentConversation]);
+  return (
+    <div className="fixed inset-0 z-10 flex flex-col bg-white px-5 pt-5 lg:hidden [:has(&)]:overflow-hidden [:has(&)]:lg:overflow-visible">
+      <div className="flex items-center gap-4">
+        <button
+          type="button"
+          className="border-grayDark-100 shrink-0 cursor-pointer rounded-full border-2 bg-white p-2"
+          onClick={handleClickBackButton}
+        >
+          <ArrowLeftIcon className="fill-secondary size-4" />
+        </button>
+        <Link
+          to={`/userProfile/${selectedUserConversation.id}`}
+          className="flex items-center gap-2 text-left"
+        >
+          <img
+            src={`${BACKEND_STATIC_FOLDER}${selectedUserConversation.imageUrl}`}
+            alt="user"
+            className="size-13 shrink-0 rounded-full object-cover"
+          />
+          <div className="flex min-w-0 flex-col">
+            <span className="text-secondary text-sm font-semibold">
+              {selectedUserConversation.username}
+            </span>
+            <div className="flex items-center gap-1">
+              {selectedUserConversation.isOnline ? (
+                <>
+                  <div className="size-2 rounded-full bg-[#71D191]"></div>
+                  <span className="text-grayDark text-sm font-light">
+                    Online
+                  </span>
+                </>
+              ) : (
+                <>
+                  <div className="bg-redLight size-2 rounded-full"></div>
+                  <span className="text-grayDark text-sm font-light">
+                    Offline
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+        </Link>
+      </div>
+      <div className="flex flex-1 flex-col overflow-hidden pb-5">
+        <div
+          ref={conversationRef}
+          className="mt-5 flex-1 space-y-2 overflow-auto"
+        >
+          {currentConversation.map(
+            (conversationMessage: Message, index: number) => {
+              if (conversationMessage.userId === user?.id)
+                return (
+                  <ActorBoxMessage key={index} message={conversationMessage} />
+                );
+              return (
+                <TargetBoxMessage key={index} message={conversationMessage} />
+              );
+            },
+          )}
+        </div>
+        <div className="pt-5">
+          <form className="bg-grayLight flex items-center gap-4 rounded-lg pr-4">
+            <input
+              type="text"
+              placeholder="Send a message"
+              value={message}
+              className="text-secondary w-full py-4 pl-4 text-sm font-normal outline-0 placeholder:text-sm placeholder:text-[#B1B1B1]"
+              onChange={handleChangeMessage}
+            />
+            <button
+              type="submit"
+              className="cursor-pointer"
+              onClick={handleClickSendMessage}
+            >
+              <SendMessageIcon className="fill-primary size-5" />
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );
