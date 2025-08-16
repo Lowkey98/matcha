@@ -15,7 +15,9 @@ import { UserContext } from '../context/UserContext';
 
 export default function AddPictures() {
   const { user, setUser } = useContext(UserContext);
-  const uploadedBuffersPictures: string[] = Array(5).fill(undefined);
+  const [uploadedBuffersPictures, setUploadedBuffersPictures] = useState(
+    Array(5).fill(undefined),
+  );
   // get data from navigate state
   const navigate = useNavigate();
   const locationRoutes = useLocation();
@@ -84,6 +86,7 @@ export default function AddPictures() {
                 uploadedBuffersPictures={uploadedBuffersPictures}
                 indexImage={index}
                 className="lg:w-[21.2%] xl:w-48"
+                setUploadedBuffersPictures={setUploadedBuffersPictures}
               />
             ))}
           </div>

@@ -24,6 +24,7 @@ export default function Profile() {
           <ImagesCarousel
             imgsUrls={user.imagesUrls ?? []}
             className="h-[35rem] lg:w-full xl:w-[30rem] xl:shrink-0"
+            fameRate={user.fameRate ?? 0}
           />
           <div className="flex flex-col gap-8 lg:w-full xl:w-127">
             <div>

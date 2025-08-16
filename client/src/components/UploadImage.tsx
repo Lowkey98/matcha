@@ -5,11 +5,15 @@ import { BACKEND_STATIC_FOLDER } from './ImagesCarousel';
 
 export function UploadImage({
   uploadedBuffersPictures,
+  setUploadedBuffersPictures,
   indexImage,
   defaultValue,
   className,
 }: {
   uploadedBuffersPictures: (string | undefined)[];
+  setUploadedBuffersPictures: React.Dispatch<
+    React.SetStateAction<(string | undefined)[]>
+  >;
   indexImage: number;
   defaultValue?: string;
   className?: string;
@@ -25,7 +29,7 @@ export function UploadImage({
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const KB = 1024;
     const MB = KB * 1024;
-    const maxSize = 2 * MB;
+    const maxSize = 6 * MB;
     const file = event.target.files?.[0];
     if (file) {
       if (file.size > maxSize) {
@@ -54,7 +58,12 @@ export function UploadImage({
 
       reader.onloadend = () => {
         const bufferImage = String(reader.result);
-        uploadedBuffersPictures[indexImage] = bufferImage;
+        const uploadedImagesWithUpdatedImage: (string | undefined)[] =
+          uploadedBuffersPictures.map((imageUrl, index) => {
+            if (index === indexImage) return bufferImage;
+            return imageUrl;
+          });
+        setUploadedBuffersPictures(uploadedImagesWithUpdatedImage);
         setImagePreview(String(bufferImage));
       };
       reader.readAsDataURL(file);
@@ -120,7 +129,7 @@ export function EditedUploadImage({
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const KB = 1024;
     const MB = KB * 1024;
-    const maxSize = 2 * MB;
+    const maxSize = 6 * MB;
     const file = event.target.files?.[0];
     if (file) {
       if (file.size > maxSize) {
@@ -235,7 +244,7 @@ export function ButtonAddImage({
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const KB = 1024;
     const MB = KB * 1024;
-    const maxSize = 2 * MB;
+    const maxSize = 6 * MB;
     const file = event.target.files?.[0];
     if (file) {
       if (file.size > maxSize) {
