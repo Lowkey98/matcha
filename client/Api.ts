@@ -502,7 +502,7 @@ export async function sendMessage({
   token,
 }: MessageRequest & { token: string }) {
   try {
-    await fetch(`${HOST}/api/sendMessage`, {
+    const response = await fetch(`${HOST}/api/sendMessage`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -510,6 +510,10 @@ export async function sendMessage({
       },
       body: JSON.stringify({ actorUserId, targetUserId, message }),
     });
+    const jsonResponse = await response.json();
+    if (jsonResponse.redirectUrl)
+      window.location.href = jsonResponse.redirectUrl;
+
     return;
   } catch (error) {
     throw error;

@@ -25,7 +25,6 @@ export default function ProfileSlider({
   className?: string;
   users: UserInfoWithCommonTags[];
 }) {
-  const [, setIsPaused] = useState<boolean>(false);
   const [emblaRef, emblaApi] = useEmblaCarousel();
   const [, setSelectedIndex] = useState(0);
   const [showSort, setShowSort] = useState<boolean>(false);
@@ -92,17 +91,16 @@ export default function ProfileSlider({
       >
         <ArrowLeftIcon className="h-5 w-5 fill-white" />
       </button>
-      {emblaApi?.canScrollNext() && (
-        <button
-          className="bg-primary absolute top-1/2 -right-18 hidden h-10 w-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full lg:flex"
-          onClick={() => {
-            emblaApi?.scrollNext();
-            emblaApi?.plugins()?.autoplay?.reset();
-          }}
-        >
-          <ArrowRightIcon className="h-5 w-5 fill-white" />
-        </button>
-      )}
+
+      <button
+        className="bg-primary absolute top-1/2 -right-18 hidden h-10 w-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full lg:flex"
+        onClick={() => {
+          emblaApi?.scrollNext();
+          emblaApi?.plugins()?.autoplay?.reset();
+        }}
+      >
+        <ArrowRightIcon className="h-5 w-5 fill-white" />
+      </button>
     </div>
   );
 }
@@ -186,22 +184,22 @@ function SortDesktop({
 export function SortCard({ sortInfo }: { sortInfo: Sort }) {
   const { sorts, setSorts } = useContext(SortsContext);
   function handleClickAsc() {
-      const sortsWithCurrentSortAsc: Sort[] = sorts.map((sort) => {
-        return {
-          name: sort.name,
-          sort: sort.name === sortInfo.name ? 'asc' : null,
-        };
-      });
-      setSorts(sortsWithCurrentSortAsc);
+    const sortsWithCurrentSortAsc: Sort[] = sorts.map((sort) => {
+      return {
+        name: sort.name,
+        sort: sort.name === sortInfo.name ? 'asc' : null,
+      };
+    });
+    setSorts(sortsWithCurrentSortAsc);
   }
   function handleClickDesc() {
-      const sortsWithCurrentSortDesc: Sort[] = sorts.map((sort) => {
-        return {
-          name: sort.name,
-          sort: sort.name === sortInfo.name ? 'desc' : null,
-        };
-      });
-      setSorts(sortsWithCurrentSortDesc);    
+    const sortsWithCurrentSortDesc: Sort[] = sorts.map((sort) => {
+      return {
+        name: sort.name,
+        sort: sort.name === sortInfo.name ? 'desc' : null,
+      };
+    });
+    setSorts(sortsWithCurrentSortDesc);
   }
   return (
     <div className="flex items-center justify-between">
