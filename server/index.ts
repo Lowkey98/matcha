@@ -48,15 +48,15 @@ export function getDistanceInKilometers({
   const distanceInMeters =
     targetUserInfo.location && actorUserInfo.location
       ? getDistance(
-          {
-            latitude: actorUserInfo.location.latitude || 0, // TODO
-            longitude: actorUserInfo.location.longitude || 0,
-          },
-          {
-            latitude: targetUserInfo.location.latitude || 0,
-            longitude: targetUserInfo.location.longitude || 0,
-          },
-        )
+        {
+          latitude: actorUserInfo.location.latitude || 0, // TODO
+          longitude: actorUserInfo.location.longitude || 0,
+        },
+        {
+          latitude: targetUserInfo.location.latitude || 0,
+          longitude: targetUserInfo.location.longitude || 0,
+        },
+      )
       : undefined;
   const distanceInKilometers = distanceInMeters
     ? Math.round(distanceInMeters / 1000)
@@ -664,12 +664,11 @@ app.get('/api/getAllUsers', async (req, res) => {
     decoded.userId,
   ]);
   const currentUser = UserRow[0] as UserInfo;
-  const oppositeGender = currentUser.gender === 'men' ? 'women' : 'men  ';
+  const oppositeGender = currentUser.gender === 'men' ? 'women' : 'men';
   const [row] = await db.execute('SELECT * FROM usersInfo WHERE gender = ?', [
     oppositeGender,
   ]);
   const usersInfoFromDB = row as UserInfo[];
-
   const usersInfoWithCommon: UserInfoWithCommonTags[] = usersInfoFromDB
     .map((user) => {
       return {
@@ -692,8 +691,8 @@ app.get('/api/getAllUsers', async (req, res) => {
     .map((user) => {
       const commonTagsCount = user.interests
         ? user.interests.filter((interest) =>
-            currentUser.interests.includes(interest),
-          ).length
+          currentUser.interests.includes(interest),
+        ).length
         : 0;
       const distanceBetween = getDistanceInKilometers({
         actorUserInfo: user,
