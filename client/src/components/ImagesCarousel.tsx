@@ -7,9 +7,11 @@ export const BACKEND_STATIC_FOLDER = 'http://localhost:3000/';
 export default function ImagesCarousel({
   imgsUrls,
   className,
+  fameRate,
 }: {
   imgsUrls: string[];
   className?: string;
+  fameRate: number;
 }) {
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [
@@ -106,7 +108,7 @@ export default function ImagesCarousel({
       </div>
       <div className="absolute top-9 right-4 flex h-12 w-12 flex-col items-center justify-center rounded-full backdrop-blur-sm">
         <StarIcon className="h-5 w-5 shrink-0 fill-white" />
-        <span className="mt-0.5 text-xs text-white">2.5</span>
+        <span className="mt-0.5 text-xs text-white">{fameRate}</span>
       </div>
     </div>
   );

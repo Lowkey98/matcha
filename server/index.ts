@@ -78,7 +78,7 @@ const app = express();
 const server = http.createServer(app);
 app.use(express.json({ limit: '11mb' }));
 app.use(cors());
-app.use(express.urlencoded({ extended: true, limit: '12mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 app.get('/api/ping', (_req, res) => {
   res.send({ msg: 'pong' });
@@ -463,9 +463,9 @@ app.post(
     const { actorUserId, targetUserId } = req.body;
     try {
       await db.execute(
-        `INSERT INTO usersInfo (id, fame_rate)
-        VALUES (?, 1)
-        ON DUPLICATE KEY UPDATE fame_rate = fame_rate + 1`,
+        `UPDATE usersInfo
+        SET fame_rate = fame_rate + 1
+            WHERE id = ?;`,
         [targetUserId],
       );
       await db.execute(
@@ -665,11 +665,27 @@ app.get('/api/getAllUsers', async (req, res) => {
   ]);
   const currentUser = UserRow[0] as UserInfo;
   const oppositeGender = currentUser.gender === 'male' ? 'female' : 'male';
-  const [row] = await db.execute('SELECT * FROM usersInfo WHERE gender = ?', [
+  const [row] = await db.execute('SELECT * FROM usersInfo WHERE gender = ? AND age IS NOT NULL', [
     oppositeGender,
   ]);
   const usersInfoFromDB = row as UserInfo[];
-  const usersInfoWithCommon: UserInfoWithCommonTags[] = usersInfoFromDB
+  const unpromisedMappedWithBlockedUsers = usersInfoFromDB.map(async (user) => {
+    const [relationRow] = await db.execute(
+      'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ? AND is_block = ?',
+      [currentUser.id, user.id, true],
+    );
+    const [targetRelationRow] = await db.execute(
+      'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ? AND is_block = ?',
+      [user.id, currentUser.id, true],
+    );
+    const isBlocked = (relationRow[0] || targetRelationRow[0]) ? true : false;
+    // if (user.id === currentUser.id) return false; // don't include self in the
+    return isBlocked ? null : user;
+  });
+  const mappedWithBlockedUsers = await Promise.all(unpromisedMappedWithBlockedUsers)
+  const filteredWithBlockedUsers = mappedWithBlockedUsers.filter(Boolean)
+
+  const usersInfoWithCommon: UserInfoWithCommonTags[] = filteredWithBlockedUsers
     .map((user) => {
       return {
         id: user.id,
