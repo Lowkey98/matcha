@@ -18,6 +18,7 @@ import Settings from './routes/Settings';
 import EditProfile from './routes/EditProfile';
 import UserProfile from './routes/UserProfile';
 import VerifyEmail from './components/VerifyEmail';
+import UpdateEmail from './components/UpdateEmail';
 const routeConfig = [
   {
     path: '/',
@@ -100,6 +101,10 @@ const routeConfig = [
         path: '/verifyEmail',
         element: <VerifyEmail />,
       },
+      {
+        path: '/updateEmail',
+        element: <UpdateEmail />, 
+      }
     ],
   },
 ];
