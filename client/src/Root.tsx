@@ -33,9 +33,12 @@ export default function Root() {
         .then((userInfo: UserInfo) => {
           setUser(userInfo);
           if (userInfo.age) {
-            const socketClient = io(BACKEND_STATIC_FOLDER);
+            const socketClient = io(BACKEND_STATIC_FOLDER, {
+              auth: {
+                userId: userInfo.id,
+              },
+            });
             setSocket(socketClient);
-            socketClient.emit('register', userInfo.id);
           } else {
             navigate('/createProfile');
           }

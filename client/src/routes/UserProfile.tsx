@@ -25,6 +25,8 @@ import { UserInfo, UserInfoWithRelation } from '../../../shared/types';
 import { GenderCard } from './Profile';
 import ButtonLike from '../components/Buttons/ButtonLike';
 import ButtonUnlike from '../components/Buttons/ButtonUnlike';
+import { SocketContext } from '../context/SocketContext';
+
 export default function UserProfile() {
   const { user } = useContext(UserContext);
   const { targetUserId } = useParams<{ targetUserId: string }>();
@@ -32,15 +34,21 @@ export default function UserProfile() {
   const [targetUserInfo, setTargetUserInfo] =
     useState<UserInfoWithRelation | null>(null);
   const [showBlockButton, setShowBlockButton] = useState<boolean>(false);
+  const [userStatus, setUserStatus] = useState<{
+    isOnline: boolean;
+    lastOnline: Date;
+  }>({ isOnline: false, lastOnline: new Date() });
 
+  const { socket } = useContext(SocketContext);
+  
   function handleClickLike() {
     const token = localStorage.getItem('token');
     if (targetUserInfo && user && targetUserId && token) {
       like({ actorUserId: user.id, targetUserId: Number(targetUserId), token })
-        .then(() => {
-          setTargetUserInfo({
-            ...targetUserInfo,
-            isLike: true,
+      .then(() => {
+        setTargetUserInfo({
+          ...targetUserInfo,
+          isLike: true,
           });
         })
         .catch((error) => {
@@ -66,16 +74,16 @@ export default function UserProfile() {
         .catch((error) => {
           console.log('error:', error);
         });
+      }
     }
-  }
-
-  function handleClikThreeDots() {
-    setShowBlockButton(!showBlockButton);
-  }
-  function handleCLickBlock() {
-    const token = localStorage.getItem('token');
-    if (targetUserInfo && user && targetUserId && token) {
-      block({ actorUserId: user.id, targetUserId: Number(targetUserId), token })
+    
+    function handleClikThreeDots() {
+      setShowBlockButton(!showBlockButton);
+    }
+    function handleCLickBlock() {
+      const token = localStorage.getItem('token');
+      if (targetUserInfo && user && targetUserId && token) {
+        block({ actorUserId: user.id, targetUserId: Number(targetUserId), token })
         .then(() => {
           navigate('/explore');
         })
@@ -88,7 +96,6 @@ export default function UserProfile() {
     actorUserInfo: user,
     targetUserInfo,
   });
-
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token && user && targetUserId) {
@@ -106,6 +113,10 @@ export default function UserProfile() {
             navigate('/explore');
             return;
           }
+          setUserStatus({
+            isOnline: targetUser.isOnline,
+            lastOnline: targetUser.lastOnline || new Date().toISOString(),
+          });
           if (!targetUser.isViewProfile) {
             veiwProfile({
               actorUserId: user.id,
@@ -124,10 +135,21 @@ export default function UserProfile() {
           navigate('/explore');
         });
     }
+    if (socket)
+      socket.on('userStatus', ({ userId, isOnline, lastOnline }) => {
+        console.log(userId, isOnline, lastOnline);
+        if (Number(targetUserId) === userId) {
+          setUserStatus({
+            isOnline,
+            lastOnline: lastOnline || new Date().toISOString(),
+          });
+        }
+      });
   }, [user]);
+  
   if (targetUserInfo)
     return (
-      <>
+  <>
         <Helmet>
           <title>Matcha - Profile</title>
         </Helmet>
@@ -143,16 +165,21 @@ export default function UserProfile() {
                 {targetUserInfo.username}
               </span>
               <div className="mt-.5 flex items-center gap-1">
-                {targetUserInfo.isOnline ? (
+                {userStatus.isOnline ? (
                   <>
                     <div className="h-2.5 w-2.5 rounded-full bg-[#71D191]" />
                     <span className="text-grayDark font-light">Online</span>
                   </>
                 ) : (
-                  <>
-                    <div className="bg-redLight h-2.5 w-2.5 rounded-full" />
-                    <span className="text-grayDark font-light">Offline</span>
-                  </>
+                  <span className="font-light text-gray-400">
+                    last online:{' '}
+                    {new Date(userStatus.lastOnline).toLocaleString([], {
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </span>
                 )}
               </div>
             </div>

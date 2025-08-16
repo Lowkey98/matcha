@@ -48,15 +48,15 @@ export function getDistanceInKilometers({
   const distanceInMeters =
     targetUserInfo.location && actorUserInfo.location
       ? getDistance(
-          {
-            latitude: actorUserInfo.location.latitude || 0, // TODO
-            longitude: actorUserInfo.location.longitude || 0,
-          },
-          {
-            latitude: targetUserInfo.location.latitude || 0,
-            longitude: targetUserInfo.location.longitude || 0,
-          },
-        )
+        {
+          latitude: actorUserInfo.location.latitude || 0, // TODO
+          longitude: actorUserInfo.location.longitude || 0,
+        },
+        {
+          latitude: targetUserInfo.location.latitude || 0,
+          longitude: targetUserInfo.location.longitude || 0,
+        },
+      )
       : undefined;
   const distanceInKilometers = distanceInMeters
     ? Math.round(distanceInMeters / 1000)
@@ -726,13 +726,15 @@ app.get('/api/getAllUsers', async (req, res) => {
         location:
           typeof user['location'] === 'string' && JSON.parse(user['location']),
         fameRate: user['fame_rate'],
+        isOnline: user['isOnline'],
+        lastOnline: user['lastOnline']
       };
     })
     .map((user) => {
       const commonTagsCount = user.interests
         ? user.interests.filter((interest) =>
-            currentUser.interests.includes(interest),
-          ).length
+          currentUser.interests.includes(interest),
+        ).length
         : 0;
       const distanceBetween = getDistanceInKilometers({
         actorUserInfo: user,
@@ -790,6 +792,8 @@ app.get('/api/me', async (req, res) => {
     location:
       typeof user['location'] === 'string' && JSON.parse(user['location']),
     fameRate: user['fame_rate'],
+    isOnline: user['isOnline'],
+    lastOnline: user['lastOnline'],
   };
   res.json(userInfo);
   return;
@@ -841,7 +845,9 @@ app.get(
       isLike: false,
       isViewProfile: false,
       isBlock: false,
-      isOnline: onlineUsers.has(targetUserId),
+      isOnline: targetUser['isOnline'],
+      lastOnline: targetUser['lastOnline'],
+      fameRate: targetUser['fame_rate'],
     };
     const [rowRelation] = await db.execute(
       'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ?',
@@ -889,7 +895,8 @@ app.get('/api/conversationUserInfo/:targetUserId', async (req, res) => {
     id: targetUser.id,
     username: targetUser.username,
     imageUrl: targetUser['images_urls'][0],
-    isOnline: onlineUsers.has(targetUserId),
+    isOnline:  targetUser['isOnline'],
+    lastOnline: targetUser['lastOnline'],
   };
 
   res.json(userInfo);
@@ -949,6 +956,8 @@ app.get('/api/likes/:actorUserId', async (req, res) => {
       location:
         typeof targetUser['location'] === 'string' &&
         JSON.parse(targetUser['location']),
+      isOnline: targetUser['isOnline'],
+      lastOnline: targetUser['lastOnline'],
     };
     likedUsers.push(userInfo);
   }
@@ -1010,6 +1019,8 @@ app.get('/api/viewers/:targetUserId', async (req, res) => {
       location:
         typeof actorUserInfo['location'] === 'string' &&
         JSON.parse(actorUserInfo['location']),
+      isOnline: actorUserInfo['isOnline'],
+      lastOnline: actorUserInfo['lastOnline'],
     };
 
     viewedUsers.push(userInfo);
@@ -1075,6 +1086,8 @@ app.get('/api/matches/:actorUserId', async (req, res) => {
         location:
           typeof targetUser['location'] === 'string' &&
           JSON.parse(targetUser['location']),
+        isOnline: targetUser['isOnline'],
+        lastOnline: targetUser['lastOnline'],
       };
       matchedUsers.push(userInfo);
     }
@@ -1127,7 +1140,8 @@ app.get('/api/userConversationsSummary/:userId', async (req, res) => {
       lastMessage:
         sortedConversation.messages[sortedConversation.messages.length - 1]
           .description,
-      isOnline: onlineUsers.has(sortedConversation.userId),
+      isOnline: userInfo['isOnline'],
+      lastOnline: userInfo['lastOnline'],
       time: sortedConversation.messages[sortedConversation.messages.length - 1]
         .time,
     });
@@ -1518,10 +1532,22 @@ export async function sendForgotPasswordMail({
 }
 
 io.on('connection', (socket) => {
-  socket.on('register', (userId) => {
-    onlineUsers.set(userId, socket.id);
-  });
-  socket.on('disconnect', () => {
+  const userId = socket.handshake.auth.userId;
+  console.log(`User ${userId} connected`);
+  db.execute("UPDATE usersInfo SET isOnline = 1 WHERE id = ?", [userId]);
+
+  io.emit("userStatus", { userId, isOnline: true, lastOnline: new Date().toISOString() });
+  onlineUsers.set(userId, socket.id);
+
+
+  socket.on("disconnect", async () => {
+    const userId = socket.handshake.auth.userId;
+    console.log(`User ${userId} disconnected`);
+    await db.execute(
+      "UPDATE usersInfo SET isOnline = 0, lastOnline = NOW() WHERE id = ?",
+      [userId]
+    );
+    io.emit("userStatus", { userId, isOnline: false, lastOnline: new Date() });
     for (const [userId, id] of onlineUsers.entries()) {
       if (id === socket.id) {
         onlineUsers.delete(userId);
