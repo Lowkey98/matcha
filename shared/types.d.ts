@@ -82,3 +82,31 @@ export type Filter = {
   min: number;
   max: number;
 };
+
+export type ConversationUserInfo = {
+  id: number;
+  imageUrl: string;
+  username: string;
+  isOnline: boolean;
+};
+
+export type UserConversationsSummary = {
+  id: number;
+  username: string;
+  imageUrl: string;
+  lastMessage?: string;
+  isOnline: boolean;
+  time: string;
+};
+
+export type Message = {
+  userId: number;
+  description: string;
+  time: string;
+};
+
+export type MessageRequest = {
+  actorUserId: number;
+  targetUserId: number;
+  message: Message;
+};

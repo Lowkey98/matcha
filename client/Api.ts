@@ -1,10 +1,14 @@
 import type {
+  ConversationUserInfo,
   CreateProfileRequest,
   CreateProfileResponse,
   LoginRequest,
+  Message,
+  MessageRequest,
   RegisterRequest,
   RelationRequest,
   UpdatedUserProfileInfos,
+  UserConversationsSummary,
   UserInfo,
   UserInfoBase,
   UserInfoWithCommonTags,
@@ -249,6 +253,30 @@ export async function getUserInfoWithRelation({
   }
 }
 
+export async function getConversationUserInfo({
+  targetUserId,
+  token,
+}: {
+  targetUserId: number;
+  token: string;
+}): Promise<ConversationUserInfo> {
+  try {
+    const response = await fetch(
+      `${HOST}/api/conversationUserInfo/${targetUserId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+    if (!response.ok) throw await response.json();
+    const jsonResponse = await response.json();
+    return jsonResponse as ConversationUserInfo;
+  } catch (error) {
+    throw error;
+  }
+}
+
 export async function getLikes({
   actorUserId,
   token,
@@ -306,6 +334,82 @@ export async function getMatches({
     if (!response.ok) throw await response.json();
     const jsonResponse = await response.json();
     return jsonResponse as UserInfo[];
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function getUserConversationsSummary({
+  userId,
+  token,
+}: {
+  userId: number;
+  token: string;
+}): Promise<UserConversationsSummary[]> {
+  try {
+    const response = await fetch(
+      `${HOST}/api/userConversationsSummary/${userId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+    if (!response.ok) throw await response.json();
+    const jsonResponse = await response.json();
+    return jsonResponse as UserConversationsSummary[];
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function getConversationBetweenTwoUsers({
+  actorUserId,
+  targetUserId,
+  token,
+}: {
+  actorUserId: number;
+  targetUserId: number;
+  token: string;
+}): Promise<Message[]> {
+  try {
+    const response = await fetch(
+      `${HOST}/api/conversationsBetweenTwoUsers/${actorUserId}/${targetUserId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+    if (!response.ok) throw await response.json();
+    const jsonResponse = await response.json();
+    return jsonResponse as Message[];
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function checkTwoUsersMatch({
+  actorUserId,
+  targetUserId,
+  token,
+}: {
+  actorUserId: number;
+  targetUserId: number;
+  token: string;
+}): Promise<boolean> {
+  try {
+    const response = await fetch(
+      `${HOST}/api/checkTwoUsersMatch/${actorUserId}/${targetUserId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+    if (!response.ok) throw await response.json();
+    const jsonResponse = await response.json();
+    return jsonResponse as boolean;
   } catch (error) {
     throw error;
   }
@@ -384,6 +488,27 @@ export async function block({
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ actorUserId, targetUserId }),
+    });
+    return;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function sendMessage({
+  actorUserId,
+  targetUserId,
+  message,
+  token,
+}: MessageRequest & { token: string }) {
+  try {
+    await fetch(`${HOST}/api/sendMessage`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ actorUserId, targetUserId, message }),
     });
     return;
   } catch (error) {

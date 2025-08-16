@@ -11,12 +11,16 @@ import { getDistance } from 'geolib';
 
 import dotenv from 'dotenv';
 import type {
+  ConversationUserInfo,
   CreateProfileRequest,
   LoginRequest,
+  Message,
+  MessageRequest,
   NotificationResponse,
   RegisterRequest,
   RelationRequest,
   UpdatedUserProfileInfos,
+  UserConversationsSummary,
   UserInfo,
   UserInfoBase,
   UserInfoWithRelation,
@@ -405,7 +409,7 @@ app.post('/api/like', async (req: Request<{}, {}, RelationRequest>, res) => {
       io.to(targetSocketId).emit('receiveNotification', actorNotification);
     }
     res.status(201).json({
-      message: 'unlike applied successfully.',
+      message: 'like applied successfully.',
     });
     return;
   } catch (err) {
@@ -426,6 +430,16 @@ app.post('/api/unlike', async (req: Request<{}, {}, RelationRequest>, res) => {
    VALUES (?, ?, ?)
    ON DUPLICATE KEY UPDATE is_like = VALUES(is_like)`,
       [actorUserId, targetUserId, false],
+    );
+
+    await db.execute(
+      `DELETE FROM conversations WHERE actor_user_id = ? AND target_user_id = ?`,
+      [actorUserId, targetUserId],
+    );
+
+    await db.execute(
+      `DELETE FROM conversations WHERE actor_user_id = ? AND target_user_id = ?`,
+      [targetUserId, actorUserId],
     );
 
     res.status(201).json({
@@ -511,6 +525,66 @@ app.post('/api/block', async (req: Request<{}, {}, RelationRequest>, res) => {
     return;
   }
 });
+
+app.post(
+  '/api/sendMessage',
+  async (req: Request<{}, {}, MessageRequest>, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+    const { actorUserId, targetUserId, message } = req.body;
+    try {
+      const [actorRow] = await db.execute(
+        'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ? AND is_like = ?',
+        [actorUserId, targetUserId, true],
+      );
+
+      const [targetRow] = await db.execute(
+        'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ? AND is_like = ?',
+        [targetUserId, actorUserId, true],
+      );
+      const isTwoUsersMatch = actorRow[0] && targetRow[0] ? true : false;
+      if (!isTwoUsersMatch) {
+        res.redirect('http://localhost:5173/explore');
+        return;
+      }
+      await db.execute(
+        `INSERT INTO conversations
+       (actor_user_id, target_user_id, message) 
+       VALUES (?, ?, ?)`,
+        [actorUserId, targetUserId, message],
+      );
+      const [rowActorUserInfo] = await db.execute(
+        'SELECT * FROM usersInfo WHERE id = ?',
+        [actorUserId],
+      );
+      const actorUserInfo = rowActorUserInfo[0];
+      const actorNotification: NotificationResponse = {
+        actorUserId: actorUserId,
+        actorUsername: actorUserInfo.username,
+        actorUserImageUrl: actorUserInfo['images_urls'][0],
+        message: 'send you a message.',
+      };
+      const targetSocketId = onlineUsers.get(targetUserId);
+      const actorSocketId = onlineUsers.get(actorUserId);
+      if (targetSocketId) {
+        io.to(targetSocketId).emit('receiveMessage', message);
+        io.to(targetSocketId).emit('receiveNotification', actorNotification);
+      }
+      if (actorSocketId) io.to(actorSocketId).emit('receiveMessage', message);
+
+      res.status(201).json({
+        message: 'message sended successfully.',
+      });
+      return;
+    } catch (err) {
+      res.status(500).json({ error: 'Internal server error.' });
+      return;
+    }
+  },
+);
 
 app.get('/api/verifyUpdateEmail', async (req, res) => {
   try {
@@ -747,6 +821,42 @@ app.get(
   },
 );
 
+app.get('/api/conversationUserInfo/:targetUserId', async (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  const targetUserId = req.params.targetUserId;
+  if (!token) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
+  } catch (err) {
+    console.error('JWT verification error:', err);
+    res.status(401).json({ error: 'Invalid token' });
+    return;
+  }
+  const [row] = await db.execute('SELECT * FROM usersInfo WHERE id = ?', [
+    targetUserId,
+  ]);
+  const targetUser = row[0] as UserInfo;
+
+  if (!targetUser) {
+    console.error('User not found for token:', token);
+    res.status(404).json({ message: 'User not found' });
+    return;
+  }
+  const userInfo: ConversationUserInfo = {
+    id: targetUser.id,
+    username: targetUser.username,
+    imageUrl: targetUser['images_urls'][0],
+    isOnline: onlineUsers.has(targetUserId),
+  };
+
+  res.json(userInfo);
+  return;
+});
+
 app.get('/api/likes/:actorUserId', async (req, res) => {
   const token = req.headers.authorization?.split(' ')[1];
   const actorUserId = req.params.actorUserId;
@@ -933,6 +1043,98 @@ app.get('/api/matches/:actorUserId', async (req, res) => {
   res.json(matchedUsers);
   return;
 });
+
+app.get('/api/userConversationsSummary/:userId', async (req, res) => {
+  const userId = Number(req.params.userId);
+  const [rowsConversations] = await db.execute<[]>(
+    'SELECT * FROM conversations WHERE actor_user_id = ? OR target_user_id = ?',
+    [userId, userId],
+  );
+  const conversationsFromDb: MessageRequest[] =
+    rowsConversations as MessageRequest[];
+  const conversationsIndexs: number[] = [];
+  const sortedConversations: { userId: number; messages: Message[] }[] = [];
+  for (let index = 0; index < conversationsFromDb.length; index++) {
+    const conversationFromDb = conversationsFromDb[index];
+    const targetConversationId =
+      conversationFromDb['actor_user_id'] === userId
+        ? conversationFromDb['target_user_id']
+        : conversationFromDb['actor_user_id'];
+    if (!conversationsIndexs.includes(targetConversationId))
+      conversationsIndexs.push(targetConversationId);
+  }
+  for (let index = 0; index < conversationsIndexs.length; index++) {
+    const conversationIndex = conversationsIndexs[index];
+    const conversations: Message[] = getConversationsFromUser({
+      targetUserId: conversationIndex,
+      conversationsFromDb,
+    });
+    sortedConversations.push({
+      userId: conversationIndex,
+      messages: conversations,
+    });
+  }
+  const userConversationsSummary: UserConversationsSummary[] = [];
+  for (let index = 0; index < sortedConversations.length; index++) {
+    const sortedConversation = sortedConversations[index];
+    const [rowUser] = await db.execute('SELECT * FROM usersInfo WHERE id = ?', [
+      sortedConversation.userId,
+    ]);
+    const userInfo = rowUser[0] as UserInfo;
+    userConversationsSummary.push({
+      id: sortedConversation.userId,
+      imageUrl: userInfo['images_urls'][0],
+      username: userInfo.username,
+      lastMessage:
+        sortedConversation.messages[sortedConversation.messages.length - 1]
+          .description,
+      isOnline: onlineUsers.has(sortedConversation.userId),
+      time: sortedConversation.messages[sortedConversation.messages.length - 1]
+        .time,
+    });
+  }
+
+  res.status(201).json(userConversationsSummary);
+  return;
+});
+
+app.get(
+  '/api/conversationsBetweenTwoUsers/:actorUserId/:targetUserId',
+  async (req, res) => {
+    const { actorUserId, targetUserId } = req.params;
+    const [rowsConversations] = await db.execute<[]>(
+      'SELECT * FROM conversations WHERE actor_user_id = ? OR target_user_id = ?',
+      [actorUserId, actorUserId],
+    );
+    const conversationsFromDb: MessageRequest[] =
+      rowsConversations as MessageRequest[];
+    const conversation: Message[] = getConversationsFromUser({
+      targetUserId: Number(targetUserId),
+      conversationsFromDb,
+    });
+    res.status(201).json(conversation);
+    return;
+  },
+);
+
+app.get(
+  '/api/checkTwoUsersMatch/:actorUserId/:targetUserId',
+  async (req, res) => {
+    const { actorUserId, targetUserId } = req.params;
+    const [actorRow] = await db.execute(
+      'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ? AND is_like = ?',
+      [actorUserId, targetUserId, true],
+    );
+
+    const [targetRow] = await db.execute(
+      'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ? AND is_like = ?',
+      [targetUserId, actorUserId, true],
+    );
+    const isTwoUsersMatch = actorRow[0] && targetRow[0] ? true : false;
+    res.status(201).send(isTwoUsersMatch);
+    return;
+  },
+);
 
 app.post(
   '/api/sendForgotPasswordMail',
@@ -1280,5 +1482,25 @@ async function startServer() {
   server.listen(3000, () => {
     console.log('🚀 Server running at http://localhost:3000');
   });
+}
+
+function getConversationsFromUser({
+  targetUserId,
+  conversationsFromDb,
+}: {
+  targetUserId: number;
+  conversationsFromDb: MessageRequest[];
+}) {
+  const conversations: Message[] = [];
+  for (let i = 0; i < conversationsFromDb.length; i++) {
+    const conversationFromDb = conversationsFromDb[i];
+    if (
+      conversationFromDb['actor_user_id'] === targetUserId ||
+      conversationFromDb['target_user_id'] === targetUserId
+    ) {
+      conversations.push(conversationFromDb.message);
+    }
+  }
+  return conversations;
 }
 startServer();

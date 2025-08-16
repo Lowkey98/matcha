@@ -2,7 +2,7 @@ import { useContext, useEffect, useState } from 'react';
 import { NotificationsIcon } from './Icons';
 import { SocketContext } from '../context/SocketContext';
 import { NotificationResponse } from '../../../shared/types';
-import { useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { BACKEND_STATIC_FOLDER } from './ImagesCarousel';
 
 export default function NotificationsHeaderItem() {
@@ -12,8 +12,8 @@ export default function NotificationsHeaderItem() {
   );
   const [showHighlightnotification, setShowHighlightnotification] =
     useState<boolean>(false);
-
   const [showItems, setShowItems] = useState<boolean>(false);
+  const location = useLocation();
   function handleClickNotificationsHeaderItem() {
     setShowHighlightnotification(false);
     setShowItems(!showItems);
@@ -23,12 +23,25 @@ export default function NotificationsHeaderItem() {
       socket.on(
         'receiveNotification',
         (actorNotification: NotificationResponse) => {
-          setNotifications((prev) => [actorNotification, ...prev]);
-          setShowHighlightnotification(true);
+          if (actorNotification.message === 'send you a message.') {
+            if (
+              location.pathname !== '/messages' &&
+              !location.pathname.startsWith('/messages/')
+            ) {
+              setNotifications((prev) => [actorNotification, ...prev]);
+              setShowHighlightnotification(true);
+            }
+          } else {
+            setNotifications((prev) => [actorNotification, ...prev]);
+            setShowHighlightnotification(true);
+          }
         },
       );
+      return () => {
+        socket.off('receiveNotification');
+      };
     }
-  }, [socket]);
+  }, [socket, location]);
 
   return (
     <div className="relative">
@@ -73,6 +86,11 @@ export function NotficationCard({
     if (setShowItems) setShowItems(false);
     navigate(`/userProfile/${notification.actorUserId}`);
   }
+
+  function handleClickMessage() {
+    if (setShowItems) setShowItems(false);
+    navigate(`/messages/${notification.actorUserId}`);
+  }
   return (
     <div className="text-secondary border-grayDark-100 flex items-center gap-2 border-t p-3 first:border-t-0">
       <img
@@ -88,7 +106,17 @@ export function NotficationCard({
         >
           {notification.actorUsername}
         </button>
-        <span className="ml-1">{notification.message}</span>
+        {notification.message === 'send you a message.' ? (
+          <button
+            type="button"
+            className="ml-1 underline"
+            onClick={handleClickMessage}
+          >
+            {notification.message}
+          </button>
+        ) : (
+          <span className="ml-1">{notification.message}</span>
+        )}
       </div>
     </div>
   );
