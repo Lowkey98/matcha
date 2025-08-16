@@ -98,7 +98,11 @@ export default function UserProfile() {
         targetUserId: Number(targetUserId),
       })
         .then((targetUser: UserInfoWithRelation) => {
-          if (Number(targetUserId) === user.id || targetUser.isBlock) {
+          if (
+            Number(targetUserId) === user.id ||
+            !targetUser.age ||
+            targetUser.isBlock
+          ) {
             navigate('/explore');
             return;
           }
