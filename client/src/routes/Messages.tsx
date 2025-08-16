@@ -32,17 +32,19 @@ export default function Messages() {
   async function getConversations() {
     const token = localStorage.getItem('token');
     if (user && token) {
-      const isTwoUsersMatch = await checkTwoUsersMatch({
-        actorUserId: user.id,
-        targetUserId: Number(targetUserId),
-        token,
-      }).catch((error) => {
-        console.error(error);
-        throw error;
-      });
-      if (targetUserId && !isTwoUsersMatch) {
-        navigate('/explore');
-        return;
+      if (targetUserId) {
+        const isTwoUsersMatch = await checkTwoUsersMatch({
+          actorUserId: user.id,
+          targetUserId: Number(targetUserId),
+          token,
+        }).catch((error) => {
+          console.error(error);
+          throw error;
+        });
+        if (!isTwoUsersMatch) {
+          navigate('/explore');
+          return;
+        }
       }
       getUserConversationsSummary({ userId: user.id, token }).then(
         (conversationsSummaryFromDb: UserConversationsSummary[]) => {

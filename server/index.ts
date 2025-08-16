@@ -48,15 +48,15 @@ export function getDistanceInKilometers({
   const distanceInMeters =
     targetUserInfo.location && actorUserInfo.location
       ? getDistance(
-        {
-          latitude: actorUserInfo.location.latitude || 0, // TODO
-          longitude: actorUserInfo.location.longitude || 0,
-        },
-        {
-          latitude: targetUserInfo.location.latitude || 0,
-          longitude: targetUserInfo.location.longitude || 0,
-        },
-      )
+          {
+            latitude: actorUserInfo.location.latitude || 0, // TODO
+            longitude: actorUserInfo.location.longitude || 0,
+          },
+          {
+            latitude: targetUserInfo.location.latitude || 0,
+            longitude: targetUserInfo.location.longitude || 0,
+          },
+        )
       : undefined;
   const distanceInKilometers = distanceInMeters
     ? Math.round(distanceInMeters / 1000)
@@ -443,7 +443,7 @@ app.post('/api/unlike', async (req: Request<{}, {}, RelationRequest>, res) => {
     );
 
     res.status(201).json({
-      message: 'Like applied successfully.',
+      message: 'unlike applied successfully.',
     });
     return;
   } catch (err) {
@@ -516,6 +516,16 @@ app.post('/api/block', async (req: Request<{}, {}, RelationRequest>, res) => {
       [actorUserId, targetUserId, false, false, true],
     );
 
+    await db.execute(
+      `DELETE FROM conversations WHERE actor_user_id = ? AND target_user_id = ?`,
+      [actorUserId, targetUserId],
+    );
+
+    await db.execute(
+      `DELETE FROM conversations WHERE actor_user_id = ? AND target_user_id = ?`,
+      [targetUserId, actorUserId],
+    );
+
     res.status(201).json({
       message: 'block applied successfully.',
     });
@@ -536,18 +546,33 @@ app.post(
     }
     const { actorUserId, targetUserId, message } = req.body;
     try {
-      const [actorRow] = await db.execute(
+      const [actorBlockRow] = await db.execute(
+        'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ? AND is_block = ?',
+        [actorUserId, targetUserId, true],
+      );
+
+      const [targetBlockRow] = await db.execute(
+        'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ? AND is_block = ?',
+        [targetUserId, actorUserId, true],
+      );
+      if (actorBlockRow[0] || targetBlockRow[0]) {
+        res.json({ redirectUrl: '/explore' });
+        return;
+      }
+      const [actorLikeRow] = await db.execute(
         'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ? AND is_like = ?',
         [actorUserId, targetUserId, true],
       );
 
-      const [targetRow] = await db.execute(
+      const [targetLikeRow] = await db.execute(
         'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ? AND is_like = ?',
         [targetUserId, actorUserId, true],
       );
-      const isTwoUsersMatch = actorRow[0] && targetRow[0] ? true : false;
+
+      const isTwoUsersMatch =
+        actorLikeRow[0] && targetLikeRow[0] ? true : false;
       if (!isTwoUsersMatch) {
-        res.redirect('http://localhost:5173/explore');
+        res.json({ redirectUrl: '/explore' });
         return;
       }
       await db.execute(
@@ -647,7 +672,6 @@ app.get('/api/verify', async (req, res) => {
 app.get('/api/getAllUsers', async (req, res) => {
   const token = req.headers.authorization?.split(' ')[1];
 
-  console.log('token', token);
   if (!token) {
     res.status(401).json({ error: 'Unauthorized' });
     return;
@@ -707,8 +731,8 @@ app.get('/api/getAllUsers', async (req, res) => {
     .map((user) => {
       const commonTagsCount = user.interests
         ? user.interests.filter((interest) =>
-          currentUser.interests.includes(interest),
-        ).length
+            currentUser.interests.includes(interest),
+          ).length
         : 0;
       const distanceBetween = getDistanceInKilometers({
         actorUserInfo: user,
@@ -1136,16 +1160,30 @@ app.get(
   '/api/checkTwoUsersMatch/:actorUserId/:targetUserId',
   async (req, res) => {
     const { actorUserId, targetUserId } = req.params;
-    const [actorRow] = await db.execute(
+    const [actorBlockRow] = await db.execute(
+      'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ? AND is_block = ?',
+      [actorUserId, targetUserId, true],
+    );
+
+    const [targetBlockRow] = await db.execute(
+      'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ? AND is_block = ?',
+      [targetUserId, actorUserId, true],
+    );
+    if (actorBlockRow[0] || targetBlockRow[0]) {
+      res.status(201).send(false);
+      return;
+    }
+    const [actorLikeRow] = await db.execute(
       'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ? AND is_like = ?',
       [actorUserId, targetUserId, true],
     );
 
-    const [targetRow] = await db.execute(
+    const [targetLikeRow] = await db.execute(
       'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ? AND is_like = ?',
       [targetUserId, actorUserId, true],
     );
-    const isTwoUsersMatch = actorRow[0] && targetRow[0] ? true : false;
+
+    const isTwoUsersMatch = actorLikeRow[0] && targetLikeRow[0] ? true : false;
     res.status(201).send(isTwoUsersMatch);
     return;
   },
