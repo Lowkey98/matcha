@@ -1,7 +1,11 @@
 import { useContext, useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeftIcon, SendMessageIcon } from '../components/Icons';
+import {
+  ArrowLeftIcon,
+  ExclamationBorderIcon,
+  SendMessageIcon,
+} from '../components/Icons';
 import {
   ConversationUserInfo,
   Message,
@@ -28,6 +32,7 @@ export default function Messages() {
   const [usersConversationsSummary, setUsersConversationsSummary] = useState<
     UserConversationsSummary[]
   >([]);
+  const [loader, setLoader] = useState<boolean>(true);
   const [currentConversation, setCurrentConversation] = useState<Message[]>([]);
   async function getConversations() {
     const token = localStorage.getItem('token');
@@ -72,8 +77,9 @@ export default function Messages() {
                   token,
                 }).then((conversation: Message[]) => {
                   setCurrentConversation(conversation);
+                  setUsersConversationsSummary(sortedConversationsSummaryFromDb);
+                  setLoader(false);
                 });
-                setUsersConversationsSummary(sortedConversationsSummaryFromDb);
               } else {
                 getConversationUserInfo({
                   token,
@@ -89,6 +95,7 @@ export default function Messages() {
                     },
                     ...sortedConversationsSummaryFromDb,
                   ]);
+                  setLoader(false);
                 });
               }
             } else {
@@ -97,9 +104,10 @@ export default function Messages() {
                 actorUserId: user.id,
                 targetUserId: sortedConversationsSummaryFromDb[0].id,
                 token,
-              }).then((conversation: Message[]) =>
-                setCurrentConversation(conversation),
-              );
+              }).then((conversation: Message[]) => {
+                setCurrentConversation(conversation);
+                setLoader(false);
+              });
             }
           } else {
             if (targetUserId) {
@@ -116,7 +124,10 @@ export default function Messages() {
                     time: new Date().toISOString(),
                   },
                 ]);
+                setLoader(false);
               });
+            } else {
+              setLoader(false);
             }
           }
         },
@@ -167,23 +178,30 @@ export default function Messages() {
       <Helmet>
         <title>Matcha - Messages</title>
       </Helmet>
-      {usersConversationsSummary.length ? (
-        <>
-          <ChatDesktop
-            usersConversationsSummary={usersConversationsSummary}
-            currentConversation={currentConversation}
-            setCurrentConversation={setCurrentConversation}
-            selectedConversationIndex={selectedConversationIndex}
-            setSelectedConversationIndex={setSelectedConversationIndex}
-          />
-          <ChatMobile
-            usersConversationsSummary={usersConversationsSummary}
-            currentConversation={currentConversation}
-            setCurrentConversation={setCurrentConversation}
-            selectedConversationIndex={selectedConversationIndex}
-            setSelectedConversationIndex={setSelectedConversationIndex}
-          />
-        </>
+      {!loader ? (
+        usersConversationsSummary.length ? (
+          <>
+            <ChatDesktop
+              usersConversationsSummary={usersConversationsSummary}
+              currentConversation={currentConversation}
+              setCurrentConversation={setCurrentConversation}
+              selectedConversationIndex={selectedConversationIndex}
+              setSelectedConversationIndex={setSelectedConversationIndex}
+            />
+            <ChatMobile
+              usersConversationsSummary={usersConversationsSummary}
+              currentConversation={currentConversation}
+              setCurrentConversation={setCurrentConversation}
+              selectedConversationIndex={selectedConversationIndex}
+              setSelectedConversationIndex={setSelectedConversationIndex}
+            />
+          </>
+        ) : (
+          <div className="text-secondary flex flex-1 items-center justify-center gap-1 lg:ml-26 [:has(&)]:flex [:has(&)]:h-full [:has(&)]:w-full [:has(&)]:flex-1 [:has(&)]:flex-col">
+            <ExclamationBorderIcon className="fill-secondary size-6" />
+            No messages yet.
+          </div>
+        )
       ) : null}
     </>
   );
