@@ -28,6 +28,28 @@ export async function getAddress({
   } else throw 'Error converting latitude longitude to address';
 }
 
+export async function updateEmail({
+  email,
+  id,
+}: {
+  email: string;
+  id: number;
+}) {
+  console.log('Updating email:', email);
+  const response = await fetch(`${HOST}/api/updateEmail`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email, id }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw error;
+  }
+}
+
 export async function register({
   registeredUser,
 }: {
