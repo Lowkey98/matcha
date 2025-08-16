@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 export default function DisabledInputFormField({
   label,
   placeholder,
@@ -25,6 +27,14 @@ export default function DisabledInputFormField({
           value={defaultValue}
           disabled
         />
+      </div>
+      <div className="mt-1 flex justify-end">
+        <Link
+          to="/updateEmail"
+          className="text-secondary border-b-2 pb-1 text-sm"
+        >
+          update your email
+        </Link>
       </div>
     </div>
   );

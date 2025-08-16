@@ -203,6 +203,58 @@ app.post(
     }
   },
 );
+app.post(
+  '/api/updateEmail',
+  async (req: Request<{}, {}, { email: string; id: string }>, res) => {
+    try {
+      const { email, id } = req.body;
+      console.log('Updating email:', email);
+      if (!email) {
+        res.status(400).json({
+          error: 'Email',
+        });
+        return;
+      }
+      // Check if email already exists
+      const [rows] = await db.execute(
+        'SELECT email FROM usersInfo WHERE email = ?',
+        [email],
+      );
+
+      const userRows = rows as UserInfoFromDB[];
+      console.log('userRows', userRows);
+      const emailExists = userRows.some(
+        (row: UserInfoFromDB) => row.email === email,
+      );
+      console.log('emailExists', emailExists);
+
+      if (emailExists) {
+        res.status(409).json({
+          emailAlreadyExists: emailExists,
+        });
+        return;
+      }
+      const verificationToken = randomUUID();
+      // update verification token in the database
+      console.log('Updating verification token for user ID:', id);
+      await db.execute(
+        'UPDATE usersInfo SET verification_token = ? WHERE id = ?',
+        [verificationToken, id],
+      );
+      console.log('verificationToken', verificationToken);
+      sendVerificationUpdateEmail({ to: email, token: verificationToken });
+
+      res.status(201).json({
+        message: 'Please check your new email.', // TODO: change this message
+      });
+      return;
+    } catch (err) {
+      console.error('Registration error:', err);
+      res.status(500).json({ error: 'Internal server error.' });
+      return;
+    }
+  },
+);
 
 app.post(
   '/api/register',
@@ -534,6 +586,34 @@ app.post(
   },
 );
 
+app.get('/api/verifyUpdateEmail', async (req, res) => {
+  try {
+    const { token, email } = req.query;
+    if (!token) {
+      res.status(400).send('Missing token');
+      return;
+    }
+
+    const [rows] = await db.execute(
+      'SELECT * FROM usersInfo WHERE verification_token = ?',
+      [token],
+    );
+
+    const user: UserInfoFromDB = rows[0];
+    if (!user) {
+      res.status(400).send('Invalid or expired token');
+      return;
+    }
+    await db.execute(
+      'UPDATE usersInfo SET email = ?, verification_token = NULL WHERE id = ?',
+      [email, user.id],
+    );
+    res.redirect('http://localhost:5173/verifyemail?status=success');
+  } catch (err) {
+    console.error('Verification error:', err);
+    res.status(500).send('Internal server error.');
+  }
+});
 app.get('/api/verify', async (req, res) => {
   try {
     const { token } = req.query;
@@ -580,14 +660,15 @@ app.get('/api/getAllUsers', async (req, res) => {
     res.status(401).json({ error: 'Invalid token' });
     return;
   }
-  const [row] = await db.execute('SELECT * FROM usersInfo WHERE id != ?', [
-    decoded.userId,
-  ]);
-  const usersInfoFromDB = row as UserInfo[];
   const [UserRow] = await db.execute('SELECT * FROM usersInfo WHERE id = ?', [
     decoded.userId,
   ]);
   const currentUser = UserRow[0] as UserInfo;
+  const oppositeGender = currentUser.gender === 'men' ? 'women' : 'men  ';
+  const [row] = await db.execute('SELECT * FROM usersInfo WHERE gender = ?', [
+    oppositeGender,
+  ]);
+  const usersInfoFromDB = row as UserInfo[];
 
   const usersInfoWithCommon: UserInfoWithCommonTags[] = usersInfoFromDB
     .map((user) => {
@@ -1269,6 +1350,41 @@ app.put(
   },
 );
 
+export async function sendVerificationUpdateEmail({
+  to,
+  token,
+}: {
+  to: string;
+  token: string;
+}) {
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+
+  await transporter.sendMail({
+    from: `"Matcha Team" <${process.env.EMAIL_USER}>`,
+    to,
+    subject: 'Update your Email Address',
+    html: `
+    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+      <h2 style="color: #ff4081;">Welcome to Matcha!</h2>
+      <p>if you want to update your Matcha email, please click below:</p>
+      <a 
+href="http://localhost:3000/api/verifyUpdateEmail?token=${token}&email=${to}"
+        style="display: inline-block; padding: 12px 24px; background-color: #ff4081; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;"
+      >
+        Update Your Email
+      </a>
+      <p style="margin-top: 20px;">If you didn’t sign up for Matcha, just ignore this email.</p>
+      <p>Cheers,<br/>The Matcha Team</p>
+    </div>
+  `,
+  });
+}
 export async function sendVerificationEmail({
   to,
   token,

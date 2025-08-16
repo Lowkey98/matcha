@@ -46,6 +46,7 @@ export default function ForgotPassword() {
         <EmailSent
           message="We've sent a reset password link to your email. Please verify it to
                  reset your password."
+          continueButton={true}
         />
       ) : (
         <main className="mt-12 flex flex-col items-center lg:mx-auto lg:w-[26rem]">
