@@ -6,7 +6,7 @@ import { Map, Marker } from 'pigeon-maps';
 import { getAddress } from '../../../Api';
 import { useToast } from '../../hooks/useToast';
 import LoaderDots from '../Loaders';
-export default function FormInputField({
+export default function LocationFormField({
   location,
   setLocation,
   loaderLocation,
