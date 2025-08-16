@@ -7,7 +7,11 @@ import {
   isValidBiography,
 } from '../../../shared/Helpers';
 import InputFormField from '../components/FormFields/InputFormField';
-import DropdownFormField from '../components/FormFields/DropdownFormField';
+import {
+  DropdownFormField,
+  DropdownFormFieldGender,
+  DropdownFormFieldSexualPreference,
+} from '../components/FormFields/DropdownFormField';
 import MultiSelect from '../components/FormFields/MultiSelect';
 import TextAreaFormField from '../components/FormFields/TextAreaFormField';
 import ButtonPrimary from '../components/Buttons/ButtonPrimary';
@@ -43,8 +47,6 @@ export const interestsItems = [
   'Shopping',
   'Volunteering',
 ];
-export const genders: string[] = ['male', 'female'];
-export const sexualPreferences = ['male', 'female'];
 export default function CreateProfile() {
   const [age, setAge] = useState<string>('');
   const [gender, setGender] = useState<string>('');
@@ -146,27 +148,29 @@ export default function CreateProfile() {
               className="lg:w-[48%]"
               required
             />
-            <DropdownFormField
+            <DropdownFormFieldGender
               label="Gender"
               placeholder="Select your gender"
               formTrail={formTrail}
               dropdownValue={gender}
               setDropdownValue={setGender}
               errorDropdown={errorGender}
-              items={genders}
               className="lg:w-[48%]"
+              sexualPreference={sexualPreference}
+              setSexualPreference={setSexualPreference}
               required
             />
             <div className="lg:flex lg:w-[48%] lg:items-center">
-              <DropdownFormField
+              <DropdownFormFieldSexualPreference
                 label="Sexual preference"
                 placeholder="Select your sexual preference"
                 formTrail={formTrail}
                 dropdownValue={sexualPreference}
                 setDropdownValue={setSexualPreference}
                 errorDropdown={errorSexualPreference}
-                items={sexualPreferences}
                 className="w-full"
+                gender={gender}
+                setGender={setGender}
                 required
               />
             </div>

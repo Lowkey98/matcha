@@ -11,6 +11,7 @@ import { SortsContext } from '../context/SortsContext';
 import { Filter, Sort } from '../../../shared/types';
 import { FiltersContext } from '../context/FiltersContext';
 import FilterCard from './FilterCard';
+import { SocketContext } from '../context/SocketContext';
 
 export default function HeaderBurger({
   headerNavigationItems,
@@ -18,6 +19,7 @@ export default function HeaderBurger({
   headerNavigationItems: HeaderNavigationItem[];
 }) {
   const { sorts } = useContext(SortsContext);
+  const { socket } = useContext(SocketContext);
   const { filters } = useContext(FiltersContext);
   const [showMobileNav, setShowMobileNav] = useState<boolean>(false);
   const navigate = useNavigate();
@@ -113,8 +115,10 @@ export default function HeaderBurger({
                         if (
                           headerNavigationItem.name.toLocaleLowerCase() ===
                           'logout'
-                        )
+                        ) {
+                          socket?.disconnect();
                           handleClickLogout({ navigate, setUser });
+                        }
 
                         setShowMobileNav(false);
                         navigate(headerNavigationItem.route);
