@@ -45,13 +45,18 @@ export default function Messages() {
         return;
       }
       getUserConversationsSummary({ userId: user.id, token }).then(
-        (conversationsSummary: UserConversationsSummary[]) => {
-          if (conversationsSummary.length) {
+        (conversationsSummaryFromDb: UserConversationsSummary[]) => {
+          if (conversationsSummaryFromDb.length) {
+            const sortedConversationsSummaryFromDb =
+              conversationsSummaryFromDb.sort(
+                (a, b) =>
+                  new Date(b.time).getTime() - new Date(a.time).getTime(),
+              );
             if (targetUserId) {
               const targetUserIdInConversationsIndex =
-                conversationsSummary.findIndex(
-                  (conversationSummary) =>
-                    conversationSummary.id === Number(targetUserId),
+                sortedConversationsSummaryFromDb.findIndex(
+                  (sortedConversationSummaryFromDb) =>
+                    sortedConversationSummaryFromDb.id === Number(targetUserId),
                 );
               if (targetUserIdInConversationsIndex !== -1) {
                 setSelectedConversationIndex(targetUserIdInConversationsIndex);
@@ -62,12 +67,7 @@ export default function Messages() {
                 }).then((conversation: Message[]) => {
                   setCurrentConversation(conversation);
                 });
-                const sortedConversationsSummary = conversationsSummary.sort(
-                  (a, b) =>
-                    new Date(b.time).getTime() - new Date(a.time).getTime(),
-                );
-
-                setUsersConversationsSummary(sortedConversationsSummary);
+                setUsersConversationsSummary(sortedConversationsSummaryFromDb);
               } else {
                 getConversationUserInfo({
                   token,
@@ -81,21 +81,15 @@ export default function Messages() {
                       isOnline: userInfo.isOnline,
                       time: new Date().toISOString(),
                     },
-                    ...conversationsSummary,
+                    ...sortedConversationsSummaryFromDb,
                   ]);
                 });
               }
             } else {
-              const sortedConversationsSummary = conversationsSummary.sort(
-                (a, b) =>
-                  new Date(b.time).getTime() - new Date(a.time).getTime(),
-              );
-
-              setUsersConversationsSummary(sortedConversationsSummary);
-              setUsersConversationsSummary(conversationsSummary);
+              setUsersConversationsSummary(sortedConversationsSummaryFromDb);
               getConversationBetweenTwoUsers({
                 actorUserId: user.id,
-                targetUserId: conversationsSummary[0].id,
+                targetUserId: sortedConversationsSummaryFromDb[0].id,
                 token,
               }).then((conversation: Message[]) =>
                 setCurrentConversation(conversation),
@@ -112,11 +106,9 @@ export default function Messages() {
                     id: userInfo.id,
                     imageUrl: userInfo.imageUrl,
                     username: userInfo.username,
-                    lastMessage: '',
                     isOnline: userInfo.isOnline,
                     time: new Date().toISOString(),
                   },
-                  ...conversationsSummary,
                 ]);
               });
             }
@@ -222,7 +214,6 @@ function ChatDesktop({
               />
             ),
           )}
-          {/* TODO:  - check if user match - if user unmatch remove from conversation table */}
         </div>
         <div className="flex flex-col items-start pt-5 pl-4">
           <Link
@@ -290,17 +281,20 @@ function ChatMobile({
     <>
       <main className="mt-8 mb-24 lg:hidden">
         {usersConversationsSummary.map(
-          (userConversationSummary: UserConversationsSummary, index) => (
-            <UserMessageCardMobile
-              setShowChatBox={setShowChatBox}
-              key={userConversationSummary.id}
-              targetUserInfo={userConversationSummary}
-              selectedConversationIndex={selectedConversationIndex}
-              currentIndex={index}
-              setSelectedConversationIndex={setSelectedConversationIndex}
-              setCurrentConversation={setCurrentConversation}
-            />
-          ),
+          (userConversationSummary: UserConversationsSummary, index) => {
+            if (userConversationSummary.lastMessage)
+              return (
+                <UserMessageCardMobile
+                  setShowChatBox={setShowChatBox}
+                  key={userConversationSummary.id}
+                  targetUserInfo={userConversationSummary}
+                  selectedConversationIndex={selectedConversationIndex}
+                  currentIndex={index}
+                  setSelectedConversationIndex={setSelectedConversationIndex}
+                  setCurrentConversation={setCurrentConversation}
+                />
+              );
+          },
         )}
       </main>
       {showChatBox ? (
@@ -402,28 +396,27 @@ function UserMessageCardMobile({
       }
     }
   }
-  if (targetUserInfo.lastMessage)
-    return (
-      <button
-        type="button"
-        className="border-grayDark-100 flex w-full cursor-pointer items-center gap-2 border-b py-4 text-left last:border-none"
-        onClick={handleClickMessageCard}
-      >
-        <img
-          src={`${BACKEND_STATIC_FOLDER}${targetUserInfo.imageUrl}`}
-          alt="user"
-          className="size-13 shrink-0 rounded-full object-cover"
-        />
-        <div className="flex min-w-0 flex-col">
-          <span className="text-secondary text-sm font-semibold">
-            {targetUserInfo.username}
-          </span>
-          <div className="text-grayDark overflow-hidden text-xs overflow-ellipsis whitespace-nowrap">
-            {targetUserInfo.lastMessage}
-          </div>
+  return (
+    <button
+      type="button"
+      className="border-grayDark-100 flex w-full cursor-pointer items-center gap-2 border-b py-4 text-left last:border-none"
+      onClick={handleClickMessageCard}
+    >
+      <img
+        src={`${BACKEND_STATIC_FOLDER}${targetUserInfo.imageUrl}`}
+        alt="user"
+        className="size-13 shrink-0 rounded-full object-cover"
+      />
+      <div className="flex min-w-0 flex-col">
+        <span className="text-secondary text-sm font-semibold">
+          {targetUserInfo.username}
+        </span>
+        <div className="text-grayDark overflow-hidden text-xs overflow-ellipsis whitespace-nowrap">
+          {targetUserInfo.lastMessage}
         </div>
-      </button>
-    );
+      </div>
+    </button>
+  );
 }
 
 function ChatBoxDesktop({

@@ -23,10 +23,15 @@ export default function NotificationsHeaderItem() {
       socket.on(
         'receiveNotification',
         (actorNotification: NotificationResponse) => {
-          if (
-            location.pathname !== '/messages' &&
-            !location.pathname.startsWith('/messages/')
-          ) {
+          if (actorNotification.message === 'send you a message.') {
+            if (
+              location.pathname !== '/messages' &&
+              !location.pathname.startsWith('/messages/')
+            ) {
+              setNotifications((prev) => [actorNotification, ...prev]);
+              setShowHighlightnotification(true);
+            }
+          } else {
             setNotifications((prev) => [actorNotification, ...prev]);
             setShowHighlightnotification(true);
           }

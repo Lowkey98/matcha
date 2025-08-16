@@ -380,6 +380,16 @@ app.post('/api/unlike', async (req: Request<{}, {}, RelationRequest>, res) => {
       [actorUserId, targetUserId, false],
     );
 
+    await db.execute(
+      `DELETE FROM conversations WHERE actor_user_id = ? AND target_user_id = ?`,
+      [actorUserId, targetUserId],
+    );
+
+    await db.execute(
+      `DELETE FROM conversations WHERE actor_user_id = ? AND target_user_id = ?`,
+      [targetUserId, actorUserId],
+    );
+
     res.status(201).json({
       message: 'Like applied successfully.',
     });
@@ -474,6 +484,20 @@ app.post(
     }
     const { actorUserId, targetUserId, message } = req.body;
     try {
+      const [actorRow] = await db.execute(
+        'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ? AND is_like = ?',
+        [actorUserId, targetUserId, true],
+      );
+
+      const [targetRow] = await db.execute(
+        'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ? AND is_like = ?',
+        [targetUserId, actorUserId, true],
+      );
+      const isTwoUsersMatch = actorRow[0] && targetRow[0] ? true : false;
+      if (!isTwoUsersMatch) {
+        res.redirect('http://localhost:5173/explore');
+        return;
+      }
       await db.execute(
         `INSERT INTO conversations
        (actor_user_id, target_user_id, message) 
@@ -1025,7 +1049,7 @@ app.get(
       'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ? AND is_like = ?',
       [targetUserId, actorUserId, true],
     );
-    const isTwoUsersMatch = actorRow[0] && targetRow ? true : false;
+    const isTwoUsersMatch = actorRow[0] && targetRow[0] ? true : false;
     res.status(201).send(isTwoUsersMatch);
     return;
   },

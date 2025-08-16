@@ -75,9 +75,12 @@ function MatchedUserProfileCard({ userInfo }: { userInfo: UserInfo }) {
       <div className="absolute bottom-0 left-0 z-10 flex w-full items-center justify-between gap-1 px-3 pb-3 text-xs text-white lg:text-sm">
         <div className="flex flex-col gap-1">
           <div className="flex whitespace-nowrap">
-            <div className="max-w-28 overflow-hidden font-bold overflow-ellipsis whitespace-nowrap">
+            <Link
+              to={`/userProfile/${userInfo.id}`}
+              className="max-w-28 overflow-hidden font-bold overflow-ellipsis whitespace-nowrap"
+            >
               {userInfo.username}
-            </div>
+            </Link>
             <span className="ml-1 font-light">, {userInfo.age}</span>
           </div>
           <div className="flex items-center gap-3 font-light">
