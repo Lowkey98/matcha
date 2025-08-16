@@ -39,7 +39,7 @@ const getRandomInterests = (): string[] => {
 // Returns a random portrait URL for user n (0-based index)
 const getPortraitUrl = (index: number): string => {
   // Alternate male/female
-  const gender = index % 2 === 0 ? 'men' : 'women';
+  const gender = index % 2 === 0 ? 'male' : 'female';
   const number = Math.floor(Math.random() * 100); // 0-99
   return `https://randomuser.me/api/portraits/${gender}/${number}.jpg`;
 };

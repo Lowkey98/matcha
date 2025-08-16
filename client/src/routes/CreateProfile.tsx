@@ -43,8 +43,8 @@ export const interestsItems = [
   'Shopping',
   'Volunteering',
 ];
-export const genders: string[] = ['Men', 'Women'];
-export const sexualPreferences = ['Men', 'Women'];
+export const genders: string[] = ['male', 'female'];
+export const sexualPreferences = ['male', 'female'];
 export default function CreateProfile() {
   const [age, setAge] = useState<string>('');
   const [gender, setGender] = useState<string>('');
