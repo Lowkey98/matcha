@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { ExclamationIcon, ArrowDownIcon, ArrowUpIcon } from "../Icons";
-export default function DropdownFormField({
+import { useState } from 'react';
+import { ExclamationIcon, ArrowDownIcon, ArrowUpIcon } from '../Icons';
+export function DropdownFormField({
   label,
   placeholder,
   className,
@@ -39,7 +39,7 @@ export default function DropdownFormField({
       <div className="relative">
         <button
           type="button"
-          className={`mt-2 flex h-13 w-full cursor-pointer items-center justify-between rounded-lg border-2 px-3 ${errorDropdown && formTrail ? "border-redLight" : "border-secondary"}`}
+          className={`mt-2 flex h-13 w-full cursor-pointer items-center justify-between rounded-lg border-2 px-3 ${errorDropdown && formTrail ? 'border-redLight' : 'border-secondary'}`}
           onClick={handleCLickDropdown}
         >
           {dropdownValue.length ? (
@@ -70,6 +70,265 @@ export default function DropdownFormField({
                 {item}
               </button>
             ))}
+          </div>
+        ) : null}
+      </div>
+      {errorDropdown && formTrail ? (
+        <div className="flex justify-end">
+          <span className="text-redLight mt-2 text-sm">{errorDropdown}</span>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+export function DropdownFormFieldGender({
+  label,
+  placeholder,
+  className,
+  setDropdownValue,
+  dropdownValue,
+  errorDropdown,
+  formTrail,
+  sexualPreference,
+  setSexualPreference,
+  required,
+}: {
+  label: string;
+  placeholder?: string;
+  className?: string;
+  formTrail: boolean;
+  setDropdownValue: React.Dispatch<React.SetStateAction<string>>;
+  dropdownValue: string;
+  errorDropdown: string | null;
+  sexualPreference: string;
+  setSexualPreference: React.Dispatch<React.SetStateAction<string>>;
+
+  required?: boolean;
+}) {
+  const [showItems, setShowItems] = useState<boolean>(false);
+  function handleCLickDropdown() {
+    setShowItems(!showItems);
+  }
+  function handleClickDropdownItem(event: React.MouseEvent<HTMLButtonElement>) {
+    const value = event.currentTarget.textContent;
+    if (value) {
+      setDropdownValue(value);
+      if (value === 'male') {
+        setSexualPreference('female');
+      } else setSexualPreference('male');
+    }
+    setShowItems(false);
+  }
+  return (
+    <div className={className}>
+      <label className="text-secondary font-medium">
+        {label}
+        {required ? <span className="text-redLight ml-0.5">*</span> : null}
+      </label>
+      <div className="relative">
+        <button
+          type="button"
+          className={`mt-2 flex h-13 w-full cursor-pointer items-center justify-between rounded-lg border-2 px-3 ${errorDropdown && formTrail ? 'border-redLight' : 'border-secondary'}`}
+          onClick={handleCLickDropdown}
+        >
+          {dropdownValue.length ? (
+            <span className="text-secondary">{dropdownValue}</span>
+          ) : (
+            <span className="text-sm text-gray-300">{placeholder}</span>
+          )}
+          <div className="flex items-center gap-1.5">
+            {showItems ? (
+              <ArrowUpIcon className="fill-secondary h-4.5 w-4.5" />
+            ) : (
+              <ArrowDownIcon className="fill-secondary h-4.5 w-4.5" />
+            )}
+            {errorDropdown && formTrail ? (
+              <ExclamationIcon className="fill-redLight h-5 w-5" />
+            ) : null}
+          </div>
+        </button>
+        {showItems ? (
+          <div className="border-secondary text-secondary absolute z-1 mt-2 max-h-52 w-full overflow-auto rounded-lg border-2 bg-white">
+            {dropdownValue === 'male' ? (
+              <button
+                type="button"
+                className="w-full cursor-pointer p-3 text-left hover:bg-gray-50"
+                onClick={handleClickDropdownItem}
+              >
+                female
+              </button>
+            ) : dropdownValue === 'female' ? (
+              <button
+                type="button"
+                className="w-full cursor-pointer p-3 text-left hover:bg-gray-50"
+                onClick={handleClickDropdownItem}
+              >
+                male
+              </button>
+            ) : sexualPreference === 'male' ? (
+              <button
+                type="button"
+                className="w-full cursor-pointer p-3 text-left hover:bg-gray-50"
+                onClick={handleClickDropdownItem}
+              >
+                female
+              </button>
+            ) : sexualPreference === 'female' ? (
+              <button
+                type="button"
+                className="w-full cursor-pointer p-3 text-left hover:bg-gray-50"
+                onClick={handleClickDropdownItem}
+              >
+                male
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="w-full cursor-pointer p-3 text-left hover:bg-gray-50"
+                  onClick={handleClickDropdownItem}
+                >
+                  male
+                </button>
+                <button
+                  type="button"
+                  className="w-full cursor-pointer p-3 text-left hover:bg-gray-50"
+                  onClick={handleClickDropdownItem}
+                >
+                  female
+                </button>
+              </>
+            )}
+          </div>
+        ) : null}
+      </div>
+      {errorDropdown && formTrail ? (
+        <div className="flex justify-end">
+          <span className="text-redLight mt-2 text-sm">{errorDropdown}</span>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+export function DropdownFormFieldSexualPreference({
+  label,
+  placeholder,
+  className,
+  setDropdownValue,
+  dropdownValue,
+  errorDropdown,
+  formTrail,
+  gender,
+  setGender,
+  required,
+}: {
+  label: string;
+  placeholder?: string;
+  className?: string;
+  formTrail: boolean;
+  setDropdownValue: React.Dispatch<React.SetStateAction<string>>;
+  dropdownValue: string;
+  errorDropdown: string | null;
+  gender: string;
+  setGender: React.Dispatch<React.SetStateAction<string>>;
+
+  required?: boolean;
+}) {
+  const [showItems, setShowItems] = useState<boolean>(false);
+  function handleCLickDropdown() {
+    setShowItems(!showItems);
+  }
+  function handleClickDropdownItem(event: React.MouseEvent<HTMLButtonElement>) {
+    const value = event.currentTarget.textContent;
+    if (value) {
+      setDropdownValue(value);
+      if (value === 'male') {
+        setGender('female');
+      } else setGender('male');
+    }
+    setShowItems(false);
+  }
+  return (
+    <div className={className}>
+      <label className="text-secondary font-medium">
+        {label}
+        {required ? <span className="text-redLight ml-0.5">*</span> : null}
+      </label>
+      <div className="relative">
+        <button
+          type="button"
+          className={`mt-2 flex h-13 w-full cursor-pointer items-center justify-between rounded-lg border-2 px-3 ${errorDropdown && formTrail ? 'border-redLight' : 'border-secondary'}`}
+          onClick={handleCLickDropdown}
+        >
+          {dropdownValue.length ? (
+            <span className="text-secondary">{dropdownValue}</span>
+          ) : (
+            <span className="text-sm text-gray-300">{placeholder}</span>
+          )}
+          <div className="flex items-center gap-1.5">
+            {showItems ? (
+              <ArrowUpIcon className="fill-secondary h-4.5 w-4.5" />
+            ) : (
+              <ArrowDownIcon className="fill-secondary h-4.5 w-4.5" />
+            )}
+            {errorDropdown && formTrail ? (
+              <ExclamationIcon className="fill-redLight h-5 w-5" />
+            ) : null}
+          </div>
+        </button>
+        {showItems ? (
+          <div className="border-secondary text-secondary absolute z-1 mt-2 max-h-52 w-full overflow-auto rounded-lg border-2 bg-white">
+            {dropdownValue === 'male' ? (
+              <button
+                type="button"
+                className="w-full cursor-pointer p-3 text-left hover:bg-gray-50"
+                onClick={handleClickDropdownItem}
+              >
+                female
+              </button>
+            ) : dropdownValue === 'female' ? (
+              <button
+                type="button"
+                className="w-full cursor-pointer p-3 text-left hover:bg-gray-50"
+                onClick={handleClickDropdownItem}
+              >
+                male
+              </button>
+            ) : gender === 'male' ? (
+              <button
+                type="button"
+                className="w-full cursor-pointer p-3 text-left hover:bg-gray-50"
+                onClick={handleClickDropdownItem}
+              >
+                female
+              </button>
+            ) : gender === 'female' ? (
+              <button
+                type="button"
+                className="w-full cursor-pointer p-3 text-left hover:bg-gray-50"
+                onClick={handleClickDropdownItem}
+              >
+                male
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="w-full cursor-pointer p-3 text-left hover:bg-gray-50"
+                  onClick={handleClickDropdownItem}
+                >
+                  male
+                </button>
+                <button
+                  type="button"
+                  className="w-full cursor-pointer p-3 text-left hover:bg-gray-50"
+                  onClick={handleClickDropdownItem}
+                >
+                  female
+                </button>
+              </>
+            )}
           </div>
         ) : null}
       </div>

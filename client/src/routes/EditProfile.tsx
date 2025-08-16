@@ -8,12 +8,12 @@ import {
   isValidInterests,
   isValidSexualPreference,
 } from '../../../shared/Helpers';
-import DropdownFormField from '../components/FormFields/DropdownFormField';
-import CreateProfile, {
-  genders,
-  interestsItems,
-  sexualPreferences,
-} from './CreateProfile';
+import {
+  DropdownFormField,
+  DropdownFormFieldGender,
+  DropdownFormFieldSexualPreference,
+} from '../components/FormFields/DropdownFormField';
+import { interestsItems } from './CreateProfile';
 import MultiSelect from '../components/FormFields/MultiSelect';
 import TextAreaFormField from '../components/FormFields/TextAreaFormField';
 import LocationFormField from '../components/FormFields/LocationFormField';
@@ -155,7 +155,7 @@ export default function EditProfile() {
   useEffect(() => {
     if (user) {
       console.log(user);
-      
+
       setAge(String(user.age));
       setGender(user.gender || '');
       setSexualPreference(user.sexualPreference || '');
@@ -197,27 +197,29 @@ export default function EditProfile() {
                   defaultValue={age}
                   required
                 />
-                <DropdownFormField
+                <DropdownFormFieldGender
                   label="Gender"
                   placeholder="Select your gender"
                   formTrail={formTrail}
                   dropdownValue={gender}
                   setDropdownValue={setGender}
                   errorDropdown={errorGender}
-                  items={genders}
+                  sexualPreference={sexualPreference}
+                  setSexualPreference={setSexualPreference}
                   className="xl:w-[48%]"
                   required
                 />
                 <div className="xl:flex xl:w-[48%] xl:items-center">
-                  <DropdownFormField
+                  <DropdownFormFieldSexualPreference
                     label="Sexual preference"
                     placeholder="Select your sexual preference"
                     formTrail={formTrail}
                     dropdownValue={sexualPreference}
                     setDropdownValue={setSexualPreference}
                     errorDropdown={errorSexualPreference}
-                    items={sexualPreferences}
                     className="w-full"
+                    gender={gender}
+                    setGender={setGender}
                     required
                   />
                 </div>

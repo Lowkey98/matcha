@@ -28,6 +28,7 @@ export async function getAddress({
   const response = await fetch(url);
   if (response.ok) {
     const jsonResponse = await response.json();
+    console.log(jsonResponse);
     return `${jsonResponse.address.neighbourhood}, ${jsonResponse.address.city}`;
   } else throw 'Error converting latitude longitude to address';
 }
