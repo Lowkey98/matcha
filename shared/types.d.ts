@@ -4,6 +4,8 @@ export type UserInfoBase = {
   username: string;
   firstName: string;
   lastName: string;
+  lastOnline: Date;
+  isOnline: boolean;
 };
 export type CreateProfileBase = {
   age: number;
@@ -88,6 +90,7 @@ export type ConversationUserInfo = {
   imageUrl: string;
   username: string;
   isOnline: boolean;
+  lastOnline: Date;
 };
 
 export type UserConversationsSummary = {
@@ -96,6 +99,7 @@ export type UserConversationsSummary = {
   imageUrl: string;
   lastMessage?: string;
   isOnline: boolean;
+  lastOnline: Date;
   time: string;
 };
 

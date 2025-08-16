@@ -82,6 +82,8 @@ export default function Messages() {
                       username: userInfo.username,
                       isOnline: userInfo.isOnline,
                       time: new Date().toISOString(),
+                      lastOnline:
+                        userInfo.lastOnline || new Date().toISOString(),
                     },
                     ...sortedConversationsSummaryFromDb,
                   ]);
@@ -110,6 +112,7 @@ export default function Messages() {
                     username: userInfo.username,
                     isOnline: userInfo.isOnline,
                     time: new Date().toISOString(),
+                    lastOnline: userInfo.lastOnline || new Date().toISOString(),
                   },
                 ]);
               });
@@ -123,14 +126,14 @@ export default function Messages() {
     getConversations();
   }, [user]);
 
-  const currentTargetUserId =
-    usersConversationsSummary[selectedConversationIndex]?.id;
+  const currentTargetUser =
+    usersConversationsSummary[selectedConversationIndex];
 
   useEffect(() => {
     if (socket) {
       socket.on('receiveMessage', (receivedMessage: Message) => {
         if (
-          receivedMessage.userId === currentTargetUserId ||
+          receivedMessage.userId === currentTargetUser.id ||
           receivedMessage.userId === user?.id ||
           !usersConversationsSummary.length
         ) {
@@ -157,7 +160,7 @@ export default function Messages() {
         socket.off('receiveMessage');
       };
     }
-  }, [socket, user, currentTargetUserId]);
+  }, [socket, user, currentTargetUser?.id]);
   return (
     <>
       <Helmet>
@@ -171,6 +174,7 @@ export default function Messages() {
             setCurrentConversation={setCurrentConversation}
             selectedConversationIndex={selectedConversationIndex}
             setSelectedConversationIndex={setSelectedConversationIndex}
+            currentTargetUser={currentTargetUser}
           />
           <ChatMobile
             usersConversationsSummary={usersConversationsSummary}
@@ -191,15 +195,39 @@ function ChatDesktop({
   usersConversationsSummary,
   selectedConversationIndex,
   setSelectedConversationIndex,
+  currentTargetUser,
 }: {
   currentConversation: Message[];
   setCurrentConversation: React.Dispatch<React.SetStateAction<Message[]>>;
   usersConversationsSummary: UserConversationsSummary[];
   selectedConversationIndex: number;
   setSelectedConversationIndex: React.Dispatch<React.SetStateAction<number>>;
+  currentTargetUser: UserConversationsSummary;
 }) {
+  const { socket } = useContext(SocketContext);
+  const [userStatus, setUserStatus] = useState<{
+    isOnline: boolean;
+    lastOnline: Date;
+  }>({
+    isOnline: currentTargetUser.isOnline,
+    lastOnline: currentTargetUser.lastOnline || new Date().toISOString(),
+  });
+
   const selectedUserConversation =
     usersConversationsSummary[selectedConversationIndex];
+
+    useEffect(() => {
+    if (socket)
+      socket.on('userStatus', ({ userId, isOnline, lastOnline }) => {
+        if (Number(currentTargetUser.id) === userId) {
+          setUserStatus({
+            isOnline,
+            lastOnline: lastOnline || new Date().toISOString(),
+          });
+        }
+      });
+  }, []);
+
   return (
     <>
       <div className="absolute top-0 left-31 hidden lg:flex">
@@ -232,7 +260,7 @@ function ChatDesktop({
                 {selectedUserConversation.username}
               </span>
               <div className="flex items-center gap-1">
-                {selectedUserConversation.isOnline ? (
+                {userStatus.isOnline ? (
                   <>
                     <div className="size-2 rounded-full bg-[#71D191]" />
                     <span className="text-grayDark text-sm font-light">
@@ -243,7 +271,13 @@ function ChatDesktop({
                   <>
                     <div className="bg-redLight size-2 rounded-full" />
                     <span className="text-grayDark text-sm font-light">
-                      Offline
+                      last online:{' '}
+                      {new Date(userStatus.lastOnline).toLocaleString([], {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
                     </span>
                   </>
                 )}
@@ -302,7 +336,7 @@ function ChatMobile({
       {showChatBox ? (
         <ChatBoxMobile
           setShowChatBox={setShowChatBox}
-          targetUserId={usersConversationsSummary[selectedConversationIndex].id}
+          targetUser={usersConversationsSummary[selectedConversationIndex]}
           currentConversation={currentConversation}
           setSelectedConversationIndex={setSelectedConversationIndex}
           selectedUserConversation={selectedUserConversation}
@@ -507,27 +541,35 @@ function ChatBoxDesktop({
 
 function ChatBoxMobile({
   setShowChatBox,
-  targetUserId,
+  targetUser,
   currentConversation,
   setSelectedConversationIndex,
   selectedUserConversation,
 }: {
   setShowChatBox: React.Dispatch<React.SetStateAction<boolean>>;
-  targetUserId: number;
+  targetUser: UserConversationsSummary;
   currentConversation: Message[];
   setSelectedConversationIndex: React.Dispatch<React.SetStateAction<number>>;
   selectedUserConversation: UserConversationsSummary;
 }) {
   const { user } = useContext(UserContext);
+  const { socket } = useContext(SocketContext);
   const conversationRef = useRef<HTMLDivElement>(null);
   const [message, setMessage] = useState<string>('');
+  const [userStatus, setUserStatus] = useState<{
+    isOnline: boolean;
+    lastOnline: Date;
+  }>({
+    isOnline: targetUser.isOnline,
+    lastOnline: targetUser.lastOnline || new Date().toISOString(),
+  });
   function handleClickSendMessage(event: React.MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
     if (message.length) {
       const token = localStorage.getItem('token');
       if (user && token)
         sendMessage({
-          targetUserId,
+          targetUserId: targetUser.id,
           actorUserId: user.id,
           message: {
             userId: user.id,
@@ -552,6 +594,16 @@ function ChatBoxMobile({
     if (conversationRef.current) {
       conversationRef.current.scrollTop = conversationRef.current.scrollHeight;
     }
+    if (socket)
+      socket.on('userStatus', ({ userId, isOnline, lastOnline }) => {
+        console.log(userId, isOnline, lastOnline);
+        if (Number(targetUser.id) === userId) {
+          setUserStatus({
+            isOnline,
+            lastOnline: lastOnline || new Date().toISOString(),
+          });
+        }
+      });
   }, [currentConversation]);
   return (
     <div className="fixed inset-0 z-10 flex flex-col bg-white px-5 pt-5 lg:hidden [:has(&)]:overflow-hidden [:has(&)]:lg:overflow-visible">
@@ -577,7 +629,7 @@ function ChatBoxMobile({
               {selectedUserConversation.username}
             </span>
             <div className="flex items-center gap-1">
-              {selectedUserConversation.isOnline ? (
+              {userStatus.isOnline ? (
                 <>
                   <div className="size-2 rounded-full bg-[#71D191]"></div>
                   <span className="text-grayDark text-sm font-light">
@@ -588,7 +640,13 @@ function ChatBoxMobile({
                 <>
                   <div className="bg-redLight size-2 rounded-full"></div>
                   <span className="text-grayDark text-sm font-light">
-                    Offline
+                    last online:{' '}
+                    {new Date(userStatus.lastOnline).toLocaleString([], {
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
                   </span>
                 </>
               )}

@@ -55,9 +55,12 @@ export default function Login() {
                 setUser(userInfo);
                 setLoading(false);
                 if (userInfo.age) {
-                  const socketClient = io(BACKEND_STATIC_FOLDER);
+                  const socketClient = io(BACKEND_STATIC_FOLDER, {
+                    auth: {
+                      userId: userInfo.id,
+                    },
+                  });
                   setSocket(socketClient);
-                  socketClient.emit('register', userInfo.id);
                   navigate('/explore');
                 } else {
                   navigate('/createProfile');
