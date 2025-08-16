@@ -33,6 +33,10 @@ export default function Messages() {
     const token = localStorage.getItem('token');
     if (user && token) {
       if (targetUserId) {
+        if (Number(targetUserId) === user.id) {
+          navigate('/explore');
+          return;
+        }
         const isTwoUsersMatch = await checkTwoUsersMatch({
           actorUserId: user.id,
           targetUserId: Number(targetUserId),
