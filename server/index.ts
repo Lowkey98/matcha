@@ -663,7 +663,7 @@ app.get('/api/getAllUsers', async (req, res) => {
     decoded.userId,
   ]);
   const currentUser = UserRow[0] as UserInfo;
-  const oppositeGender = currentUser.gender === 'men' ? 'women' : 'men';
+  const oppositeGender = currentUser.gender === 'male' ? 'female' : 'male';
   const [row] = await db.execute('SELECT * FROM usersInfo WHERE gender = ?', [
     oppositeGender,
   ]);
