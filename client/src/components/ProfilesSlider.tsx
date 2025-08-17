@@ -109,6 +109,7 @@ function ProfileCard({ user }: { user: UserInfoWithCommonTags }) {
   const imageUrl = user.imagesUrls
     ? `${BACKEND_STATIC_FOLDER}${user.imagesUrls[0]} `
     : '';
+    console.log('imageUrl', imageUrl);
   return (
     <div className="relative flex-none basis-full">
       <img
