@@ -193,6 +193,7 @@ export default function Messages() {
               setCurrentConversation={setCurrentConversation}
               selectedConversationIndex={selectedConversationIndex}
               setSelectedConversationIndex={setSelectedConversationIndex}
+              currentTargetUser={currentTargetUser}
             />
             <ChatMobile
               usersConversationsSummary={usersConversationsSummary}

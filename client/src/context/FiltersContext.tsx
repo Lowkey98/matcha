@@ -5,6 +5,7 @@ type FiltersContextType = {
   filters: Filter[];
   setFilters: React.Dispatch<React.SetStateAction<Filter[]>>;
 };
+const MAX_DISTANCE_KM = 10;
 
 export const defaultFilters: Filter[] = [
   {
@@ -15,15 +16,15 @@ export const defaultFilters: Filter[] = [
   },
   {
     name: 'Location (km)',
-    range: [0, 20000],
+    range: [0, MAX_DISTANCE_KM],
     min: 0,
-    max: 20000,
+    max: MAX_DISTANCE_KM,
   },
   {
     name: 'Fame rating',
-    range: [0, 5000],
+    range: [0, 500],
     min: 0,
-    max: 5000,
+    max: 500,
   },
   {
     name: 'Common tags',

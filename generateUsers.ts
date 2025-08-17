@@ -1,66 +1,126 @@
-import axios from 'axios';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as bcrypt from 'bcrypt';
-import { v4 as uuidv4 } from 'uuid';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+// matchaSetup.ts
+import mysql from "mysql2/promise";
+import axios from "axios";
+import * as fs from "fs";
+import * as path from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+import bcrypt from "bcrypt";
+import { v4 as uuidv4 } from "uuid";
 
-// ES module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const USERS_COUNT = 50;
-const BASE_UPLOAD_DIR = path.join(__dirname, 'server', 'uploads');
+const USERS_COUNT = 500; // Change to 500 if you want
+const BASE_UPLOAD_DIR = path.join(__dirname, "server", "uploads");
 
 const INTEREST_POOL = [
-  'hiking', 'music', 'cooking', 'anime', 'reading', 'coding',
-  'dogs', 'travel', 'fitness', 'gaming', 'movies', 'art'
+  "#Music",
+  "#Gaming",
+  "#Reading",
+  "#Writing",
+  "#Movies",
+  "#Traveling",
+  "#Fitness",
+  "#Cooking",
+  "#Photography",
+  "#Art",
+  "#Tech",
+  "#Coding",
 ];
 
-const SEXUAL_PREFERENCES = ['heterosexual', 'homosexual', 'bisexual'];
-const GENDERS = ['male', 'female', 'nonbinary'];
+const GENDERS = ["male", "female"];
+const SEXUAL_PREFERENCES = ["male", "female"];
 const BIOGRAPHY_SAMPLES = [
   "Love deep convos and late-night walks.",
   "Coffee addict, always up for an adventure.",
   "Always coding or hiking.",
   "Traveling the world one step at a time.",
   "Gamer by night, fitness freak by day.",
-  "Just looking for someone to vibe with."
 ];
 
-const getRandom = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
+const getRandom = <T>(arr: T[]): T =>
+  arr[Math.floor(Math.random() * arr.length)];
+
 const getRandomInterests = (): string[] => {
   const shuffled = [...INTEREST_POOL].sort(() => 0.5 - Math.random());
   const count = Math.floor(Math.random() * 3) + 3; // 3 to 5 interests
   return shuffled.slice(0, count);
 };
 
-// Returns a random portrait URL for user n (0-based index)
+// Dicebear avatar generator (PNG)
+// Dicebear (v9 API) avatar generator (PNG)
 const getPortraitUrl = (index: number): string => {
-  // Alternate male/female
-  const gender = index % 2 === 0 ? 'male' : 'female';
-  const number = Math.floor(Math.random() * 100); // 0-99
-  return `https://randomuser.me/api/portraits/${gender}/${number}.jpg`;
+  return `https://api.dicebear.com/9.x/adventurer/png?seed=user${index}`;
 };
 
 async function downloadImage(url: string, filepath: string): Promise<void> {
-  try {
-    const response = await axios.get(url, { responseType: 'arraybuffer' });
-    fs.writeFileSync(filepath, response.data);
-  } catch (error) {
-    console.error(`Failed to download image from ${url}:`, error);
-    throw error;
-  }
+  const response = await axios.get(url, { responseType: "arraybuffer" });
+  fs.writeFileSync(filepath, response.data);
 }
 
-async function generateUsers(): Promise<void> {
-  // Hash the fixed password once
-  const hashedPassword = await bcrypt.hash('ayoub123', 10);
+async function main() {
+  // Connect to MySQL (adjust credentials)
+  const connection = await mysql.createConnection({
+    host: "localhost",
+    user: "root",
+    password: "ayoub123",
+    multipleStatements: true,
+  });
 
-  // Keep all user insert values here
-  const usersValues: string[] = [];
+  // Create database + tables
+  const schemaSQL = `
+    DROP DATABASE IF EXISTS matcha;
+    CREATE DATABASE matcha;
+    USE matcha;
 
+    CREATE TABLE usersInfo (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      username VARCHAR(255) NOT NULL,
+      email VARCHAR(255) NOT NULL,
+      first_name VARCHAR(255) NOT NULL,
+      last_name VARCHAR(255) NOT NULL,
+      password VARCHAR(255) NOT NULL,
+      is_verified BOOLEAN DEFAULT FALSE,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      verification_token VARCHAR(255),
+      age INT,
+      gender VARCHAR(255),
+      sexual_preference VARCHAR(255),
+      interests JSON,
+      biography VARCHAR(255),
+      images_urls JSON,
+      location TEXT,
+      fame_rate INT,
+      isOnline BOOLEAN DEFAULT FALSE,
+      lastOnline DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE relations (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      actor_user_id INT NOT NULL,
+      target_user_id INT NOT NULL,
+      is_like BOOLEAN DEFAULT FALSE,
+      is_view_profile BOOLEAN DEFAULT FALSE,
+      is_block BOOLEAN DEFAULT FALSE,
+      CONSTRAINT unique_actor_target UNIQUE (actor_user_id, target_user_id)
+    );
+
+    CREATE TABLE conversations (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      actor_user_id INT NOT NULL,
+      target_user_id INT NOT NULL,
+      message JSON
+    );
+  `;
+
+  await connection.query(schemaSQL);
+  console.log("Database and tables created ✅");
+
+  // Hash password once
+  const hashedPassword = await bcrypt.hash("matcha123", 10);
+
+  // Generate fake users
   for (let i = 1; i <= USERS_COUNT; i++) {
     const userId = i;
     const folderPath = path.join(BASE_UPLOAD_DIR, String(userId));
@@ -68,66 +128,107 @@ async function generateUsers(): Promise<void> {
       fs.mkdirSync(folderPath, { recursive: true });
     }
 
-    // Download unique image for picture-{userId}-0.webp
-    const portraitUrl = getPortraitUrl(i - 1);
+    // Download avatar from Dicebear
+    const portraitUrl = getPortraitUrl(i);
     const mainImagePath = path.join(folderPath, `picture-${userId}-0.webp`);
+    await downloadImage(portraitUrl, mainImagePath);
 
-    try {
-      await downloadImage(portraitUrl, mainImagePath);
-
-      // Copy main image 4 times to picture-{userId}-1.webp ... picture-{userId}-4.webp
-      for (let j = 1; j <= 4; j++) {
-        const copyPath = path.join(folderPath, `picture-${userId}-${j}.webp`);
-        fs.copyFileSync(mainImagePath, copyPath);
-      }
-
-      // Prepare user data
-      const username = `user${userId}`;
-      const email = `ayoub${userId}@yopmail.com`;
-      const first_name = `First${userId}`;
-      const last_name = `Last${userId}`;
-      const is_verified = Math.random() > 0.3 ? 1 : 0;
-      const created_at = new Date().toISOString().slice(0, 19).replace('T', ' ');
-      const verification_token = is_verified ? null : uuidv4();
-      const age = Math.floor(Math.random() * 20) + 18;
-      const gender = getRandom(GENDERS);
-      const sexual_preference = getRandom(SEXUAL_PREFERENCES);
-      const interests = JSON.stringify(getRandomInterests());
-      const biography = getRandom(BIOGRAPHY_SAMPLES);
-      const fameRate = 0;
-      const images_urls = JSON.stringify(
-        Array.from({ length: 5 }, (_, idx) => `/uploads/${userId}/picture-${userId}-${idx}.webp`)
-      );
-
-      const locationObj = {
-        address: `City${userId}, Country${userId}`,
-        latitude: +(Math.random() * 180 - 90).toFixed(6),   // -90 to +90
-        longitude: +(Math.random() * 360 - 180).toFixed(6), // -180 to +180
-      };
-
-      const location = JSON.stringify(locationObj);
-      const userValues = `("${username}", "${email}", "${first_name}", "${last_name}", "${hashedPassword}", ${is_verified}, "${created_at}", ${verification_token ? `"${verification_token}"` : 'NULL'}, ${age}, "${gender}", "${sexual_preference}", '${interests}', "${biography}", '${images_urls}', '${location}', '${fameRate}')`;
-
-      usersValues.push(userValues);
-
-      console.log(`User ${userId}: images saved and data prepared.`);
-
-    } catch (err) {
-      console.error(`Failed to download image or prepare user ${userId}`, err);
+    // Copy same image 4 more times
+    for (let j = 1; j <= 4; j++) {
+      const copyPath = path.join(folderPath, `picture-${userId}-${j}.webp`);
+      fs.copyFileSync(mainImagePath, copyPath);
     }
+
+    // User data
+    const username = `user${userId}`;
+    const email = `matcha${userId}@yopmail.com`;
+    const first_name = `First${userId}`;
+    const last_name = `Last${userId}`;
+    const is_verified = 1;
+    const created_at = new Date();
+    const verification_token = is_verified ? null : uuidv4();
+    // age between 16 and 60
+    const age = Math.floor(Math.random() * 43) + 18;
+    const gender = getRandom(GENDERS);
+    const sexual_preference = gender === "male" ? "female" : "male";
+    const interests = JSON.stringify(getRandomInterests());
+    const biography = getRandom(BIOGRAPHY_SAMPLES);
+    const fameRate = 0;
+    const images_urls = JSON.stringify(
+      Array.from({ length: 5 }, (_, idx) => `uploads/${userId}/picture-${userId}-${idx}.webp`)
+    );
+
+
+    const CASABLANCA_LAT = 33.5731;
+    const CASABLANCA_LON = -7.5898;
+
+    // const BENGUERIR_LAT = 32.2526;
+    // const BENGUERIR_LON = -7.8726;
+    let latitude: number, longitude: number;
+
+    if (userId <= 200) {
+      // 200 "local" users within 10 km
+      const maxDistanceKm = 10;
+      const angle = Math.random() * 2 * Math.PI;
+      const distance = Math.sqrt(Math.random()) * maxDistanceKm;
+      const latOffset = (distance / 111.32) * Math.cos(angle);
+      const lonOffset = (distance / (111.32 * Math.cos(CASABLANCA_LAT * Math.PI / 180))) * Math.sin(angle);
+      latitude = +(CASABLANCA_LAT + latOffset).toFixed(6);
+      longitude = +(CASABLANCA_LON + lonOffset).toFixed(6);
+    } else {
+      // remaining users a bit farther (e.g., 200 km)
+      const maxDistanceKm = 200;
+      const angle = Math.random() * 2 * Math.PI;
+      const distance = Math.sqrt(Math.random()) * maxDistanceKm;
+      const latOffset = (distance / 111.32) * Math.cos(angle);
+      const lonOffset = (distance / (111.32 * Math.cos(CASABLANCA_LAT * Math.PI / 180))) * Math.sin(angle);
+      latitude = +(CASABLANCA_LAT + latOffset).toFixed(6);
+      longitude = +(CASABLANCA_LON + lonOffset).toFixed(6);
+    }
+
+    const locationObj = {
+      address: `City${userId}, Country${userId}`,
+      latitude,
+      longitude,
+    };
+
+    const location = JSON.stringify(locationObj);
+
+
+    // Insert into DB
+    await connection.query(
+      `INSERT INTO matcha.usersInfo
+      (username, email, first_name, last_name, password, is_verified, created_at,
+       verification_token, age, gender, sexual_preference, interests, biography,
+       images_urls, location, fame_rate)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        username,
+        email,
+        first_name,
+        last_name,
+        hashedPassword,
+        is_verified,
+        created_at,
+        verification_token,
+        age,
+        gender,
+        sexual_preference,
+        interests,
+        biography,
+        images_urls,
+        location,
+        fameRate,
+      ]
+    );
+
+    console.log(`User ${userId} created ✅`);
   }
 
-  const sql = `
-INSERT INTO usersInfo (
-  username, email, first_name, last_name, password, is_verified, created_at,
-  verification_token, age, gender, sexual_preference, interests,
-  biography, images_urls, location, fame_rate
-) VALUES
-${usersValues.join(",\n")};
-`;
-
-  console.log('\n\n=== SQL INSERT STATEMENT ===\n\n');
-  console.log(sql);
+  console.log("All users inserted successfully 🎉");
+  await connection.end();
 }
 
-generateUsers().catch(console.error);
+main().catch((err) => {
+  console.error("Error:", err);
+});

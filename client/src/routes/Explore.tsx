@@ -68,7 +68,7 @@ export default function Explore() {
     for (const sort of sorts) {
       if (sort.sort === 'asc') {
         if (sort.name === 'Age') {
-          return (a.age ?? 0) - (b.age ?? 0); // TODO
+          return (a.age ?? 0) - (b.age ?? 0);
         } else if (sort.name === 'Location') {
           return a.distanceBetween - b.distanceBetween;
         } else if (sort.name === 'Fame rating') {
@@ -88,7 +88,7 @@ export default function Explore() {
         }
       }
     }
-    return 0; 
+    return 0;
   });
   if (!user) return <Navigate to={'/login'} replace />;
   if (!user.age) return <Navigate to={'/createProfile'} replace />;

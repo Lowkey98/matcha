@@ -36,6 +36,8 @@ import {
 import path from 'path';
 import fs from 'fs';
 
+const MAX_DISTANCE_KM = 10;
+
 export function getDistanceInKilometers({
   actorUserInfo,
   targetUserInfo,
@@ -43,20 +45,18 @@ export function getDistanceInKilometers({
   actorUserInfo: UserInfo | null;
   targetUserInfo: UserInfoWithRelation | UserInfo | null;
 }) {
-  // console.log("actorUserInfo", actorUserInfo)
-  // console.log("targetUserInfo", targetUserInfo)
   const distanceInMeters =
-    targetUserInfo.location && actorUserInfo.location
+    targetUserInfo?.location && actorUserInfo?.location
       ? getDistance(
-          {
-            latitude: actorUserInfo.location.latitude || 0, // TODO
-            longitude: actorUserInfo.location.longitude || 0,
-          },
-          {
-            latitude: targetUserInfo.location.latitude || 0,
-            longitude: targetUserInfo.location.longitude || 0,
-          },
-        )
+        {
+          latitude: actorUserInfo.location.latitude,
+          longitude: actorUserInfo.location.longitude,
+        },
+        {
+          latitude: targetUserInfo.location.latitude,
+          longitude: targetUserInfo.location.longitude,
+        },
+      )
       : undefined;
   const distanceInKilometers = distanceInMeters
     ? Math.round(distanceInMeters / 1000)
@@ -734,7 +734,6 @@ app.get('/api/getAllUsers', async (req, res) => {
     unpromisedMappedWithBlockedUsers,
   );
   const filteredWithBlockedUsers = mappedWithBlockedUsers.filter(Boolean);
-
   const usersInfoWithCommon: UserInfoWithCommonTags[] = filteredWithBlockedUsers
     .map((user) => {
       return {
@@ -762,18 +761,47 @@ app.get('/api/getAllUsers', async (req, res) => {
             currentUser.interests.includes(interest),
           ).length
         : 0;
+      const currentUserWithParsedLocation = {
+        ...currentUser,
+        location:
+          typeof currentUser.location === 'string'
+            ? JSON.parse(currentUser.location)
+            : currentUser.location,
+      };
       const distanceBetween = getDistanceInKilometers({
         actorUserInfo: user,
-        targetUserInfo: currentUser,
+        targetUserInfo: currentUserWithParsedLocation,
       });
       return {
         ...user,
         commonTagsCount,
         distanceBetween,
       };
-    });
+    }).filter(
+      (user) =>
+        user.distanceBetween !== undefined &&
+        user.distanceBetween <= MAX_DISTANCE_KM,
+    )
+  const MINIMUM_SUGGESTED_USERS = 50 // TODO: global
+  if (usersInfoWithCommon.length < MINIMUM_SUGGESTED_USERS) {
+    res.json(usersInfoWithCommon);
+    return
+  }
+  const groupedByTags: Record<number, UserInfoWithCommonTags[]> = {
+    0: [], 1: [], 2: [], 3: [], 4: [], 5: [] // 5 is number of possible tags
+  };
 
-  res.json(usersInfoWithCommon);
+  for (const user of usersInfoWithCommon) {
+    groupedByTags[user.commonTagsCount].push(user);
+  }
+  let selectedUsers: UserInfoWithCommonTags[] = [];
+  for (let i = 5; i >= 0; i--) {
+    if (selectedUsers.length < MINIMUM_SUGGESTED_USERS) {
+      selectedUsers = selectedUsers.concat(groupedByTags[i]);
+    }
+  }
+  selectedUsers.sort((a, b) => b.fameRate - a.fameRate);
+  res.json(selectedUsers);
   return;
 });
 

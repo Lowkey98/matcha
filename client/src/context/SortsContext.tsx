@@ -9,7 +9,7 @@ type SortsContextType = {
 export const defaultSorts: Sort[] = [
   {
     name: 'Age',
-    sort: 'asc',
+    sort: null,
   },
   {
     name: 'Location',
@@ -17,7 +17,7 @@ export const defaultSorts: Sort[] = [
   },
   {
     name: 'Fame rating',
-    sort: null,
+    sort: "desc",
   },
   {
     name: 'Common tags',
