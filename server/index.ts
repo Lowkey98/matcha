@@ -48,15 +48,15 @@ export function getDistanceInKilometers({
   const distanceInMeters =
     targetUserInfo.location && actorUserInfo.location
       ? getDistance(
-        {
-          latitude: actorUserInfo.location.latitude || 0, // TODO
-          longitude: actorUserInfo.location.longitude || 0,
-        },
-        {
-          latitude: targetUserInfo.location.latitude || 0,
-          longitude: targetUserInfo.location.longitude || 0,
-        },
-      )
+          {
+            latitude: actorUserInfo.location.latitude || 0, // TODO
+            longitude: actorUserInfo.location.longitude || 0,
+          },
+          {
+            latitude: targetUserInfo.location.latitude || 0,
+            longitude: targetUserInfo.location.longitude || 0,
+          },
+        )
       : undefined;
   const distanceInKilometers = distanceInMeters
     ? Math.round(distanceInMeters / 1000)
@@ -442,6 +442,23 @@ app.post('/api/unlike', async (req: Request<{}, {}, RelationRequest>, res) => {
       [targetUserId, actorUserId],
     );
 
+    const [row] = await db.execute('SELECT * FROM usersInfo WHERE id = ?', [
+      actorUserId,
+    ]);
+
+    const actorUserInfo = row[0];
+    const actorNotification: NotificationResponse = {
+      actorUserId: actorUserId,
+      actorUsername: actorUserInfo.username,
+      actorUserImageUrl: actorUserInfo['images_urls'][0],
+      message: 'disliked your profile.',
+    };
+
+    const targetSocketId = onlineUsers.get(targetUserId);
+    if (targetSocketId) {
+      io.to(targetSocketId).emit('receiveNotification', actorNotification);
+    }
+
     res.status(201).json({
       message: 'unlike applied successfully.',
     });
@@ -736,14 +753,14 @@ app.get('/api/getAllUsers', async (req, res) => {
           typeof user['location'] === 'string' && JSON.parse(user['location']),
         fameRate: user['fame_rate'],
         isOnline: user['isOnline'],
-        lastOnline: user['lastOnline']
+        lastOnline: user['lastOnline'],
       };
     })
     .map((user) => {
       const commonTagsCount = user.interests
         ? user.interests.filter((interest) =>
-          currentUser.interests.includes(interest),
-        ).length
+            currentUser.interests.includes(interest),
+          ).length
         : 0;
       const distanceBetween = getDistanceInKilometers({
         actorUserInfo: user,
@@ -904,7 +921,7 @@ app.get('/api/conversationUserInfo/:targetUserId', async (req, res) => {
     id: targetUser.id,
     username: targetUser.username,
     imageUrl: targetUser['images_urls'][0],
-    isOnline:  targetUser['isOnline'],
+    isOnline: targetUser['isOnline'],
     lastOnline: targetUser['lastOnline'],
   };
 
@@ -1543,20 +1560,23 @@ export async function sendForgotPasswordMail({
 io.on('connection', (socket) => {
   const userId = socket.handshake.auth.userId;
   console.log(`User ${userId} connected`);
-  db.execute("UPDATE usersInfo SET isOnline = 1 WHERE id = ?", [userId]);
+  db.execute('UPDATE usersInfo SET isOnline = 1 WHERE id = ?', [userId]);
 
-  io.emit("userStatus", { userId, isOnline: true, lastOnline: new Date().toISOString() });
+  io.emit('userStatus', {
+    userId,
+    isOnline: true,
+    lastOnline: new Date().toISOString(),
+  });
   onlineUsers.set(userId, socket.id);
 
-
-  socket.on("disconnect", async () => {
+  socket.on('disconnect', async () => {
     const userId = socket.handshake.auth.userId;
     console.log(`User ${userId} disconnected`);
     await db.execute(
-      "UPDATE usersInfo SET isOnline = 0, lastOnline = NOW() WHERE id = ?",
-      [userId]
+      'UPDATE usersInfo SET isOnline = 0, lastOnline = NOW() WHERE id = ?',
+      [userId],
     );
-    io.emit("userStatus", { userId, isOnline: false, lastOnline: new Date() });
+    io.emit('userStatus', { userId, isOnline: false, lastOnline: new Date() });
     for (const [userId, id] of onlineUsers.entries()) {
       if (id === socket.id) {
         onlineUsers.delete(userId);
