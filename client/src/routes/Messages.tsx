@@ -240,7 +240,7 @@ function ChatDesktop({
   const selectedUserConversation =
     usersConversationsSummary[selectedConversationIndex];
 
-    useEffect(() => {
+  useEffect(() => {
     if (socket)
       socket.on('userStatus', ({ userId, isOnline, lastOnline }) => {
         if (Number(currentTargetUser.id) === userId) {
@@ -590,6 +590,7 @@ function ChatBoxMobile({
   const { user } = useContext(UserContext);
   const { socket } = useContext(SocketContext);
   const conversationRef = useRef<HTMLDivElement>(null);
+  const { addToast } = useToast();
   const [message, setMessage] = useState<string>('');
   const [userStatus, setUserStatus] = useState<{
     isOnline: boolean;
@@ -600,7 +601,16 @@ function ChatBoxMobile({
   });
   function handleClickSendMessage(event: React.MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
+    const maxLength = 2000;
     if (message.length) {
+      if (message.length > maxLength) {
+        setMessage('');
+        addToast({
+          status: 'error',
+          message: 'The message is too long',
+        });
+        return;
+      }
       const token = localStorage.getItem('token');
       if (user && token)
         sendMessage({

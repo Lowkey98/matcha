@@ -18,7 +18,11 @@ export function isValidName(name: string): string | null {
 }
 export function isValidPassword(password: string): string | null {
   if (isEmpty(password)) return 'This field is required.';
-  if (password.length < 6) return 'Password must be at least 6 characters.';
+  if (
+    password.length < 6 ||
+    !(/[a-zA-Z]/.test(password) && /\d/.test(password))
+  )
+    return 'Password must be at least 6 characters and contain letters and numbers.';
 
   return null;
 }
@@ -31,9 +35,9 @@ export function isValidConfirmedPassword({
   confirmedPassword: string;
 }): string | null {
   if (isEmpty(confirmedPassword)) return 'This field is required.';
-  const checkErrorPassword: string | null = isValidPassword(password);
-  if (checkErrorPassword || password !== confirmedPassword)
-    return 'Passwords do not match.';
+  const checkErrorPassword: string | null = isValidPassword(confirmedPassword);
+  if (checkErrorPassword) return checkErrorPassword;
+  if (password !== confirmedPassword) return 'Passwords do not match.';
   return null;
 }
 
