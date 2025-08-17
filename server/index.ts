@@ -36,6 +36,7 @@ import {
 import path from 'path';
 import fs from 'fs';
 
+const MAX_DISTANCE_METERS = 10000; // 10 km
 export function getDistanceInKilometers({
   actorUserInfo,
   targetUserInfo,
@@ -717,7 +718,6 @@ app.get('/api/getAllUsers', async (req, res) => {
     unpromisedMappedWithBlockedUsers,
   );
   const filteredWithBlockedUsers = mappedWithBlockedUsers.filter(Boolean);
-
   const usersInfoWithCommon: UserInfoWithCommonTags[] = filteredWithBlockedUsers
     .map((user) => {
       return {
@@ -749,11 +749,15 @@ app.get('/api/getAllUsers', async (req, res) => {
         actorUserInfo: user,
         targetUserInfo: currentUser,
       });
+      console.log('distanceBetween', distanceBetween);
+
       return {
         ...user,
         commonTagsCount,
         distanceBetween,
       };
+    }).filter((user) => {
+      return user.distanceBetween && user.distanceBetween <= MAX_DISTANCE_METERS; // TODO: IS IT METERS OR KM?
     });
 
   res.json(usersInfoWithCommon);
@@ -904,7 +908,7 @@ app.get('/api/conversationUserInfo/:targetUserId', async (req, res) => {
     id: targetUser.id,
     username: targetUser.username,
     imageUrl: targetUser['images_urls'][0],
-    isOnline:  targetUser['isOnline'],
+    isOnline: targetUser['isOnline'],
     lastOnline: targetUser['lastOnline'],
   };
 

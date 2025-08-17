@@ -158,12 +158,38 @@ async function main() {
       Array.from({ length: 5 }, (_, idx) => `uploads/${userId}/picture-${userId}-${idx}.webp`)
     );
 
+
+    const CASABLANCA_LAT = 33.5731;
+    const CASABLANCA_LON = -7.5898;
+
+    // const BENGUERIR_LAT = 32.2526;
+    // const BENGUERIR_LON = -7.8726;
+    let latitude: number, longitude: number;
+
+    if (userId <= 200) {
+      // 200 “local” users within 10 km
+      const maxDistanceKm = 10;
+      const latOffset = (Math.random() * 2 - 1) * (maxDistanceKm / 111);
+      const lonOffset = (Math.random() * 2 - 1) * (maxDistanceKm / (111 * Math.cos(CASABLANCA_LAT * Math.PI / 180)));
+      latitude = +(CASABLANCA_LAT + latOffset).toFixed(6);
+      longitude = +(CASABLANCA_LON + lonOffset).toFixed(6);
+    } else {
+      // remaining users a bit farther (e.g., 200 km)
+      const maxDistanceKm = 200;
+      const latOffset = (Math.random() * 2 - 1) * (maxDistanceKm / 111);
+      const lonOffset = (Math.random() * 2 - 1) * (maxDistanceKm / (111 * Math.cos(CASABLANCA_LAT * Math.PI / 180)));
+      latitude = +(CASABLANCA_LAT + latOffset).toFixed(6);
+      longitude = +(CASABLANCA_LON + lonOffset).toFixed(6);
+    }
+
     const locationObj = {
       address: `City${userId}, Country${userId}`,
-      latitude: +(Math.random() * 180 - 90).toFixed(6),
-      longitude: +(Math.random() * 360 - 180).toFixed(6),
+      latitude,
+      longitude,
     };
+
     const location = JSON.stringify(locationObj);
+
 
     // Insert into DB
     await connection.query(
