@@ -29,13 +29,13 @@ export async function getAddress({
   if (response.ok) {
     const jsonResponse = await response.json();
     const address = {
-      neighbourhood: jsonResponse.address.neighbourhood,
-      road: jsonResponse.address.road,
-      suburb: jsonResponse.address.suburb,
+      neighbourhood: jsonResponse.address?.neighbourhood,
+      road: jsonResponse.address?.road,
+      suburb: jsonResponse.address?.suburb,
     };
     const parssedAdress: string | undefined =
       address.neighbourhood || address.road || address.suburb;
-    const city: string | undefined = jsonResponse.address.city;
+    const city: string | undefined = jsonResponse.address?.city;
     if (parssedAdress && city) return `${parssedAdress}, ${city}`;
     if (parssedAdress && !city) return parssedAdress;
     if (!parssedAdress && city) return city;

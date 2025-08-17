@@ -545,7 +545,13 @@ app.post(
       return;
     }
     const { actorUserId, targetUserId, message } = req.body;
+
     try {
+      const maxLength = 2000;
+      if (message.description.length > maxLength) {
+        res.send(4000);
+        return;
+      }
       const [actorBlockRow] = await db.execute(
         'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ? AND is_block = ?',
         [actorUserId, targetUserId, true],
@@ -689,9 +695,10 @@ app.get('/api/getAllUsers', async (req, res) => {
   ]);
   const currentUser = UserRow[0] as UserInfo;
   const oppositeGender = currentUser.gender === 'male' ? 'female' : 'male';
-  const [row] = await db.execute('SELECT * FROM usersInfo WHERE gender = ? AND age IS NOT NULL', [
-    oppositeGender,
-  ]);
+  const [row] = await db.execute(
+    'SELECT * FROM usersInfo WHERE gender = ? AND age IS NOT NULL',
+    [oppositeGender],
+  );
   const usersInfoFromDB = row as UserInfo[];
   const unpromisedMappedWithBlockedUsers = usersInfoFromDB.map(async (user) => {
     const [relationRow] = await db.execute(
@@ -702,12 +709,14 @@ app.get('/api/getAllUsers', async (req, res) => {
       'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ? AND is_block = ?',
       [user.id, currentUser.id, true],
     );
-    const isBlocked = (relationRow[0] || targetRelationRow[0]) ? true : false;
+    const isBlocked = relationRow[0] || targetRelationRow[0] ? true : false;
     // if (user.id === currentUser.id) return false; // don't include self in the
     return isBlocked ? null : user;
   });
-  const mappedWithBlockedUsers = await Promise.all(unpromisedMappedWithBlockedUsers)
-  const filteredWithBlockedUsers = mappedWithBlockedUsers.filter(Boolean)
+  const mappedWithBlockedUsers = await Promise.all(
+    unpromisedMappedWithBlockedUsers,
+  );
+  const filteredWithBlockedUsers = mappedWithBlockedUsers.filter(Boolean);
 
   const usersInfoWithCommon: UserInfoWithCommonTags[] = filteredWithBlockedUsers
     .map((user) => {

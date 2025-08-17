@@ -21,6 +21,7 @@ import {
 import { BACKEND_STATIC_FOLDER } from '../components/ImagesCarousel';
 import { UserContext } from '../context/UserContext';
 import { SocketContext } from '../context/SocketContext';
+import { useToast } from '../hooks/useToast';
 
 export default function Messages() {
   const { user } = useContext(UserContext);
@@ -77,7 +78,9 @@ export default function Messages() {
                   token,
                 }).then((conversation: Message[]) => {
                   setCurrentConversation(conversation);
-                  setUsersConversationsSummary(sortedConversationsSummaryFromDb);
+                  setUsersConversationsSummary(
+                    sortedConversationsSummaryFromDb,
+                  );
                   setLoader(false);
                 });
               } else {
@@ -488,9 +491,20 @@ function ChatBoxDesktop({
   const { user } = useContext(UserContext);
   const conversationRef = useRef<HTMLDivElement>(null);
   const [message, setMessage] = useState<string>('');
+  const { addToast } = useToast();
+  const maxLength = 2000;
+
   function handleClickSendMessage(event: React.MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
     if (message.length) {
+      if (message.length > maxLength) {
+        setMessage('');
+        addToast({
+          status: 'error',
+          message: 'The message is too long',
+        });
+        return;
+      }
       const token = localStorage.getItem('token');
       if (user && token)
         sendMessage({

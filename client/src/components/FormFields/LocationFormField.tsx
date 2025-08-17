@@ -64,10 +64,12 @@ export default function LocationFormField({
           <LoaderDots dotsClass="bg-primary/50 w-1 h-1" />
         </div>
       ) : location.address.length ? (
-        <div className="border-grayDark-100 mt-2 flex h-13 items-center justify-between rounded-lg border-2 px-3">
+        <div className="border-grayDark-100 mt-2 flex h-13 items-center justify-between gap-1 rounded-lg border-2 px-3">
           <div className="flex items-center gap-1">
             <LocationIcon className="fill-primary h-5 w-5" />
-            <span className="text-secondary">{location.address}</span>
+            <span className="text-secondary max-w-52 overflow-hidden text-sm overflow-ellipsis whitespace-nowrap">
+              {location.address}
+            </span>
           </div>
           <ButtonPrimary
             type="button"
