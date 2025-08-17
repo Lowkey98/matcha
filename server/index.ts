@@ -36,7 +36,8 @@ import {
 import path from 'path';
 import fs from 'fs';
 
-const MAX_DISTANCE_METERS = 10000; // 10 km
+const MAX_DISTANCE_KM = 10;
+
 export function getDistanceInKilometers({
   actorUserInfo,
   targetUserInfo,
@@ -44,18 +45,16 @@ export function getDistanceInKilometers({
   actorUserInfo: UserInfo | null;
   targetUserInfo: UserInfoWithRelation | UserInfo | null;
 }) {
-  // console.log("actorUserInfo", actorUserInfo)
-  // console.log("targetUserInfo", targetUserInfo)
   const distanceInMeters =
-    targetUserInfo.location && actorUserInfo.location
+    targetUserInfo?.location && actorUserInfo?.location
       ? getDistance(
         {
-          latitude: actorUserInfo.location.latitude || 0, // TODO
-          longitude: actorUserInfo.location.longitude || 0,
+          latitude: actorUserInfo.location.latitude,
+          longitude: actorUserInfo.location.longitude,
         },
         {
-          latitude: targetUserInfo.location.latitude || 0,
-          longitude: targetUserInfo.location.longitude || 0,
+          latitude: targetUserInfo.location.latitude,
+          longitude: targetUserInfo.location.longitude,
         },
       )
       : undefined;
@@ -745,19 +744,27 @@ app.get('/api/getAllUsers', async (req, res) => {
           currentUser.interests.includes(interest),
         ).length
         : 0;
+      const currentUserWithParsedLocation = {
+        ...currentUser,
+        location:
+          typeof currentUser.location === 'string'
+            ? JSON.parse(currentUser.location)
+            : currentUser.location,
+      };
       const distanceBetween = getDistanceInKilometers({
         actorUserInfo: user,
-        targetUserInfo: currentUser,
+        targetUserInfo: currentUserWithParsedLocation,
       });
-
       return {
         ...user,
         commonTagsCount,
         distanceBetween,
       };
-    }).filter((user) => {
-      return user.distanceBetween && user.distanceBetween <= MAX_DISTANCE_METERS; // TODO: IS IT METERS OR KM?
-    });
+    }).filter(
+      (user) =>
+        user.distanceBetween !== undefined &&
+        user.distanceBetween <= MAX_DISTANCE_KM,
+    )
   const MINIMUM_SUGGESTED_USERS = 50 // TODO: global
   if (usersInfoWithCommon.length < MINIMUM_SUGGESTED_USERS) {
     res.json(usersInfoWithCommon);

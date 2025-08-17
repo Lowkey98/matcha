@@ -118,7 +118,7 @@ async function main() {
   console.log("Database and tables created ✅");
 
   // Hash password once
-  const hashedPassword = await bcrypt.hash("ayoub123", 10);
+  const hashedPassword = await bcrypt.hash("matcha123", 10);
 
   // Generate fake users
   for (let i = 1; i <= USERS_COUNT; i++) {
@@ -141,7 +141,7 @@ async function main() {
 
     // User data
     const username = `user${userId}`;
-    const email = `ayoub${userId}@yopmail.com`;
+    const email = `matcha${userId}@yopmail.com`;
     const first_name = `First${userId}`;
     const last_name = `Last${userId}`;
     const is_verified = 1;
@@ -167,17 +167,21 @@ async function main() {
     let latitude: number, longitude: number;
 
     if (userId <= 200) {
-      // 200 “local” users within 10 km
+      // 200 "local" users within 10 km
       const maxDistanceKm = 10;
-      const latOffset = (Math.random() * 2 - 1) * (maxDistanceKm / 111);
-      const lonOffset = (Math.random() * 2 - 1) * (maxDistanceKm / (111 * Math.cos(CASABLANCA_LAT * Math.PI / 180)));
+      const angle = Math.random() * 2 * Math.PI;
+      const distance = Math.sqrt(Math.random()) * maxDistanceKm;
+      const latOffset = (distance / 111.32) * Math.cos(angle);
+      const lonOffset = (distance / (111.32 * Math.cos(CASABLANCA_LAT * Math.PI / 180))) * Math.sin(angle);
       latitude = +(CASABLANCA_LAT + latOffset).toFixed(6);
       longitude = +(CASABLANCA_LON + lonOffset).toFixed(6);
     } else {
       // remaining users a bit farther (e.g., 200 km)
       const maxDistanceKm = 200;
-      const latOffset = (Math.random() * 2 - 1) * (maxDistanceKm / 111);
-      const lonOffset = (Math.random() * 2 - 1) * (maxDistanceKm / (111 * Math.cos(CASABLANCA_LAT * Math.PI / 180)));
+      const angle = Math.random() * 2 * Math.PI;
+      const distance = Math.sqrt(Math.random()) * maxDistanceKm;
+      const latOffset = (distance / 111.32) * Math.cos(angle);
+      const lonOffset = (distance / (111.32 * Math.cos(CASABLANCA_LAT * Math.PI / 180))) * Math.sin(angle);
       latitude = +(CASABLANCA_LAT + latOffset).toFixed(6);
       longitude = +(CASABLANCA_LON + lonOffset).toFixed(6);
     }
