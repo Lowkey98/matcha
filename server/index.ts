@@ -442,6 +442,23 @@ app.post('/api/unlike', async (req: Request<{}, {}, RelationRequest>, res) => {
       [targetUserId, actorUserId],
     );
 
+    const [row] = await db.execute('SELECT * FROM usersInfo WHERE id = ?', [
+      actorUserId,
+    ]);
+
+    const actorUserInfo = row[0];
+    const actorNotification: NotificationResponse = {
+      actorUserId: actorUserId,
+      actorUsername: actorUserInfo.username,
+      actorUserImageUrl: actorUserInfo['images_urls'][0],
+      message: 'disliked your profile.',
+    };
+
+    const targetSocketId = onlineUsers.get(targetUserId);
+    if (targetSocketId) {
+      io.to(targetSocketId).emit('receiveNotification', actorNotification);
+    }
+
     res.status(201).json({
       message: 'unlike applied successfully.',
     });
@@ -735,14 +752,14 @@ app.get('/api/getAllUsers', async (req, res) => {
           typeof user['location'] === 'string' && JSON.parse(user['location']),
         fameRate: user['fame_rate'],
         isOnline: user['isOnline'],
-        lastOnline: user['lastOnline']
+        lastOnline: user['lastOnline'],
       };
     })
     .map((user) => {
       const commonTagsCount = user.interests
         ? user.interests.filter((interest) =>
-          currentUser.interests.includes(interest),
-        ).length
+            currentUser.interests.includes(interest),
+          ).length
         : 0;
       const currentUserWithParsedLocation = {
         ...currentUser,
@@ -857,6 +874,11 @@ app.get(
     const [row] = await db.execute('SELECT * FROM usersInfo WHERE id = ?', [
       targetUserId,
     ]);
+    const [likeRow] = await db.execute(
+      'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ? AND is_like = ?',
+      [targetUserId, actorUserId, true],
+    );
+    const alreadyLiked: boolean = likeRow[0] ? true : false;
     const targetUser = row[0] as UserInfo;
 
     if (!targetUser) {
@@ -885,6 +907,7 @@ app.get(
       isOnline: targetUser['isOnline'],
       lastOnline: targetUser['lastOnline'],
       fameRate: targetUser['fame_rate'],
+      alreadyLiked,
     };
     const [rowRelation] = await db.execute(
       'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ?',
@@ -1571,20 +1594,23 @@ export async function sendForgotPasswordMail({
 io.on('connection', (socket) => {
   const userId = socket.handshake.auth.userId;
   console.log(`User ${userId} connected`);
-  db.execute("UPDATE usersInfo SET isOnline = 1 WHERE id = ?", [userId]);
+  db.execute('UPDATE usersInfo SET isOnline = 1 WHERE id = ?', [userId]);
 
-  io.emit("userStatus", { userId, isOnline: true, lastOnline: new Date().toISOString() });
+  io.emit('userStatus', {
+    userId,
+    isOnline: true,
+    lastOnline: new Date().toISOString(),
+  });
   onlineUsers.set(userId, socket.id);
 
-
-  socket.on("disconnect", async () => {
+  socket.on('disconnect', async () => {
     const userId = socket.handshake.auth.userId;
     console.log(`User ${userId} disconnected`);
     await db.execute(
-      "UPDATE usersInfo SET isOnline = 0, lastOnline = NOW() WHERE id = ?",
-      [userId]
+      'UPDATE usersInfo SET isOnline = 0, lastOnline = NOW() WHERE id = ?',
+      [userId],
     );
-    io.emit("userStatus", { userId, isOnline: false, lastOnline: new Date() });
+    io.emit('userStatus', { userId, isOnline: false, lastOnline: new Date() });
     for (const [userId, id] of onlineUsers.entries()) {
       if (id === socket.id) {
         onlineUsers.delete(userId);

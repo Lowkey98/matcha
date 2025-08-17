@@ -3,8 +3,7 @@ import { useState } from 'react';
 import InputFormField from '../components/FormFields/InputFormField';
 import PasswordFormField from '../components/FormFields/PasswordFormField';
 import ButtonPrimaryWithIcon from '../components//Buttons/ButtonPrimaryWithIcon';
-import ButtonSecondaryWithIcon from '../components//Buttons/ButtonSecondaryWithIcon';
-import { AddUserIcon, GoogleIcon } from '../components/Icons';
+import { AddUserIcon } from '../components/Icons';
 import { Helmet } from 'react-helmet';
 
 import {
@@ -183,12 +182,6 @@ export default function Register() {
                     value="Create account"
                     className="w-full lg:w-[48%]"
                     onClick={handleClickCreateAccount}
-                  />
-                  <ButtonSecondaryWithIcon
-                    type="button"
-                    icon={<GoogleIcon className="h-5.5 w-5.5 fill-white" />}
-                    value="Create account with google"
-                    className="w-full lg:w-[48%]"
                   />
                 </div>
               </form>

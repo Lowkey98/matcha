@@ -6,10 +6,16 @@ import { useContext, useState } from 'react';
 import { isValidAddedProfilePicture } from '../../../shared/Helpers';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useToast } from '../hooks/useToast';
-import { createUserProfile } from '../../Api';
+import {
+  createUserProfile,
+  getAddress,
+  getIpAddress,
+  getIpAddressInfos,
+} from '../../Api';
 import {
   CreateProfileRequest,
   CreateProfileResponse,
+  UserLocation,
 } from '../../../shared/types';
 import { UserContext } from '../context/UserContext';
 
@@ -23,7 +29,7 @@ export default function AddPictures() {
   const locationRoutes = useLocation();
   const { addToast } = useToast();
 
-  function handleClickDone() {
+  async function handleClickDone() {
     const errorCheckUploadedPictures: string | null =
       isValidAddedProfilePicture(uploadedBuffersPictures);
     if (!errorCheckUploadedPictures) {
@@ -31,6 +37,28 @@ export default function AddPictures() {
         locationRoutes.state || {};
       const token = localStorage.getItem('token');
       if (!token) return;
+      let filledLocation: UserLocation = location;
+      if (!filledLocation.address.length) {
+        const ipAddress = await getIpAddress().catch(() => {});
+        if (ipAddress?.length) {
+          const ipAddressInfos = await getIpAddressInfos({
+            ipAddress,
+          }).catch(() => {});
+          if (ipAddressInfos) {
+            const address = await getAddress({
+              latitude: ipAddressInfos.latitude,
+              longitude: ipAddressInfos.longitude,
+            }).catch(() => {});
+            if (address) {
+              filledLocation = {
+                address,
+                latitude: ipAddressInfos.latitude,
+                longitude: ipAddressInfos.longitude,
+              };
+            }
+          }
+        }
+      }
       const userProfileInfo: CreateProfileRequest = {
         age,
         gender,
@@ -38,9 +66,7 @@ export default function AddPictures() {
         interests,
         biography,
         uploadedBuffersPictures,
-        location: location.address.length
-          ? location
-          : { address: 'Agdal, Rabat', latitude: 34.0059, longitude: -6.8463 },
+        location: filledLocation,
         token,
       };
 
