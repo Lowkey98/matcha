@@ -749,7 +749,6 @@ app.get('/api/getAllUsers', async (req, res) => {
         actorUserInfo: user,
         targetUserInfo: currentUser,
       });
-      console.log('distanceBetween', distanceBetween);
 
       return {
         ...user,
@@ -759,8 +758,26 @@ app.get('/api/getAllUsers', async (req, res) => {
     }).filter((user) => {
       return user.distanceBetween && user.distanceBetween <= MAX_DISTANCE_METERS; // TODO: IS IT METERS OR KM?
     });
+  const MINIMUM_SUGGESTED_USERS = 50 // TODO: global
+  if (usersInfoWithCommon.length < MINIMUM_SUGGESTED_USERS) {
+    res.json(usersInfoWithCommon);
+    return
+  }
+  const groupedByTags: Record<number, UserInfoWithCommonTags[]> = {
+    0: [], 1: [], 2: [], 3: [], 4: [], 5: [] // 5 is number of possible tags
+  };
 
-  res.json(usersInfoWithCommon);
+  for (const user of usersInfoWithCommon) {
+    groupedByTags[user.commonTagsCount].push(user);
+  }
+  let selectedUsers: UserInfoWithCommonTags[] = [];
+  for (let i = 5; i >= 0; i--) {
+    if (selectedUsers.length < MINIMUM_SUGGESTED_USERS) {
+      selectedUsers = selectedUsers.concat(groupedByTags[i]);
+    }
+  }
+  selectedUsers.sort((a, b) => b.fameRate - a.fameRate);
+  res.json(selectedUsers);
   return;
 });
 
