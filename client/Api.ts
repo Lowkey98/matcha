@@ -530,3 +530,24 @@ export async function sendMessage({
     throw error;
   }
 }
+
+export async function getIpAddress(): Promise<string> {
+  try {
+    const response = await fetch('https://api.ipify.org?format=json');
+    if (!response.ok) throw await response.json();
+    const jsonResponse = await response.json();
+    return jsonResponse.ip as string;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function getIpAddressInfos({ ipAddress }: { ipAddress: string }) {
+  try {
+    const response = await fetch(`https://ipapi.co/${ipAddress}/json/`);
+    const jsonResponse = await response.json();
+    return jsonResponse;
+  } catch (error) {
+    throw error;
+  }
+}

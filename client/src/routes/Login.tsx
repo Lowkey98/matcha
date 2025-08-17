@@ -4,8 +4,6 @@ import { useContext, useState } from 'react';
 import InputFormField from '../components/FormFields/InputFormField';
 import PasswordFormField from '../components/FormFields/PasswordFormField';
 import ButtonPrimary from '../components//Buttons/ButtonPrimary';
-import ButtonSecondaryWithIcon from '../components//Buttons/ButtonSecondaryWithIcon';
-import { GoogleIcon } from '../components/Icons';
 import { isValidEmail, isValidPassword } from '../../../shared/Helpers';
 import { getUserInfo, login } from '../../Api';
 import { Helmet } from 'react-helmet';
@@ -143,13 +141,6 @@ export default function Login() {
                 value="Login"
                 className="w-full"
                 onClick={handleClickLogin}
-              />
-
-              <ButtonSecondaryWithIcon
-                type="button"
-                icon={<GoogleIcon className="h-5.5 w-5.5 fill-white" />}
-                value="Login with google"
-                className="w-full"
               />
             </div>
           </form>
