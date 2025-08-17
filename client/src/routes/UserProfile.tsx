@@ -40,15 +40,15 @@ export default function UserProfile() {
   }>({ isOnline: false, lastOnline: new Date() });
 
   const { socket } = useContext(SocketContext);
-  
+
   function handleClickLike() {
     const token = localStorage.getItem('token');
     if (targetUserInfo && user && targetUserId && token) {
       like({ actorUserId: user.id, targetUserId: Number(targetUserId), token })
-      .then(() => {
-        setTargetUserInfo({
-          ...targetUserInfo,
-          isLike: true,
+        .then(() => {
+          setTargetUserInfo({
+            ...targetUserInfo,
+            isLike: true,
           });
         })
         .catch((error) => {
@@ -74,16 +74,16 @@ export default function UserProfile() {
         .catch((error) => {
           console.log('error:', error);
         });
-      }
     }
-    
-    function handleClikThreeDots() {
-      setShowBlockButton(!showBlockButton);
-    }
-    function handleCLickBlock() {
-      const token = localStorage.getItem('token');
-      if (targetUserInfo && user && targetUserId && token) {
-        block({ actorUserId: user.id, targetUserId: Number(targetUserId), token })
+  }
+
+  function handleClikThreeDots() {
+    setShowBlockButton(!showBlockButton);
+  }
+  function handleCLickBlock() {
+    const token = localStorage.getItem('token');
+    if (targetUserInfo && user && targetUserId && token) {
+      block({ actorUserId: user.id, targetUserId: Number(targetUserId), token })
         .then(() => {
           navigate('/explore');
         })
@@ -146,10 +146,10 @@ export default function UserProfile() {
         }
       });
   }, [user]);
-  
+
   if (targetUserInfo)
     return (
-  <>
+      <>
         <Helmet>
           <title>Matcha - Profile</title>
         </Helmet>
@@ -161,9 +161,16 @@ export default function UserProfile() {
           />
           <div className="flex flex-col gap-8 lg:w-full xl:w-127">
             <div>
-              <span className="text-secondary text-xl font-bold">
-                {targetUserInfo.username}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-secondary text-xl font-bold">
+                  {targetUserInfo.username}
+                </span>
+                {targetUserInfo.alreadyLiked ? (
+                  <span className="bg-primaryLight text-primary border-primary inline-block w-22 rounded-full border py-1 text-center text-xs font-normal">
+                    Liked you
+                  </span>
+                ) : null}
+              </div>
               <div className="mt-.5 flex items-center gap-1">
                 {userStatus.isOnline ? (
                   <>

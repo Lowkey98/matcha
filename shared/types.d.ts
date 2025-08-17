@@ -34,6 +34,7 @@ export type UserInfoWithRelation = UserInfo & {
   isViewProfile: boolean;
   isBlock: boolean;
   isOnline: boolean;
+  alreadyLiked: boolean;
 };
 
 export type LoginRequest = {

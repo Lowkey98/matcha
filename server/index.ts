@@ -846,6 +846,11 @@ app.get(
     const [row] = await db.execute('SELECT * FROM usersInfo WHERE id = ?', [
       targetUserId,
     ]);
+    const [likeRow] = await db.execute(
+      'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ? AND is_like = ?',
+      [targetUserId, actorUserId, true],
+    );
+    const alreadyLiked: boolean = likeRow[0] ? true : false;
     const targetUser = row[0] as UserInfo;
 
     if (!targetUser) {
@@ -874,6 +879,7 @@ app.get(
       isOnline: targetUser['isOnline'],
       lastOnline: targetUser['lastOnline'],
       fameRate: targetUser['fame_rate'],
+      alreadyLiked,
     };
     const [rowRelation] = await db.execute(
       'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ?',
