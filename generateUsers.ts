@@ -11,7 +11,7 @@ import { v4 as uuidv4 } from "uuid";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const USERS_COUNT = 50; // Change to 500 if you want
+const USERS_COUNT = 500; // Change to 500 if you want
 const BASE_UPLOAD_DIR = path.join(__dirname, "server", "uploads");
 
 const INTEREST_POOL = [
@@ -147,7 +147,8 @@ async function main() {
     const is_verified = 1;
     const created_at = new Date();
     const verification_token = is_verified ? null : uuidv4();
-    const age = Math.floor(Math.random() * 20) + 18;
+    // age between 16 and 60
+    const age = Math.floor(Math.random() * 43) + 18;
     const gender = getRandom(GENDERS);
     const sexual_preference = gender === "male" ? "female" : "male";
     const interests = JSON.stringify(getRandomInterests());
