@@ -37,9 +37,6 @@ export function UploadImage({
           errorCode: 101,
           message: `file size ${(file.size / MB).toFixed(2)} MB exceeds the sime limit [${maxSize / MB} MB]`,
         });
-        console.error(
-          `file size ${(file.size / MB).toFixed(2)} MB exceeds the sime limit [${maxSize / MB} MB]`,
-        );
         return;
       }
       const extension = file.name.split('.').pop();
@@ -137,9 +134,6 @@ export function EditedUploadImage({
           errorCode: 101,
           message: `file size ${(file.size / MB).toFixed(2)} MB exceeds the sime limit [${maxSize / MB} MB]`,
         });
-        console.error(
-          `file size ${(file.size / MB).toFixed(2)} MB exceeds the sime limit [${maxSize / MB} MB]`,
-        );
         return;
       }
       const extension = file.name.split('.').pop();
@@ -252,9 +246,6 @@ export function ButtonAddImage({
           errorCode: 101,
           message: `file size ${(file.size / MB).toFixed(2)} MB exceeds the sime limit [${maxSize / MB} MB]`,
         });
-        console.error(
-          `file size ${(file.size / MB).toFixed(2)} MB exceeds the sime limit [${maxSize / MB} MB]`,
-        );
         return;
       }
       const extension = file.name.split('.').pop();
