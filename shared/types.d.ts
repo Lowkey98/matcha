@@ -4,8 +4,7 @@ export type UserInfoBase = {
   username: string;
   firstName: string;
   lastName: string;
-  lastOnline: Date;
-  isOnline: boolean;
+
 };
 export type CreateProfileBase = {
   age: number;
@@ -24,6 +23,8 @@ export type UserInfo = UserInfoBase & {
   imagesUrls?: string[];
   location?: UserLocation;
   fameRate?: number;
+  lastOnline: Date;
+  isOnline: boolean;
 };
 export type UserInfoWithCommonTags = UserInfo & {
   commonTagsCount: number;
