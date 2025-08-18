@@ -7,6 +7,7 @@ import { getAllUsers } from '../../Api';
 import { UserInfoWithCommonTags } from '../../../shared/types';
 import { Navigate } from 'react-router-dom';
 import { SortsContext } from '../context/SortsContext';
+import LinkPrimary from '../components/Links/LinkPrimary';
 
 export default function Explore() {
   const { user, loading } = useContext(UserContext);
@@ -18,7 +19,8 @@ export default function Explore() {
     if (!token || !user) {
       return;
     }
-    getAllUsers({ token, currentUserId: user.id }).then((users) => {
+    const userHasProfile = user.age ? true : false;
+    getAllUsers({ token, userHasProfile }).then((users) => {
       let filteredUsers = users.filter((user) => user.age != null);
 
       console.log('Filtered users:', filteredUsers);
@@ -91,13 +93,26 @@ export default function Explore() {
     return 0;
   });
   if (!user) return <Navigate to={'/login'} replace />;
-  if (!user.age) return <Navigate to={'/createProfile'} replace />;
   return (
     <>
       <Helmet>
         <title>Matcha - Explore</title>
       </Helmet>
-      <main className="mb-21 flex h-1/2 flex-1 pt-5 lg:mb-0 lg:ml-57 lg:items-center lg:justify-center lg:py-5 [:has(&)]:flex [:has(&)]:h-full [:has(&)]:w-full [:has(&)]:flex-1 [:has(&)]:flex-col">
+      {!user.age ? (
+        <div className="mt-5 flex justify-center">
+          <div className="border-secondary text-secondary flex h-16 w-full items-center justify-between gap-2 rounded-lg border-2 px-3 lg:text-sm text-xs lg:w-1/2 xl:w-1/3 xl:text-base">
+            <span>Create your profile for the best experience</span>
+            <LinkPrimary
+              to="/createProfile"
+              value="Create profile"
+              className="h-10 whitespace-nowrap xl:text-sm"
+            />
+          </div>
+        </div>
+      ) : null}
+      <main
+        className={`mb-21 flex h-1/2 flex-1 pt-5 lg:mb-0 ${user.age ? 'lg:ml-57' : ''} lg:items-center lg:justify-center lg:py-5 [:has(&)]:flex [:has(&)]:h-full [:has(&)]:w-full [:has(&)]:flex-1 [:has(&)]:flex-col`}
+      >
         <ProfileSlider
           users={filteredUsers}
           className="w-full lg:h-[40rem] lg:w-[27rem] 2xl:h-[45rem] 2xl:w-[30rem]"
