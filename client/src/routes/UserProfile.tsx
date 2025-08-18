@@ -7,6 +7,7 @@ import {
   HearthIcon,
   LocationOutlineIcon,
   ProfileIcon,
+  ReportIcon,
   ThreeDotsIcon,
 } from '../components/Icons';
 import { useContext, useEffect, useState } from 'react';
@@ -18,6 +19,7 @@ import {
   block,
   getUserInfoWithRelation,
   like,
+  report,
   unlike,
   veiwProfile,
 } from '../../Api';
@@ -26,11 +28,14 @@ import { GenderCard } from './Profile';
 import ButtonLike from '../components/Buttons/ButtonLike';
 import ButtonUnlike from '../components/Buttons/ButtonUnlike';
 import { SocketContext } from '../context/SocketContext';
+import { useToast } from '../hooks/useToast';
 
 export default function UserProfile() {
   const { user } = useContext(UserContext);
+  const { socket } = useContext(SocketContext);
   const { targetUserId } = useParams<{ targetUserId: string }>();
   const navigate = useNavigate();
+  const { addToast } = useToast();
   const [targetUserInfo, setTargetUserInfo] =
     useState<UserInfoWithRelation | null>(null);
   const [showBlockButton, setShowBlockButton] = useState<boolean>(false);
@@ -38,9 +43,6 @@ export default function UserProfile() {
     isOnline: boolean;
     lastOnline: Date;
   }>({ isOnline: false, lastOnline: new Date() });
-
-  const { socket } = useContext(SocketContext);
-
   function handleClickLike() {
     const token = localStorage.getItem('token');
     if (targetUserInfo && user && targetUserId && token) {
@@ -86,6 +88,29 @@ export default function UserProfile() {
       block({ actorUserId: user.id, targetUserId: Number(targetUserId), token })
         .then(() => {
           navigate('/explore');
+        })
+        .catch((error) => {
+          console.log('error:', error);
+        });
+    }
+  }
+  function handleCLickReport() {
+    const token = localStorage.getItem('token');
+    if (targetUserInfo && user && targetUserId && token) {
+      report({
+        actorUserId: user.id,
+        targetUserId: Number(targetUserId),
+        token,
+      })
+        .then(() => {
+          setTargetUserInfo({
+            ...targetUserInfo,
+            isReported: true,
+          });
+          addToast({
+            status: 'success',
+            message: `You reported ${targetUserInfo.username} successfully.`,
+          });
         })
         .catch((error) => {
           console.log('error:', error);
@@ -211,13 +236,22 @@ export default function UserProfile() {
                   <ThreeDotsIcon className="fill-secondary size-5" />
                 </button>
                 {showBlockButton ? (
-                  <div className="text-secondary border-secondary absolute right-0 -bottom-17 flex w-45 items-center overflow-hidden rounded-lg border-2 bg-white xl:top-0 xl:-right-48 xl:bottom-auto">
+                  <div className="text-secondary border-secondary absolute right-0 -bottom-17 flex w-45 flex-col items-center overflow-hidden rounded-lg border-2 bg-white text-sm xl:top-0 xl:-right-48 xl:bottom-auto">
+                    <button
+                      type="button"
+                      className={`flex w-full cursor-pointer items-center gap-2 p-3 text-left ${targetUserInfo.isReported ? 'bg-grayDark-100 fill-gray-500 text-gray-500' : 'fill-red-700 hover:bg-gray-50'}`}
+                      onClick={handleCLickReport}
+                      disabled={targetUserInfo.isReported}
+                    >
+                      <ReportIcon className="size-5" />
+                      Report
+                    </button>
                     <button
                       type="button"
                       className="flex w-full cursor-pointer items-center gap-2 p-3 text-left hover:bg-gray-50"
                       onClick={handleCLickBlock}
                     >
-                      <BlockIcon className="size-5 fill-red-700" />
+                      <BlockIcon className="size-4.5 fill-red-700" />
                       Block
                     </button>
                   </div>

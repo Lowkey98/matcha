@@ -506,6 +506,26 @@ export async function block({
   }
 }
 
+export async function report({
+  actorUserId,
+  targetUserId,
+  token,
+}: RelationRequest & { token: string }) {
+  try {
+    await fetch(`${HOST}/api/report`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ actorUserId, targetUserId }),
+    });
+    return;
+  } catch (error) {
+    throw error;
+  }
+}
+
 export async function sendMessage({
   actorUserId,
   targetUserId,
