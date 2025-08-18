@@ -12,8 +12,12 @@ export default function ForgotPassword() {
   const [email, setEmail] = useState<string>('');
   const [formTrail, setFormTrial] = useState<boolean>(false);
   const [isEmailSent, setIsEmailSent] = useState<boolean>(false);
+  const [errorEmailDoesntExist, setEmailDoesntExist] = useState<
+    string | null
+  >(null);
   const navigate = useNavigate();
-  const errorEmail: string | null = isValidEmail(email);
+  const errorEmail: string | null =
+    isValidEmail(email) ?? errorEmailDoesntExist;
 
   function handleClickResetPassword() {
     let errorForm: boolean = false;
@@ -28,9 +32,8 @@ export default function ForgotPassword() {
         .then(() => {
           setIsEmailSent(true);
         })
-        .catch((err) => {
-          console.error('Error sending reset password email:', err);
-          // Handle error appropriately, e.g., show a notification to the user
+        .catch(() => {
+          setEmailDoesntExist("This email doesn't exist.");
         });
     }
   }
@@ -70,6 +73,8 @@ export default function ForgotPassword() {
               errorInput={errorEmail}
               formTrail={formTrail}
               className="flex-1"
+              required={true}
+              setFieldAlreadyExists={setEmailDoesntExist}
             />
             <ButtonPrimary
               type="submit"

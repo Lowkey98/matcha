@@ -53,9 +53,7 @@ export default function UserProfile() {
             isLike: true,
           });
         })
-        .catch((error) => {
-          console.log('error:', error);
-        });
+        .catch(() => {});
     }
   }
 
@@ -73,9 +71,7 @@ export default function UserProfile() {
             isLike: false,
           });
         })
-        .catch((error) => {
-          console.log('error:', error);
-        });
+        .catch(() => {});
     }
   }
 
@@ -89,9 +85,7 @@ export default function UserProfile() {
         .then(() => {
           navigate('/explore');
         })
-        .catch((error) => {
-          console.log('error:', error);
-        });
+        .catch(() => {});
     }
   }
   function handleCLickReport() {
@@ -151,9 +145,7 @@ export default function UserProfile() {
               .then(() => {
                 setTargetUserInfo({ ...targetUser, isViewProfile: true });
               })
-              .catch((error) => {
-                console.log('error:', error);
-              });
+              .catch(() => {});
           } else setTargetUserInfo(targetUser);
         })
         .catch(() => {
@@ -162,7 +154,6 @@ export default function UserProfile() {
     }
     if (socket)
       socket.on('userStatus', ({ userId, isOnline, lastOnline }) => {
-        console.log(userId, isOnline, lastOnline);
         if (Number(targetUserId) === userId) {
           setUserStatus({
             isOnline,

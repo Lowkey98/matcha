@@ -51,7 +51,6 @@ export async function updateEmail({
   email: string;
   id: number;
 }) {
-  console.log('Updating email:', email);
   const response = await fetch(`${HOST}/api/updateEmail`, {
     method: 'POST',
     headers: {

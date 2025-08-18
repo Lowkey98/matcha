@@ -20,7 +20,6 @@ export default function ErrorBoundary() {
   } else if (typeof routeError === "string") {
     errorMessage = routeError;
   } else {
-    console.error(routeError);
     errorMessage = "Unknown error";
   }
   //   if (routeError.status === 404) return <Navigate to="/notfound" replace />;

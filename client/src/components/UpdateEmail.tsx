@@ -23,7 +23,6 @@ export default function UpdateEmail() {
     if (!user) {
       return;
     }
-    console.log('Updating email:', email);
     let errorForm: boolean = false;
     if (errorEmail) {
       setFormTrial(true);

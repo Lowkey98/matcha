@@ -153,8 +153,6 @@ export default function EditProfile() {
 
   useEffect(() => {
     if (user) {
-      console.log(user);
-
       setAge(String(user.age));
       setGender(user.gender || '');
       setSexualPreference(user.sexualPreference || '');

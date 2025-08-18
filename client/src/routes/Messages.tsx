@@ -48,7 +48,6 @@ export default function Messages() {
           targetUserId: Number(targetUserId),
           token,
         }).catch((error) => {
-          console.error(error);
           throw error;
         });
         if (!isTwoUsersMatch) {
@@ -642,7 +641,6 @@ function ChatBoxMobile({
     }
     if (socket)
       socket.on('userStatus', ({ userId, isOnline, lastOnline }) => {
-        console.log(userId, isOnline, lastOnline);
         if (Number(targetUser.id) === userId) {
           setUserStatus({
             isOnline,

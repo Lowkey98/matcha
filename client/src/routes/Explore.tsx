@@ -22,8 +22,6 @@ export default function Explore() {
     const userHasProfile = user.age ? true : false;
     getAllUsers({ token, userHasProfile }).then((users) => {
       let filteredUsers = users.filter((user) => user.age != null);
-
-      console.log('Filtered users:', filteredUsers);
       setUsers(filteredUsers);
     });
   }, [user]);
