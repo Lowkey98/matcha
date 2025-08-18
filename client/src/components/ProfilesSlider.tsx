@@ -17,6 +17,7 @@ import { SortsContext } from '../context/SortsContext';
 import FilterCard from './FilterCard';
 import { FiltersContext } from '../context/FiltersContext';
 import { BACKEND_STATIC_FOLDER } from './ImagesCarousel';
+import { UserContext } from '../context/UserContext';
 
 export default function ProfileSlider({
   className,
@@ -25,6 +26,7 @@ export default function ProfileSlider({
   className?: string;
   users: UserInfoWithCommonTags[];
 }) {
+  const { user } = useContext(UserContext);
   const [emblaRef, emblaApi] = useEmblaCarousel();
   const [, setSelectedIndex] = useState(0);
   const [showSort, setShowSort] = useState<boolean>(false);
@@ -62,22 +64,24 @@ export default function ProfileSlider({
           ))}
         </div>
       </div>
-      <div className="absolute top-0 -right-18 hidden lg:block">
-        <button
-          type="button"
-          className="border-grayDark-100 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full border-2 p-2.5"
-          onClick={handleClickSort}
-        >
-          <SortIcon className="fill-secondary h-6 w-6" />
-        </button>
-        <button
-          type="button"
-          className="border-grayDark-100 mt-4 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full border-2 p-2.5"
-          onClick={handleClickFilter}
-        >
-          <FilterIcon className="fill-secondary h-6 w-6" />
-        </button>
-      </div>
+      {user?.age ? (
+        <div className="absolute top-0 -right-18 hidden lg:block">
+          <button
+            type="button"
+            className="border-grayDark-100 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full border-2 p-2.5"
+            onClick={handleClickSort}
+          >
+            <SortIcon className="fill-secondary h-6 w-6" />
+          </button>
+          <button
+            type="button"
+            className="border-grayDark-100 mt-4 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full border-2 p-2.5"
+            onClick={handleClickFilter}
+          >
+            <FilterIcon className="fill-secondary h-6 w-6" />
+          </button>
+        </div>
+      ) : null}
       {showSort ? <SortDesktop setShowSort={setShowSort} /> : null}
       {showFilter ? <FilterDesktop setShowFilter={setShowFilter} /> : null}
 
@@ -106,6 +110,7 @@ export default function ProfileSlider({
 }
 
 function ProfileCard({ user }: { user: UserInfoWithCommonTags }) {
+  const { user: loggedUser } = useContext(UserContext);
   const imageUrl = user.imagesUrls
     ? `${BACKEND_STATIC_FOLDER}${user.imagesUrls[0]} `
     : '';
@@ -126,23 +131,27 @@ function ProfileCard({ user }: { user: UserInfoWithCommonTags }) {
             <span className="ml-1 font-light">{user.age}</span>
           </div>
           <div className="flex items-center gap-3 font-light">
-            <div className="flex items-center gap-1">
-              <LocationOutlineIcon className="h-4 w-4 fill-white" />
-              <span>{user.distanceBetween}km</span>
-              {/* TODO: what if no distanceBetween */}
-            </div>
+            {loggedUser?.age ? (
+              <div className="flex items-center gap-1">
+                <LocationOutlineIcon className="h-4 w-4 fill-white" />
+                <span>{user.distanceBetween}km</span>
+                {/* TODO: what if no distanceBetween */}
+              </div>
+            ) : null}
             <div className="flex items-center gap-1">
               <StarIcon className="h-4 w-4 fill-white" />
               <span>{user.fameRate}</span>
             </div>
           </div>
         </div>
-        <Link
-          to={`/userProfile/${user.id}`}
-          className="w-[40%] rounded-md border border-white bg-white/10 py-2.5 text-center sm:w-40"
-        >
-          View profile
-        </Link>
+        {loggedUser?.age ? (
+          <Link
+            to={`/userProfile/${user.id}`}
+            className="w-[40%] rounded-md border border-white bg-white/10 py-2.5 text-center sm:w-40"
+          >
+            View profile
+          </Link>
+        ) : null}
       </div>
       <div className="pointer-events-none absolute bottom-0 left-0 h-30 w-full bg-gradient-to-t from-black/70 to-transparent" />
       <div className="pointer-events-none absolute bottom-0 left-0 h-25 w-full bg-gradient-to-t from-black/70 to-transparent" />

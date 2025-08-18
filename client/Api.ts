@@ -221,13 +221,13 @@ export async function saveNewPassword({
 }
 export async function getAllUsers({
   token,
-  currentUserId,
+  userHasProfile,
 }: {
   token: string;
-  currentUserId: number;
+  userHasProfile: boolean;
 }) {
   try {
-    const response = await fetch(`${HOST}/api/getAllUsers`, {
+    const response = await fetch(`${HOST}/api/getAllUsers/${userHasProfile}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

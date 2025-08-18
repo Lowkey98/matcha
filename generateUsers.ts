@@ -1,42 +1,42 @@
 // matchaSetup.ts
-import mysql from "mysql2/promise";
-import axios from "axios";
-import * as fs from "fs";
-import * as path from "path";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
-import bcrypt from "bcrypt";
-import { v4 as uuidv4 } from "uuid";
+import mysql from 'mysql2/promise';
+import axios from 'axios';
+import * as fs from 'fs';
+import * as path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import bcrypt from 'bcrypt';
+import { v4 as uuidv4 } from 'uuid';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const USERS_COUNT = 500; // Change to 500 if you want
-const BASE_UPLOAD_DIR = path.join(__dirname, "server", "uploads");
+const BASE_UPLOAD_DIR = path.join(__dirname, 'server', 'uploads');
 
 const INTEREST_POOL = [
-  "#Music",
-  "#Gaming",
-  "#Reading",
-  "#Writing",
-  "#Movies",
-  "#Traveling",
-  "#Fitness",
-  "#Cooking",
-  "#Photography",
-  "#Art",
-  "#Tech",
-  "#Coding",
+  '#Music',
+  '#Gaming',
+  '#Reading',
+  '#Writing',
+  '#Movies',
+  '#Traveling',
+  '#Fitness',
+  '#Cooking',
+  '#Photography',
+  '#Art',
+  '#Tech',
+  '#Coding',
 ];
 
-const GENDERS = ["male", "female"];
-const SEXUAL_PREFERENCES = ["male", "female"];
+const GENDERS = ['male', 'female'];
+const SEXUAL_PREFERENCES = ['male', 'female'];
 const BIOGRAPHY_SAMPLES = [
-  "Love deep convos and late-night walks.",
-  "Coffee addict, always up for an adventure.",
-  "Always coding or hiking.",
-  "Traveling the world one step at a time.",
-  "Gamer by night, fitness freak by day.",
+  'Love deep convos and late-night walks.',
+  'Coffee addict, always up for an adventure.',
+  'Always coding or hiking.',
+  'Traveling the world one step at a time.',
+  'Gamer by night, fitness freak by day.',
 ];
 
 const getRandom = <T>(arr: T[]): T =>
@@ -55,7 +55,7 @@ const getPortraitUrl = (index: number): string => {
 };
 
 async function downloadImage(url: string, filepath: string): Promise<void> {
-  const response = await axios.get(url, { responseType: "arraybuffer" });
+  const response = await axios.get(url, { responseType: 'arraybuffer' });
   fs.writeFileSync(filepath, response.data);
 }
 
@@ -119,10 +119,10 @@ async function main() {
   `;
 
   await connection.query(schemaSQL);
-  console.log("Database and tables created ✅");
+  console.log('Database and tables created ✅');
 
   // Hash password once
-  const hashedPassword = await bcrypt.hash("matcha123", 10);
+  const hashedPassword = await bcrypt.hash('matcha123', 10);
 
   // Generate fake users
   for (let i = 1; i <= USERS_COUNT; i++) {
@@ -154,12 +154,15 @@ async function main() {
     // age between 16 and 60
     const age = Math.floor(Math.random() * 43) + 18;
     const gender = getRandom(GENDERS);
-    const sexual_preference = gender === "male" ? "female" : "male";
+    const sexual_preference = gender === 'male' ? 'female' : 'male';
     const interests = JSON.stringify(getRandomInterests());
     const biography = getRandom(BIOGRAPHY_SAMPLES);
     const fameRate = 0;
     const images_urls = JSON.stringify(
-      Array.from({ length: 5 }, (_, idx) => `uploads/${userId}/picture-${userId}-${idx}.webp`)
+      Array.from(
+        { length: 5 },
+        (_, idx) => `uploads/${userId}/picture-${userId}-${idx}.webp`,
+      ),
     );
 
 
@@ -198,7 +201,6 @@ async function main() {
 
     const location = JSON.stringify(locationObj);
 
-
     // Insert into DB
     await connection.query(
       `INSERT INTO matcha.usersInfo
@@ -223,16 +225,16 @@ async function main() {
         images_urls,
         location,
         fameRate,
-      ]
+      ],
     );
 
     console.log(`User ${userId} created ✅`);
   }
 
-  console.log("All users inserted successfully 🎉");
+  console.log('All users inserted successfully 🎉');
   await connection.end();
 }
 
 main().catch((err) => {
-  console.error("Error:", err);
+  console.error('Error:', err);
 });
