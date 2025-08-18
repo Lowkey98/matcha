@@ -45,7 +45,6 @@ export default function Root() {
           setLoading(false);
         })
         .catch(() => {
-          console.error('Unauthorized access, resetting user state');
           setUser(null);
           setLoading(false);
           localStorage.removeItem('token');

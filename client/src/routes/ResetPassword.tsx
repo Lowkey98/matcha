@@ -27,8 +27,6 @@ export default function ResetPassword() {
   const { addToast } = useToast();
   function handleClickResetPassword() {
     if (token === null) {
-      // TODO: handle this case properly
-      console.error('No token provided');
       return;
     }
     let errorForm: boolean = false;
@@ -54,11 +52,9 @@ export default function ResetPassword() {
     if (!errorForm) {
       saveNewPassword({ password, token })
         .then(() => {
-          console.log('Password reset successfully');
           setIsPasswordReset(true);
         })
         .catch((error) => {
-          console.error('Error resetting password:', error);
           addToast({
             status: 'error',
             message: error.message || 'Failed to reset password',

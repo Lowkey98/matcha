@@ -76,7 +76,6 @@ export default function AddPictures() {
           navigate('/explore');
         })
         .catch((e) => {
-          console.error('Error creating profile:', e);
           addToast({
             status: 'error',
             message: e,

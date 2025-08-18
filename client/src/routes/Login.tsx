@@ -49,7 +49,6 @@ export default function Login() {
             localStorage.setItem('token', token);
             getUserInfo({ token })
               .then((userInfo: UserInfo) => {
-                console.log('User data fetched:', userInfo);
                 setUser(userInfo);
                 setLoading(false);
                 if (userInfo.age) {
@@ -65,7 +64,6 @@ export default function Login() {
                 }
               })
               .catch((error) => {
-                console.error('Error fetching user data:', error.message);
                 setUser(null);
                 setLoading(false);
               });

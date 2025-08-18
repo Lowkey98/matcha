@@ -48,15 +48,15 @@ export function getDistanceInKilometers({
   const distanceInMeters =
     targetUserInfo?.location && actorUserInfo?.location
       ? getDistance(
-          {
-            latitude: actorUserInfo.location.latitude,
-            longitude: actorUserInfo.location.longitude,
-          },
-          {
-            latitude: targetUserInfo.location.latitude,
-            longitude: targetUserInfo.location.longitude,
-          },
-        )
+        {
+          latitude: actorUserInfo.location.latitude,
+          longitude: actorUserInfo.location.longitude,
+        },
+        {
+          latitude: targetUserInfo.location.latitude,
+          longitude: targetUserInfo.location.longitude,
+        },
+      )
       : undefined;
   const distanceInKilometers = distanceInMeters
     ? Math.round(distanceInMeters / 1000)
@@ -174,16 +174,6 @@ app.post(
           decoded.userId,
         ],
       );
-      console.log(
-        age,
-        gender,
-        sexualPreference,
-        interests,
-        location,
-        biography,
-        imagesUrls,
-      );
-
       res.status(201).json({
         body: {
           age,
@@ -197,8 +187,7 @@ app.post(
       });
       return;
     } catch (err) {
-      console.error('Error in /api/create-profile:', err);
-      res.status(500).json({ error: 'Internal server error' });
+      res.status(400).json({ error: 'Internal server error' });
       return;
     }
   },
@@ -208,7 +197,6 @@ app.post(
   async (req: Request<{}, {}, { email: string; id: string }>, res) => {
     try {
       const { email, id } = req.body;
-      console.log('Updating email:', email);
       if (!email) {
         res.status(400).json({
           error: 'Email',
@@ -222,11 +210,9 @@ app.post(
       );
 
       const userRows = rows as UserInfoFromDB[];
-      console.log('userRows', userRows);
       const emailExists = userRows.some(
         (row: UserInfoFromDB) => row.email === email,
       );
-      console.log('emailExists', emailExists);
 
       if (emailExists) {
         res.status(409).json({
@@ -235,13 +221,10 @@ app.post(
         return;
       }
       const verificationToken = randomUUID();
-      // update verification token in the database
-      console.log('Updating verification token for user ID:', id);
       await db.execute(
         'UPDATE usersInfo SET verification_token = ? WHERE id = ?',
         [verificationToken, id],
       );
-      console.log('verificationToken', verificationToken);
       sendVerificationUpdateEmail({ to: email, token: verificationToken });
 
       res.status(201).json({
@@ -249,8 +232,7 @@ app.post(
       });
       return;
     } catch (err) {
-      console.error('Registration error:', err);
-      res.status(500).json({ error: 'Internal server error.' });
+      res.status(400).json({ error: 'Internal server error.' });
       return;
     }
   },
@@ -319,8 +301,7 @@ app.post(
       });
       return;
     } catch (err) {
-      console.error('Registration error:', err);
-      res.status(500).json({ error: 'Internal server error.' });
+      res.status(400).json({ error: 'Internal server error.' });
       return;
     }
   },
@@ -368,8 +349,7 @@ app.post('/api/login', async (req: Request<{}, {}, LoginRequest>, res) => {
       token,
     });
   } catch (err) {
-    console.error('Login error:', err);
-    res.status(500).json({ error: 'Internal server error.' });
+    res.status(400).json({ error: 'Internal server error.' });
   }
 });
 app.post('/api/like', async (req: Request<{}, {}, RelationRequest>, res) => {
@@ -413,7 +393,7 @@ app.post('/api/like', async (req: Request<{}, {}, RelationRequest>, res) => {
     });
     return;
   } catch (err) {
-    res.status(500).json({ error: 'Internal server error.' });
+    res.status(400).json({ error: 'Internal server error.' });
     return;
   }
 });
@@ -464,7 +444,7 @@ app.post('/api/unlike', async (req: Request<{}, {}, RelationRequest>, res) => {
     });
     return;
   } catch (err) {
-    res.status(500).json({ error: 'Internal server error.' });
+    res.status(400).json({ error: 'Internal server error.' });
     return;
   }
 });
@@ -513,7 +493,7 @@ app.post(
       });
       return;
     } catch (err) {
-      res.status(500).json({ error: 'Internal server error.' });
+      res.status(400).json({ error: 'Internal server error.' });
       return;
     }
   },
@@ -548,7 +528,7 @@ app.post('/api/block', async (req: Request<{}, {}, RelationRequest>, res) => {
     });
     return;
   } catch (err) {
-    res.status(500).json({ error: 'Internal server error.' });
+    res.status(400).json({ error: 'Internal server error.' });
     return;
   }
 });
@@ -628,7 +608,7 @@ app.post(
       });
       return;
     } catch (err) {
-      res.status(500).json({ error: 'Internal server error.' });
+      res.status(400).json({ error: 'Internal server error.' });
       return;
     }
   },
@@ -658,8 +638,7 @@ app.get('/api/verifyUpdateEmail', async (req, res) => {
     );
     res.redirect('http://localhost:5173/verifyemail?status=success');
   } catch (err) {
-    console.error('Verification error:', err);
-    res.status(500).send('Internal server error.');
+    res.status(400).send('Internal server error.');
   }
 });
 app.get('/api/verify', async (req, res) => {
@@ -687,8 +666,7 @@ app.get('/api/verify', async (req, res) => {
     );
     res.redirect('http://localhost:5173/verifyemail?status=success');
   } catch (err) {
-    console.error('Verification error:', err);
-    res.status(500).send('Internal server error.');
+    res.status(400).send('Internal server error.');
   }
 });
 
@@ -703,7 +681,6 @@ app.get('/api/getAllUsers/:userHasProfile', async (req, res) => {
   try {
     decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
   } catch (err) {
-    console.error('JWT verification error:', err);
     res.status(401).json({ error: 'Invalid token' });
     return;
   }
@@ -763,8 +740,8 @@ app.get('/api/getAllUsers/:userHasProfile', async (req, res) => {
         .map((user) => {
           const commonTagsCount = user.interests
             ? user.interests.filter((interest) =>
-                currentUser.interests.includes(interest),
-              ).length
+              currentUser.interests.includes(interest),
+            ).length
             : 0;
           const currentUserWithParsedLocation = {
             ...currentUser,
@@ -860,7 +837,6 @@ app.get('/api/me', async (req, res) => {
   try {
     decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
   } catch (err) {
-    console.error('JWT verification error:', err);
     res.status(401).json({ error: 'Invalid token' });
     return;
   }
@@ -871,7 +847,6 @@ app.get('/api/me', async (req, res) => {
   const user = row[0] as UserInfo;
 
   if (!user) {
-    console.error('User not found for token:', token);
     res.status(404).json({ error: 'User not found' });
     return;
   }
@@ -912,7 +887,6 @@ app.get(
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
     } catch (err) {
-      console.error('JWT verification error:', err);
       res.status(401).json({ error: 'Invalid token' });
       return;
     }
@@ -927,7 +901,6 @@ app.get(
     const targetUser = row[0] as UserInfo;
 
     if (!targetUser) {
-      console.error('User not found for token:', token);
       res.status(404).json({ message: 'User not found' });
       return;
     }
@@ -982,7 +955,6 @@ app.get('/api/conversationUserInfo/:targetUserId', async (req, res) => {
   try {
     decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
   } catch (err) {
-    console.error('JWT verification error:', err);
     res.status(401).json({ error: 'Invalid token' });
     return;
   }
@@ -992,7 +964,6 @@ app.get('/api/conversationUserInfo/:targetUserId', async (req, res) => {
   const targetUser = row[0] as UserInfo;
 
   if (!targetUser) {
-    console.error('User not found for token:', token);
     res.status(404).json({ message: 'User not found' });
     return;
   }
@@ -1019,7 +990,6 @@ app.get('/api/likes/:actorUserId', async (req, res) => {
   try {
     decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
   } catch (err) {
-    console.error('JWT verification error:', err);
     res.status(401).json({ error: 'Invalid token' });
     return;
   }
@@ -1081,7 +1051,6 @@ app.get('/api/viewers/:targetUserId', async (req, res) => {
   try {
     decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
   } catch (err) {
-    console.error('JWT verification error:', err);
     res.status(401).json({ error: 'Invalid token' });
     return;
   }
@@ -1144,7 +1113,6 @@ app.get('/api/matches/:actorUserId', async (req, res) => {
   try {
     decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
   } catch (err) {
-    console.error('JWT verification error:', err);
     res.status(401).json({ error: 'Invalid token' });
     return;
   }
@@ -1318,7 +1286,6 @@ app.post(
     const user = row[0] as UserInfo;
 
     if (!user) {
-      console.error('User not found for email:', email);
       res.status(404).json({ error: 'User not found' });
       return;
     }
@@ -1332,8 +1299,7 @@ app.post(
         res.status(200).json({ message: 'Email sent successfully' });
       })
       .catch((error) => {
-        console.error('Error sending email:', error);
-        res.status(500).json({ error: 'Failed to send email' });
+        res.status(400).json({ error: 'Failed to send email' });
       });
     return;
   },
@@ -1354,7 +1320,6 @@ app.post(
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
     } catch (err) {
-      console.error('JWT verification error:', err);
       res.status(401).json({ error: 'Invalid token' });
       return;
     }
@@ -1363,7 +1328,6 @@ app.post(
       'UPDATE usersInfo SET password = ?, verification_token = NULL WHERE id = ?',
       [hashedPassword, decoded.userId],
     );
-    console.log('Password updated successfully for user ID:', decoded.userId);
     res.status(200).json({ message: 'Password updated successfully' });
     return;
   },
@@ -1408,8 +1372,7 @@ app.put(
       });
       return;
     } catch (err) {
-      console.error('Update error:', err);
-      res.status(500).json({ error: 'Internal server error.' });
+      res.status(400).json({ error: 'Internal server error.' });
       return;
     }
   },
@@ -1515,8 +1478,7 @@ app.put(
       });
       return;
     } catch (err) {
-      console.error('Update error:', err);
-      res.status(500).json({ error: 'Internal server error.' });
+      res.status(400).json({ error: 'Internal server error.' });
       return;
     }
   },
@@ -1638,7 +1600,6 @@ export async function sendForgotPasswordMail({
 
 io.on('connection', (socket) => {
   const userId = socket.handshake.auth.userId;
-  console.log(`User ${userId} connected`);
   db.execute('UPDATE usersInfo SET isOnline = 1 WHERE id = ?', [userId]);
 
   io.emit('userStatus', {
@@ -1650,7 +1611,6 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', async () => {
     const userId = socket.handshake.auth.userId;
-    console.log(`User ${userId} disconnected`);
     await db.execute(
       'UPDATE usersInfo SET isOnline = 0, lastOnline = NOW() WHERE id = ?',
       [userId],
