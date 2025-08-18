@@ -758,8 +758,8 @@ app.get('/api/getAllUsers', async (req, res) => {
     .map((user) => {
       const commonTagsCount = user.interests
         ? user.interests.filter((interest) =>
-            currentUser.interests.includes(interest),
-          ).length
+          currentUser.interests.includes(interest),
+        ).length
         : 0;
       const currentUserWithParsedLocation = {
         ...currentUser,

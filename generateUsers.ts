@@ -60,13 +60,17 @@ async function downloadImage(url: string, filepath: string): Promise<void> {
 }
 
 async function main() {
-  // Connect to MySQL (adjust credentials)
   const connection = await mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "ayoub123",
+    host: "127.0.0.1", // TODO:
+    user: "root", // TODO: 
+    password: "ayoub123", // TODO:
     multipleStatements: true,
   });
+  await connection.query("CREATE DATABASE IF NOT EXISTS testdb");
+  console.log("✅ Database ensured: testdb");
+
+  await connection.changeUser({ database: "testdb" });
+  console.log("✅ Now connected to testdb");
 
   // Create database + tables
   const schemaSQL = `
@@ -159,11 +163,11 @@ async function main() {
     );
 
 
-    const CASABLANCA_LAT = 33.5731;
-    const CASABLANCA_LON = -7.5898;
+    // const CASABLANCA_LAT = 33.5731;
+    // const CASABLANCA_LON = -7.5898;
 
-    // const BENGUERIR_LAT = 32.2526;
-    // const BENGUERIR_LON = -7.8726;
+    const BENGUERIR_LAT = 32.2526;
+    const BENGUERIR_LON = -7.8726;
     let latitude: number, longitude: number;
 
     if (userId <= 200) {
@@ -172,18 +176,18 @@ async function main() {
       const angle = Math.random() * 2 * Math.PI;
       const distance = Math.sqrt(Math.random()) * maxDistanceKm;
       const latOffset = (distance / 111.32) * Math.cos(angle);
-      const lonOffset = (distance / (111.32 * Math.cos(CASABLANCA_LAT * Math.PI / 180))) * Math.sin(angle);
-      latitude = +(CASABLANCA_LAT + latOffset).toFixed(6);
-      longitude = +(CASABLANCA_LON + lonOffset).toFixed(6);
+      const lonOffset = (distance / (111.32 * Math.cos(BENGUERIR_LAT * Math.PI / 180))) * Math.sin(angle);
+      latitude = +(BENGUERIR_LAT + latOffset).toFixed(6);
+      longitude = +(BENGUERIR_LON + lonOffset).toFixed(6);
     } else {
       // remaining users a bit farther (e.g., 200 km)
       const maxDistanceKm = 200;
       const angle = Math.random() * 2 * Math.PI;
       const distance = Math.sqrt(Math.random()) * maxDistanceKm;
       const latOffset = (distance / 111.32) * Math.cos(angle);
-      const lonOffset = (distance / (111.32 * Math.cos(CASABLANCA_LAT * Math.PI / 180))) * Math.sin(angle);
-      latitude = +(CASABLANCA_LAT + latOffset).toFixed(6);
-      longitude = +(CASABLANCA_LON + lonOffset).toFixed(6);
+      const lonOffset = (distance / (111.32 * Math.cos(BENGUERIR_LAT * Math.PI / 180))) * Math.sin(angle);
+      latitude = +(BENGUERIR_LAT + latOffset).toFixed(6);
+      longitude = +(BENGUERIR_LON + lonOffset).toFixed(6);
     }
 
     const locationObj = {
