@@ -9,7 +9,6 @@ import {
   isValidSexualPreference,
 } from '../../../shared/Helpers';
 import {
-  DropdownFormField,
   DropdownFormFieldGender,
   DropdownFormFieldSexualPreference,
 } from '../components/FormFields/DropdownFormField';

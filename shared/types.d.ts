@@ -116,3 +116,9 @@ export type MessageRequest = {
   targetUserId: number;
   message: Message;
 };
+
+export type ReportCardType = {
+  userId: number;
+  username: string;
+  totalReports: number;
+};

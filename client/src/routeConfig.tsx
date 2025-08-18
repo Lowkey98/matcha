@@ -19,6 +19,7 @@ import EditProfile from './routes/EditProfile';
 import UserProfile from './routes/UserProfile';
 import VerifyEmail from './components/VerifyEmail';
 import UpdateEmail from './components/UpdateEmail';
+import Administrator from './routes/Administrator';
 const routeConfig = [
   {
     path: '/',
@@ -107,8 +108,12 @@ const routeConfig = [
       },
       {
         path: '/updateEmail',
-        element: <UpdateEmail />, 
-      }
+        element: <UpdateEmail />,
+      },
+      {
+        path: '/administrator',
+        element: <Administrator />,
+      },
     ],
   },
 ];
