@@ -7,6 +7,7 @@ import type {
   MessageRequest,
   RegisterRequest,
   RelationRequest,
+  ReportCardType,
   UpdatedUserProfileInfos,
   UserConversationsSummary,
   UserInfo,
@@ -349,6 +350,25 @@ export async function getMatches({
   }
 }
 
+export async function getReports({
+  token,
+}: {
+  token: string;
+}): Promise<ReportCardType[]> {
+  try {
+    const response = await fetch(`${HOST}/api/reports`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) throw await response.json();
+    const jsonResponse = await response.json();
+    return jsonResponse as ReportCardType[];
+  } catch (error) {
+    throw error;
+  }
+}
+
 export async function getUserConversationsSummary({
   userId,
   token,
@@ -492,6 +512,26 @@ export async function block({
 }: RelationRequest & { token: string }) {
   try {
     await fetch(`${HOST}/api/block`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ actorUserId, targetUserId }),
+    });
+    return;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function report({
+  actorUserId,
+  targetUserId,
+  token,
+}: RelationRequest & { token: string }) {
+  try {
+    await fetch(`${HOST}/api/report`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -4,7 +4,6 @@ export type UserInfoBase = {
   username: string;
   firstName: string;
   lastName: string;
-
 };
 export type CreateProfileBase = {
   age: number;
@@ -35,6 +34,7 @@ export type UserInfoWithRelation = UserInfo & {
   isViewProfile: boolean;
   isBlock: boolean;
   isOnline: boolean;
+  isReported: boolean;
   alreadyLiked: boolean;
 };
 
@@ -115,4 +115,10 @@ export type MessageRequest = {
   actorUserId: number;
   targetUserId: number;
   message: Message;
+};
+
+export type ReportCardType = {
+  userId: number;
+  username: string;
+  totalReports: number;
 };

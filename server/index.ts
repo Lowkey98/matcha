@@ -25,6 +25,7 @@ import type {
   UserInfoBase,
   UserInfoWithRelation,
   UserInfoWithCommonTags,
+  ReportCardType,
 } from '../shared/types.ts';
 import {
   isValidAge,
@@ -533,6 +534,30 @@ app.post('/api/block', async (req: Request<{}, {}, RelationRequest>, res) => {
   }
 });
 
+app.post('/api/report', async (req: Request<{}, {}, RelationRequest>, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  const { actorUserId, targetUserId } = req.body;
+  try {
+    await db.execute(
+      `INSERT INTO relations (actor_user_id, target_user_id, is_reported)
+   VALUES (?, ?, ?)
+   ON DUPLICATE KEY UPDATE is_reported = VALUES(is_reported)`,
+      [actorUserId, targetUserId, true],
+    );
+    res.status(201).json({
+      message: 'report applied successfully.',
+    });
+    return;
+  } catch (err) {
+    res.status(500).json({ error: 'Internal server error.' });
+    return;
+  }
+});
+
 app.post(
   '/api/sendMessage',
   async (req: Request<{}, {}, MessageRequest>, res) => {
@@ -924,6 +949,7 @@ app.get(
       isBlock: false,
       isOnline: targetUser['isOnline'],
       lastOnline: targetUser['lastOnline'],
+      isReported: false,
       fameRate: targetUser['fame_rate'],
       alreadyLiked,
     };
@@ -938,6 +964,7 @@ app.get(
       userInfo.isLike = relation['is_like'];
       userInfo.isBlock = relation['is_block'];
       userInfo.isViewProfile = relation['is_view_profile'];
+      userInfo.isReported = relation['is_reported'];
     }
     res.json(userInfo);
     return;
@@ -1275,6 +1302,61 @@ app.get(
     return;
   },
 );
+
+app.get('/api/reports', async (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
+  } catch (err) {
+    console.error('JWT verification error:', err);
+    res.status(401).json({ error: 'Invalid token' });
+    return;
+  }
+  const [reportsRow] = await db.execute<[]>(
+    'SELECT * FROM relations WHERE is_reported = ?',
+    [true],
+  );
+  const filteredReports: ReportCardType[] = [];
+  if (reportsRow) {
+    const reportsFilteredByTargetUserId: {
+      targetUserId: number;
+      isReported: boolean;
+    }[] = reportsRow.map((reports) => {
+      return {
+        targetUserId: reports['target_user_id'],
+        isReported: reports['is_reported'],
+      };
+    });
+
+    for (let index = 0; index < reportsFilteredByTargetUserId.length; index++) {
+      const report = reportsFilteredByTargetUserId[index];
+      const reportExistsInFiltredReports = filteredReports.find(
+        (filtredReport) => filtredReport.userId === report.targetUserId,
+      );
+      if (reportExistsInFiltredReports) {
+        reportExistsInFiltredReports.totalReports += 1;
+      } else {
+        const [reportedUserInfoRow] = await db.execute(
+          'SELECT * FROM usersInfo WHERE id = ?',
+          [report.targetUserId],
+        );
+        const reportedUserInfo = reportedUserInfoRow[0] as UserInfo;
+        filteredReports.push({
+          userId: report.targetUserId,
+          username: reportedUserInfo.username,
+          totalReports: 1,
+        });
+      }
+    }
+  }
+  res.status(201).json(filteredReports);
+  return;
+});
 
 app.post(
   '/api/sendForgotPasswordMail',
