@@ -40,7 +40,7 @@ export default function Root() {
             });
             setSocket(socketClient);
           } else {
-            navigate('/createProfile');
+            if (location.pathname !== '/explore') navigate('/createProfile');
           }
           setLoading(false);
         })

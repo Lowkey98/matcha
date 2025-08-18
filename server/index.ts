@@ -48,15 +48,15 @@ export function getDistanceInKilometers({
   const distanceInMeters =
     targetUserInfo?.location && actorUserInfo?.location
       ? getDistance(
-        {
-          latitude: actorUserInfo.location.latitude,
-          longitude: actorUserInfo.location.longitude,
-        },
-        {
-          latitude: targetUserInfo.location.latitude,
-          longitude: targetUserInfo.location.longitude,
-        },
-      )
+          {
+            latitude: actorUserInfo.location.latitude,
+            longitude: actorUserInfo.location.longitude,
+          },
+          {
+            latitude: targetUserInfo.location.latitude,
+            longitude: targetUserInfo.location.longitude,
+          },
+        )
       : undefined;
   const distanceInKilometers = distanceInMeters
     ? Math.round(distanceInMeters / 1000)
@@ -692,9 +692,9 @@ app.get('/api/verify', async (req, res) => {
   }
 });
 
-app.get('/api/getAllUsers', async (req, res) => {
+app.get('/api/getAllUsers/:userHasProfile', async (req, res) => {
   const token = req.headers.authorization?.split(' ')[1];
-
+  const userHasProfile: boolean = req.params.userHasProfile === 'true';
   if (!token) {
     res.status(401).json({ error: 'Unauthorized' });
     return;
@@ -707,102 +707,147 @@ app.get('/api/getAllUsers', async (req, res) => {
     res.status(401).json({ error: 'Invalid token' });
     return;
   }
-  const [UserRow] = await db.execute('SELECT * FROM usersInfo WHERE id = ?', [
-    decoded.userId,
-  ]);
-  const currentUser = UserRow[0] as UserInfo;
-  const oppositeGender = currentUser.gender === 'male' ? 'female' : 'male';
-  const [row] = await db.execute(
-    'SELECT * FROM usersInfo WHERE gender = ? AND age IS NOT NULL',
-    [oppositeGender],
-  );
-  const usersInfoFromDB = row as UserInfo[];
-  const unpromisedMappedWithBlockedUsers = usersInfoFromDB.map(async (user) => {
-    const [relationRow] = await db.execute(
-      'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ? AND is_block = ?',
-      [currentUser.id, user.id, true],
+  if (userHasProfile) {
+    const [UserRow] = await db.execute('SELECT * FROM usersInfo WHERE id = ?', [
+      decoded.userId,
+    ]);
+    const currentUser = UserRow[0] as UserInfo;
+    const oppositeGender = currentUser.gender === 'male' ? 'female' : 'male';
+    const [row] = await db.execute(
+      'SELECT * FROM usersInfo WHERE gender = ? AND age IS NOT NULL',
+      [oppositeGender],
     );
-    const [targetRelationRow] = await db.execute(
-      'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ? AND is_block = ?',
-      [user.id, currentUser.id, true],
+    const usersInfoFromDB = row as UserInfo[];
+    const unpromisedMappedWithBlockedUsers = usersInfoFromDB.map(
+      async (user) => {
+        const [relationRow] = await db.execute(
+          'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ? AND is_block = ?',
+          [currentUser.id, user.id, true],
+        );
+        const [targetRelationRow] = await db.execute(
+          'SELECT * FROM relations WHERE actor_user_id = ? AND target_user_id = ? AND is_block = ?',
+          [user.id, currentUser.id, true],
+        );
+        const isBlocked = relationRow[0] || targetRelationRow[0] ? true : false;
+        // if (user.id === currentUser.id) return false; // don't include self in the
+        return isBlocked ? null : user;
+      },
     );
-    const isBlocked = relationRow[0] || targetRelationRow[0] ? true : false;
-    // if (user.id === currentUser.id) return false; // don't include self in the
-    return isBlocked ? null : user;
-  });
-  const mappedWithBlockedUsers = await Promise.all(
-    unpromisedMappedWithBlockedUsers,
-  );
-  const filteredWithBlockedUsers = mappedWithBlockedUsers.filter(Boolean);
-  const usersInfoWithCommon: UserInfoWithCommonTags[] = filteredWithBlockedUsers
-    .map((user) => {
-      return {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        firstName: user['first_name'],
-        lastName: user['last_name'],
-        age: user['age'],
-        gender: user['gender'],
-        sexualPreference: user['sexual_preference'],
-        interests: user['interests'],
-        biography: user['biography'],
-        imagesUrls: user['images_urls'],
-        location:
-          typeof user['location'] === 'string' && JSON.parse(user['location']),
-        fameRate: user['fame_rate'],
-        isOnline: user['isOnline'],
-        lastOnline: user['lastOnline'],
-      };
-    })
-    .map((user) => {
-      const commonTagsCount = user.interests
-        ? user.interests.filter((interest) =>
-            currentUser.interests.includes(interest),
-          ).length
-        : 0;
-      const currentUserWithParsedLocation = {
-        ...currentUser,
-        location:
-          typeof currentUser.location === 'string'
-            ? JSON.parse(currentUser.location)
-            : currentUser.location,
-      };
-      const distanceBetween = getDistanceInKilometers({
-        actorUserInfo: user,
-        targetUserInfo: currentUserWithParsedLocation,
-      });
-      return {
-        ...user,
-        commonTagsCount,
-        distanceBetween,
-      };
-    }).filter(
-      (user) =>
-        user.distanceBetween !== undefined &&
-        user.distanceBetween <= MAX_DISTANCE_KM,
-    )
-  const MINIMUM_SUGGESTED_USERS = 50 // TODO: global
-  if (usersInfoWithCommon.length < MINIMUM_SUGGESTED_USERS) {
-    res.json(usersInfoWithCommon);
-    return
-  }
-  const groupedByTags: Record<number, UserInfoWithCommonTags[]> = {
-    0: [], 1: [], 2: [], 3: [], 4: [], 5: [] // 5 is number of possible tags
-  };
+    const mappedWithBlockedUsers = await Promise.all(
+      unpromisedMappedWithBlockedUsers,
+    );
+    const filteredWithBlockedUsers = mappedWithBlockedUsers.filter(Boolean);
+    const usersInfoWithCommon: UserInfoWithCommonTags[] =
+      filteredWithBlockedUsers
+        .map((user) => {
+          return {
+            id: user.id,
+            email: user.email,
+            username: user.username,
+            firstName: user['first_name'],
+            lastName: user['last_name'],
+            age: user['age'],
+            gender: user['gender'],
+            sexualPreference: user['sexual_preference'],
+            interests: user['interests'],
+            biography: user['biography'],
+            imagesUrls: user['images_urls'],
+            location:
+              typeof user['location'] === 'string' &&
+              JSON.parse(user['location']),
+            fameRate: user['fame_rate'],
+            isOnline: user['isOnline'],
+            lastOnline: user['lastOnline'],
+          };
+        })
+        .map((user) => {
+          const commonTagsCount = user.interests
+            ? user.interests.filter((interest) =>
+                currentUser.interests.includes(interest),
+              ).length
+            : 0;
+          const currentUserWithParsedLocation = {
+            ...currentUser,
+            location:
+              typeof currentUser.location === 'string'
+                ? JSON.parse(currentUser.location)
+                : currentUser.location,
+          };
+          const distanceBetween = getDistanceInKilometers({
+            actorUserInfo: user,
+            targetUserInfo: currentUserWithParsedLocation,
+          });
+          return {
+            ...user,
+            commonTagsCount,
+            distanceBetween,
+          };
+        })
+        .filter(
+          (user) =>
+            user.distanceBetween !== undefined &&
+            user.distanceBetween <= MAX_DISTANCE_KM,
+        );
+    const MINIMUM_SUGGESTED_USERS = 50; // TODO: global
+    if (usersInfoWithCommon.length < MINIMUM_SUGGESTED_USERS) {
+      res.json(usersInfoWithCommon);
+      return;
+    }
+    const groupedByTags: Record<number, UserInfoWithCommonTags[]> = {
+      0: [],
+      1: [],
+      2: [],
+      3: [],
+      4: [],
+      5: [], // 5 is number of possible tags
+    };
 
-  for (const user of usersInfoWithCommon) {
-    groupedByTags[user.commonTagsCount].push(user);
-  }
-  let selectedUsers: UserInfoWithCommonTags[] = [];
-  for (let i = 5; i >= 0; i--) {
-    if (selectedUsers.length < MINIMUM_SUGGESTED_USERS) {
-      selectedUsers = selectedUsers.concat(groupedByTags[i]);
+    for (const user of usersInfoWithCommon) {
+      groupedByTags[user.commonTagsCount].push(user);
+    }
+    let selectedUsers: UserInfoWithCommonTags[] = [];
+    for (let i = 5; i >= 0; i--) {
+      if (selectedUsers.length < MINIMUM_SUGGESTED_USERS) {
+        selectedUsers = selectedUsers.concat(groupedByTags[i]);
+      }
+    }
+    selectedUsers.sort((a, b) => b.fameRate - a.fameRate);
+    res.json(selectedUsers);
+    return;
+  } else {
+    const [usersInfoRow] = await db.execute<[]>(
+      'SELECT * FROM usersInfo ORDER BY RAND() LIMIT 4',
+      [decoded.userId],
+    );
+    if (usersInfoRow.length) {
+      const randomUsersInfoWithCommon: UserInfoWithCommonTags[] =
+        usersInfoRow.map((userInfo: UserInfo) => {
+          return {
+            id: userInfo.id,
+            email: userInfo.email,
+            username: userInfo.username,
+            firstName: userInfo['first_name'],
+            lastName: userInfo['last_name'],
+            age: userInfo['age'],
+            gender: userInfo['gender'],
+            sexualPreference: userInfo['sexual_preference'],
+            interests: userInfo['interests'],
+            biography: userInfo['biography'],
+            imagesUrls: userInfo['images_urls'],
+            location:
+              typeof userInfo['location'] === 'string' &&
+              JSON.parse(userInfo['location']),
+            fameRate: userInfo['fame_rate'],
+            isOnline: userInfo['isOnline'],
+            lastOnline: userInfo['lastOnline'],
+            commonTagsCount: 0,
+            distanceBetween: 0,
+          };
+        });
+      res.json(randomUsersInfoWithCommon);
+      return;
     }
   }
-  selectedUsers.sort((a, b) => b.fameRate - a.fameRate);
-  res.json(selectedUsers);
-  return;
 });
 
 app.get('/api/me', async (req, res) => {
