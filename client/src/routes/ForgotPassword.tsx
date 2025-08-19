@@ -12,17 +12,16 @@ export default function ForgotPassword() {
   const [email, setEmail] = useState<string>('');
   const [formTrail, setFormTrial] = useState<boolean>(false);
   const [isEmailSent, setIsEmailSent] = useState<boolean>(false);
-  const [errorEmailDoesntExist, setEmailDoesntExist] = useState<
-    string | null
-  >(null);
-  const navigate = useNavigate();
+  const [errorEmailDoesntExist, setEmailDoesntExist] = useState<string | null>(
+    null,
+  );
   const errorEmail: string | null =
     isValidEmail(email) ?? errorEmailDoesntExist;
 
   function handleClickResetPassword() {
     let errorForm: boolean = false;
+    setFormTrial(true);
     if (errorEmail) {
-      setFormTrial(true);
       errorForm = true;
     }
     if (!errorForm) {
@@ -36,9 +35,6 @@ export default function ForgotPassword() {
           setEmailDoesntExist("This email doesn't exist.");
         });
     }
-  }
-  function handleClickGoToLogin() {
-    navigate('/login');
   }
   return (
     <>
