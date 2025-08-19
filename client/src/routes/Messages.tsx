@@ -150,7 +150,7 @@ export default function Messages() {
     if (socket) {
       socket.on('receiveMessage', (receivedMessage: Message) => {
         if (
-          receivedMessage.userId === currentTargetUser.id ||
+          receivedMessage.userId === currentTargetUser?.id ||
           receivedMessage.userId === user?.id ||
           !usersConversationsSummary.length
         ) {
