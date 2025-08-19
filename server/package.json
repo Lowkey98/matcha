@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "nodemon --exec ts-node-esm index.ts",
+    "dev": "nodemon --exec tsx index.ts",
     "generateUsers": "tsc generateUsers.ts"
   },
   "keywords": [],

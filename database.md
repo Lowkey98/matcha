@@ -49,3 +49,13 @@ SELECT \* FROM usersInfo;
 ALTER TABLE usersInfo
 ADD COLUMN isOnline BOOLEAN DEFAULT FALSE,
 ADD COLUMN lastOnline DATETIME DEFAULT CURRENT_TIMESTAMP;
+
+
+
+
+// 1
+docker run --name mysql-container   -e MYSQL_ROOT_PASSWORD=matcha123   -e MYSQL_ROOT_HOST=%   -p 3306:3306   -d mysql:latest
+// 2
+generate
+// 3
+.env

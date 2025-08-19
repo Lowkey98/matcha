@@ -63,7 +63,7 @@ async function main() {
   const connection = await mysql.createConnection({
     host: "127.0.0.1", // TODO:
     user: "root", // TODO: 
-    password: "ayoub123", // TODO:
+    password: "matcha123", // TODO:
     multipleStatements: true,
   });
   await connection.query("CREATE DATABASE IF NOT EXISTS testdb");
@@ -107,6 +107,7 @@ async function main() {
       is_like BOOLEAN DEFAULT FALSE,
       is_view_profile BOOLEAN DEFAULT FALSE,
       is_block BOOLEAN DEFAULT FALSE,
+      is_reported BOOLEAN DEFAULT FALSE,
       CONSTRAINT unique_actor_target UNIQUE (actor_user_id, target_user_id)
     );
 
